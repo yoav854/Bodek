@@ -1,244 +1,729 @@
-<!DOCTYPE html>
-<html lang="he" dir="rtl">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>בודק התלוש – חישוב שכר ממשמרות ביומן Google</title>
-<meta name="description" content="בודק התלוש מחשב את השכר הצפוי לפי משמרות העבודה ביומן Google שלך, כדי שתוכל לבדוק את תלוש השכר.">
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+<title>בודק התלוש</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@500;700;800&family=Assistant:wght@400;600;700&display=swap">
 <style>
-  :root { --bg:#f6f8fa; --card:#fff; --text:#1f2328; --muted:#59636e; --line:#d1d9e0; --accent:#1a7f37; --accent-ink:#fff; --warn:#9a6700; }
-  @media (prefers-color-scheme: dark) { :root { --bg:#0d1117; --card:#161b22; --text:#e6edf3; --muted:#9198a1; --line:#30363d; --accent:#2ea043; --accent-ink:#fff; --warn:#d29922; } }
-  * { box-sizing: border-box; }
-  body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif; background:var(--bg); color:var(--text); line-height:1.6; }
-  .wrap { max-width: 860px; margin: 0 auto; padding: 24px 16px 48px; }
-  header h1 { margin:0 0 4px; font-size: 2rem; }
-  header p { margin:0; color:var(--muted); }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; margin-top:20px; }
-  h2 { margin:0 0 12px; font-size:1.2rem; }
-  ol, ul { padding-inline-start: 1.3rem; margin: 0; }
-  .row { display:flex; flex-wrap:wrap; gap:12px; align-items:end; }
-  label { display:flex; flex-direction:column; gap:4px; font-size:.9rem; color:var(--muted); }
-  input, select { font: inherit; padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--text); min-width: 140px; }
-  button { font: inherit; padding:9px 16px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--text); cursor:pointer; }
-  button.primary { background:var(--accent); border-color:var(--accent); color:var(--accent-ink); font-weight:600; }
-  button:disabled { opacity:.5; cursor:default; }
-  table { width:100%; border-collapse: collapse; margin-top: 12px; font-variant-numeric: tabular-nums; }
-  th, td { text-align:right; padding:8px 6px; border-bottom:1px solid var(--line); }
-  th { color:var(--muted); font-weight:600; font-size:.9rem; }
-  .totals { display:grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap:12px; margin-top:16px; }
-  .stat { border:1px solid var(--line); border-radius:10px; padding:12px; }
-  .stat b { display:block; font-size:1.4rem; }
-  .stat span { color:var(--muted); font-size:.85rem; }
-  .muted { color:var(--muted); }
-  .status { margin-top:10px; color:var(--muted); min-height:1.4em; }
-  .status.err { color:var(--warn); }
-  footer { margin-top:32px; color:var(--muted); font-size:.9rem; }
-  a { color:#0969da; } @media (prefers-color-scheme: dark) { a { color:#4493f8; } }
-  .table-scroll { overflow-x:auto; }
+/* Layout: one narrow column built for a phone, steps first, verdict card, then the evidence */
+:root{
+  --bg:#f3f5f4; --surface:#ffffff; --ink:#15211d; --muted:#5b6b65; --line:#d9e0dd;
+  --accent:#0f6b5c; --accent-ink:#ffffff; --accent-soft:#e2f0ec;
+  --ok:#1d7a46; --ok-soft:#e3f3e9; --gap:#b4361f; --gap-soft:#fbe9e4; --info:#8a6a12; --info-soft:#f8f0d9;
+  --net:#0f6b5c; --tax:#c4572f; --fund:#3d63a8; --emp:#8fb4e8; --union:#9a8a5c;
+  --display:"Heebo","Assistant",system-ui,sans-serif; --body:"Assistant","Heebo",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1513; --surface:#17201d; --ink:#e6eeeb; --muted:#9aaba5; --line:#2b3733;
+  --accent:#4fbfa8; --accent-ink:#06231d; --accent-soft:#183a33;
+  --ok:#5fcf8c; --ok-soft:#173527; --gap:#f08a72; --gap-soft:#3a1f19; --info:#e2c063; --info-soft:#352d16;
+  --net:#4fbfa8; --tax:#ec8a62; --fund:#7d9fe0; --emp:#3e5f99; --union:#c2b07c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1513; --surface:#17201d; --ink:#e6eeeb; --muted:#9aaba5; --line:#2b3733;
+  --accent:#4fbfa8; --accent-ink:#06231d; --accent-soft:#183a33;
+  --ok:#5fcf8c; --ok-soft:#173527; --gap:#f08a72; --gap-soft:#3a1f19; --info:#e2c063; --info-soft:#352d16;
+  --net:#4fbfa8; --tax:#ec8a62; --fund:#7d9fe0; --emp:#3e5f99; --union:#c2b07c; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;direction:rtl;margin:0}
+.wrap{max-width:640px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
+h1{font-size:1.9rem;font-weight:800;letter-spacing:-.01em}
+h2{font-size:1.2rem;font-weight:700}
+h3{font-size:1rem;font-weight:700}
+p{margin:0}
+.lead{color:var(--muted)}
+.num{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.step{display:flex;gap:10px;align-items:baseline}
+.step b{font-family:var(--display);color:var(--accent);font-size:.85rem;letter-spacing:.06em}
+.note{font-size:.88rem;color:var(--muted)}
+.drop{border:2px dashed var(--line);border-radius:12px;padding:18px;text-align:center;display:flex;flex-direction:column;gap:6px;align-items:center;cursor:pointer}
+.drop:focus-within,.drop:hover{border-color:var(--accent)}
+.drop input{position:absolute;opacity:0;width:1px;height:1px}
+.filename{font-weight:700}
+button,.btn{font:inherit;font-weight:700;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:9px 14px;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-size:1.05rem;padding:12px 18px}
+.primary:disabled{opacity:.5;cursor:not-allowed}
+.wrap>*,.panel>*,.panel>div>*{min-width:0}
+.counters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.counters.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.counter{border:1px solid var(--line);border-radius:12px;padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.counter.on{border-color:var(--accent);background:var(--accent-soft)}
+.counter .lbl{font-family:var(--display);font-weight:700;font-size:.95rem;line-height:1.2}
+.counter .time{font-size:.82rem;color:var(--muted);direction:ltr;unicode-bidi:isolate;font-variant-numeric:tabular-nums}
+.stepper{display:flex;align-items:center;gap:6px}
+.stepper button{width:34px;height:34px;padding:0;border-radius:50%;font-size:1.15rem;line-height:1}
+.stepper output{min-width:1.6em;font-family:var(--display);font-weight:800;font-size:1.25rem;font-variant-numeric:tabular-nums}
+.cal{display:flex;flex-direction:column;gap:10px;padding:12px;border-radius:12px;background:var(--accent-soft)}
+.cal input[type=month]{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
+#calBtn{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.callist{display:flex;flex-direction:column;gap:6px}
+.calitem{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 10px;border-radius:10px;background:var(--surface);border:1px solid var(--line);cursor:pointer}
+.calitem input{width:18px;height:18px;accent-color:var(--accent)}
+.calitem .t{display:flex;flex-direction:column;min-width:0}
+.calitem .t span:last-child{font-size:.82rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.calitem .kind{font-size:.78rem;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
+.calitem.off{opacity:.55}
+.others{display:flex;flex-direction:column;gap:6px}
+.others summary{cursor:pointer;font-weight:600;color:var(--accent);padding:6px 2px}
+.others .callist{margin-top:6px}
+.sub{font-size:.85rem;color:var(--muted);font-weight:600;letter-spacing:.03em}
+.total-hours{font-weight:700}
+@media (max-width:520px){.counters{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.err{background:var(--gap-soft);color:var(--gap);border-radius:10px;padding:12px;font-weight:600}
+.verdict{border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:6px}
+.verdict.ok{background:var(--ok-soft)} .verdict.gap{background:var(--gap-soft)}
+.verdict .big{font-family:var(--display);font-size:1.6rem;font-weight:800}
+.verdict.ok .big{color:var(--ok)} .verdict.gap .big{color:var(--gap)}
+.tag{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.05em;padding:2px 8px;border-radius:999px;background:var(--info-soft);color:var(--info)}
+.checks{display:flex;flex-direction:column;gap:10px}
+.check{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;padding:12px;border-radius:12px;border:1px solid var(--line)}
+.dot{font-size:.75rem;font-weight:800;padding:3px 8px;border-radius:999px;white-space:nowrap}
+.check.ok .dot{background:var(--ok-soft);color:var(--ok)}
+.check.gap .dot{background:var(--gap-soft);color:var(--gap)}
+.check.info .dot,.check.skip .dot{background:var(--info-soft);color:var(--info)}
+.check .body{display:flex;flex-direction:column;gap:3px;min-width:0}
+.check .why{font-size:.9rem;color:var(--muted)}
+.check .amt{font-weight:700;color:var(--gap)}
+.bar{display:flex;height:28px;border-radius:8px;overflow:hidden;background:var(--line)}
+.bar span{display:block;height:100%}
+.legend{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:.95rem}
+.legend .k{display:flex;gap:8px;align-items:center}
+.sw{width:12px;height:12px;border-radius:3px;flex:none}
+.legend .sum{border-top:1px solid var(--line);padding-top:6px;font-weight:700}
+.tbl-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:right}
+th{color:var(--muted);font-weight:600;font-size:.8rem;letter-spacing:.03em}
+td.n{font-variant-numeric:tabular-nums;direction:ltr;text-align:left}
+th.n{text-align:left}
+textarea{font:inherit;width:100%;min-height:200px;border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--bg);color:var(--ink);resize:vertical}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row input[type=text]{font:inherit;flex:1;min-width:0;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+footer{font-size:.82rem;color:var(--muted);display:flex;flex-direction:column;gap:6px}
+footer ul{margin:0;padding-inline-start:18px}
+@media (prefers-reduced-motion:no-preference){.panel{transition:border-color .2s}}
+.drop{position:relative}
 </style>
-</head>
-<body>
+
 <div class="wrap">
-  <header>
+  <header style="display:flex;flex-direction:column;gap:6px">
     <h1>בודק התלוש</h1>
-    <p>מחשב את השכר הצפוי לפי משמרות העבודה ביומן Google שלך – כדי לבדוק שהתלוש נכון.</p>
+    <p class="lead">לעובדי שמירה ואבטחה. מעלים את התלוש, מוסיפים את המשמרות, ורואים אם שולם לך כל מה שמגיע לך ולאן הלך הכסף.</p>
+    <p class="note">את המשמרות אפשר לספור בלחיצות, או למלא אוטומטית מיומן Google. החיבור ליומן הוא לצפייה בלבד, והאירועים נקראים רק במכשיר שלך.</p>
   </header>
 
-  <section class="card">
-    <h2>איך זה עובד</h2>
-    <ol>
-      <li>רושמים כל משמרת ביומן Google כאירוע שהכותרת שלו מתחילה במילה <strong>"משמרת"</strong>.</li>
-      <li>מתחברים עם Google ומאשרים <strong>צפייה בלבד</strong> באירועי היומן.</li>
-      <li>בוחרים חודש ושכר שעתי – והאתר מחשב שעות, שעות נוספות (125% / 150%) ושכר ברוטו צפוי.</li>
-    </ol>
-    <p class="muted" style="margin-top:12px">כל החישוב נעשה בדפדפן שלך. שום מידע לא נשלח לשרת ולא נשמר אצלנו. פרטים ב<a href="privacy.html">מדיניות הפרטיות</a>.</p>
+  <section class="panel" aria-labelledby="s1">
+    <div class="step"><b>שלב 1</b><h2 id="s1">התלוש</h2></div>
+    <label class="drop" for="pdf">
+      <input type="file" id="pdf" accept="application/pdf,.pdf">
+      <span class="filename" id="fname">בחר את קובץ ה-PDF של התלוש</span>
+      <span class="note">הקובץ המקורי שקיבלת ממערכת השכר, לא צילום. הוא נקרא רק במכשיר שלך ולא נשלח לשום מקום. תעודת זהות וחשבון בנק לא נקראים.</span>
+    </label>
   </section>
 
-  <section class="card">
-    <h2>חישוב</h2>
-    <div class="row">
-      <button id="signin" class="primary" disabled>התחברות עם Google</button>
-      <button id="signout" hidden>התנתקות</button>
-    </div>
-    <div class="row" style="margin-top:16px">
-      <label>חודש <input type="month" id="month"></label>
-      <label>שכר שעתי (₪) <input type="number" id="wage" min="0" step="0.01" value="35.40"></label>
-      <label>מילת מפתח בכותרת <input type="text" id="keyword" value="משמרת"></label>
-      <button id="calc">חשב</button>
-    </div>
-    <h2 style="margin-top:24px">הוספת משמרת ידנית</h2>
-    <p class="muted" style="margin:0 0 8px;font-size:.9rem">אפשר לרשום משמרות גם בלי להתחבר ליומן. הן נשמרות בדפדפן שלך בלבד ומצטרפות לחישוב.</p>
-    <div class="row">
-      <label>תאריך <input type="date" id="mDate"></label>
-      <label>התחלה <input type="time" id="mStart" value="07:00"></label>
-      <label>סיום <input type="time" id="mEnd" value="15:00"></label>
-      <label>הערה <input type="text" id="mNote" placeholder="לא חובה"></label>
-      <button id="mAdd">הוסף משמרת</button>
-    </div>
-    <div id="status" class="status"></div>
-    <div id="results" hidden>
-      <div class="totals">
-        <div class="stat"><b id="tShifts">0</b><span>משמרות</span></div>
-        <div class="stat"><b id="tHours">0</b><span>סה"כ שעות</span></div>
-        <div class="stat"><b id="tOver">0</b><span>שעות נוספות</span></div>
-        <div class="stat"><b id="tPay">₪0</b><span>שכר ברוטו צפוי</span></div>
+  <section class="panel" aria-labelledby="s2">
+    <div class="step"><b>שלב 2</b><h2 id="s2">כמה משמרות עבדת בחודש הזה</h2></div>
+    <div class="cal">
+      <div class="row">
+        <button type="button" id="calBtn">מלא מהיומן של גוגל</button>
+        <label for="calMonth" class="note">חודש</label><input type="month" id="calMonth">
       </div>
-      <div class="table-scroll">
-        <table>
-          <thead><tr><th>תאריך</th><th>משמרת</th><th>מקור</th><th>שעות</th><th>100%</th><th>125%</th><th>150%</th><th>שכר</th><th></th></tr></thead>
-          <tbody id="rows"></tbody>
-        </table>
-      </div>
-      <p class="muted" style="font-size:.85rem">החישוב הוא הערכה: 8 שעות ראשונות במשמרת ב-100%, שעתיים נוספות ב-125%, ומעבר לכך 150%. הוא לא כולל תוספות, נסיעות או ניכויים.</p>
+      <p class="note" id="calMsg" role="status" hidden></p>
+      <div id="calList" class="callist" hidden></div>
     </div>
+    <span class="sub">או ספור בעצמך:</span>
+    <div class="counters" id="row1"></div>
+    <span class="sub">משמרות בשבת ובחג (משמרת שכולה בתוך השבת או החג)</span>
+    <div class="counters two" id="row2"></div>
+    <p class="note">סך הכל: <span class="total-hours num" id="shiftCount">0</span> משמרות · <span class="total-hours num" id="shiftHours">0</span> שעות</p>
   </section>
 
-  <footer>
-    <a href="privacy.html">מדיניות פרטיות</a> · יצירת קשר: <a href="mailto:yoav854@gmail.com">yoav854@gmail.com</a>
-  </footer>
+  <button class="primary" id="go" type="button" disabled>בדוק את התלוש</button>
+  <div id="error" class="err" hidden></div>
+
+  <section id="result" class="panel" aria-live="polite"></section>
+
+  <footer id="rulesBox"></footer>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
-const CLIENT_ID = '603702704625-604hbttroul1aus8vc4o9pev9bvoeeqr.apps.googleusercontent.com';
-const SCOPE = 'https://www.googleapis.com/auth/calendar.events.readonly';
-let tokenClient = null, accessToken = null;
+/* ===================== כללים (עם תאריך תחילת תוקף ומקור) ===================== */
+const RULESETS = [{
+  from: '2026-04-01',
+  label: 'כללי ענף השמירה מ-1.4.2026',
+  sectorMinHour: 39.11, generalMinHour: 35.40,
+  havraaPerHour: 1.64, havraaCapHours: 182,
+  pensionEmployee: 0.07, pensionEmployer: 0.075, severance: 0.0833, severanceExtras: 0.06,
+  kerenEmployer: 0.075, kerenEmployee: 0.025, travelDayCap: 22.60,
+  sources: [
+    ['שכר מינימום בענף, עובד רגיל: 39.11 ₪ לשעה', 'כל זכות, עודכן 19.4.2026', true],
+    ['שכר מינימום כללי: 35.40 ₪ לשעה', 'כל זכות, עודכן 17.8.2026', true],
+    ['הבראה: 1.64 ₪ לכל שעת עבודה (ותק עד 3 שנים)', 'חישוב מתוך 7 ימי הבראה בשנה', false],
+    ['פנסיה: עובד 7%, מעסיק 7.5%. פיצויים 8.33%, ועל שעות נוספות 6%', 'צו ההרחבה בענף השמירה', true],
+    ['קרן השתלמות: מעסיק 7.5%, עובד 2.5%, לפי שכר המינימום הכללי ולא לפי השכר בפועל', 'צו ההרחבה בענף השמירה', true],
+    ['נסיעות: עד 22.60 ₪ ליום', 'מקור משני, לא אומת מול נוסח הצו', false],
+  ]
+}];
+function rulesFor(ym){ // ym = 'YYYY-MM'
+  const d = ym + '-01';
+  let r = null; for (const s of RULESETS) if (s.from <= d) r = s; return r;
+}
 
-const $ = id => document.getElementById(id);
-const store = {
-  get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch { return d; } },
-  set(k, v) { try { localStorage.setItem(k, v); } catch {} }
-};
+/* ===================== עזרים ===================== */
+const r2 = x => Math.round((x + Number.EPSILON) * 100) / 100;
+const fmt = n => (n == null || isNaN(n)) ? '—' : n.toLocaleString('he-IL', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const fmtH = n => (Math.round(n * 100) / 100).toLocaleString('he-IL', {maximumFractionDigits: 2});
+const HEB = /[֐-׿]/;
+const isNum = s => /^-?[\d,]*\.?\d+%?$/.test(s.trim());
+const toNum = s => parseFloat(s.replace(/,/g, '').replace('%', ''));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const MONTHS = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
 
-// defaults
-(function init() {
-  const now = new Date();
-  $('month').value = store.get('bodek.month', `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`);
-  $('wage').value = store.get('bodek.wage', $('wage').value);
-  $('keyword').value = store.get('bodek.keyword', $('keyword').value);
-  ['month', 'wage', 'keyword'].forEach(id => $(id).addEventListener('change', e => store.set('bodek.' + id, e.target.value)));
-})();
+/* ===================== קריאת ה-PDF ===================== */
+// מנוע הקריאה הכבד נטען רק כשמעלים תלוש, ולא בפתיחת הדף
+const PDFJS_WORKER = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+async function readPdfItems(buf){
+  if (!window.pdfjsWorker) await loadScript(PDFJS_WORKER);
+  return readPdfItemsOnce(buf.slice());
+}
+async function readPdfItemsOnce(buf){
+  const pdf = await pdfjsLib.getDocument({data: buf, disableFontFace: true, isEvalSupported: false}).promise;
+  const pages = [];
+  for (let p = 1; p <= pdf.numPages; p++){
+    const page = await pdf.getPage(p);
+    const tc = await page.getTextContent();
+    pages.push(tc.items.filter(i => i.str && i.str.trim()).map(i => ({s: i.str.trim(), x: i.transform[4], y: i.transform[5]})));
+  }
+  return pages;
+}
+// תלושים שבהם העברית שמורה בקידוד ישן: מתרגמים את התווים לעברית
+function fixEncoding(s){
+  if (HEB.test(s)) return s;
+  const codes = [...s].map(c => c.charCodeAt(0));
+  if (!codes.some(c => c >= 0xC0 && c <= 0xFF)) return s;
+  if (codes.some(c => c > 255)) return s;
+  try { return new TextDecoder('windows-1255').decode(new Uint8Array(codes)); } catch(e){ return s; }
+}
+// עברית ששמורה מימין לשמאל הפוך: הופכים את הטקסט, ומחזירים מספרים וסימנים לסדר הנכון
+function unreverse(s){
+  if (!HEB.test(s)) return s;
+  let r = [...s].reverse().join('');
+  r = r.replace(/[^֐-׿\s]+/g, m => [...m].reverse().join(''));
+  return r.replace(/[()]/g, c => c === '(' ? ')' : '(');
+}
+function normalize(pages){
+  pages = pages.map(items => items.map(i => ({...i, s: fixEncoding(i.s)})));
+  const all = pages.flat().map(i => i.s).join(' ');
+  const reversed = /שולת|וטנ /.test(all) && !/תלוש/.test(all);
+  if (reversed) pages = pages.map(items => items.map(i => ({...i, s: unreverse(i.s)})));
+  return pages;
+}
+function toRows(items){
+  const sorted = [...items].sort((a, b) => b.y - a.y);
+  const rows = [];
+  for (const it of sorted){
+    const last = rows[rows.length - 1];
+    if (last && Math.abs(last.y - it.y) < 2) last.items.push(it); else rows.push({y: it.y, items: [it]});
+  }
+  rows.forEach(r => { r.items.sort((a, b) => b.x - a.x); r.text = r.items.map(i => i.s).join(' '); });
+  return rows;
+}
 
-function setStatus(msg, err) { $('status').textContent = msg || ''; $('status').className = 'status' + (err ? ' err' : ''); }
-
-window.addEventListener('load', () => {
-  const wait = setInterval(() => {
-    if (window.google && google.accounts && google.accounts.oauth2) {
-      clearInterval(wait);
-      tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: SCOPE,
-        callback: resp => {
-          if (resp.error) { setStatus('ההתחברות נכשלה: ' + resp.error, true); return; }
-          accessToken = resp.access_token;
-          $('signin').hidden = true; $('signout').hidden = false;
-          setStatus('מחובר. בחר חודש ולחץ "חשב".');
-          calculate();
-        }
-      });
-      $('signin').disabled = false;
+/* ===================== מבנה תלוש: רשף ביטחון ===================== */
+function parseReshef(pages){
+  const p1 = toRows(pages[0]);
+  const p2 = pages[1] ? toRows(pages[1]) : [];
+  const leftVal = (re) => { // תווית בעמודה השמאלית, והמספר משמאלה
+    for (const r of p1){
+      const lab = r.items.find(i => i.x < 200 && re.test(i.s));
+      if (!lab) continue;
+      const v = r.items.filter(i => i.x < lab.x && isNum(i.s)).sort((a, b) => b.x - a.x)[0];
+      if (v) return toNum(v.s);
     }
-  }, 200);
-});
+    return null;
+  };
+  const yOf = (re) => { const r = p1.find(r => re.test(r.text)); return r ? r.y : null; };
 
-$('signin').addEventListener('click', () => tokenClient && tokenClient.requestAccessToken({ prompt: '' }));
-$('signout').addEventListener('click', () => {
-  if (accessToken) google.accounts.oauth2.revoke(accessToken, () => {});
-  accessToken = null;
-  $('signin').hidden = false; $('signout').hidden = true;
-  setStatus('התנתקת. משמרות ידניות עדיין זמינות.'); calculate();
-});
-$('calc').addEventListener('click', calculate);
+  // חודש
+  let month = null;
+  const mRow = p1.find(r => /תלוש שכר לחודש/.test(r.text));
+  if (mRow){
+    const mi = MONTHS.findIndex(m => mRow.text.includes(m));
+    const yr = (mRow.text.match(/20\d\d/) || [])[0];
+    if (mi >= 0 && yr) month = {ym: `${yr}-${String(mi + 1).padStart(2, '0')}`, label: `${MONTHS[mi]} ${yr}`};
+  }
+  // שורות התשלומים
+  const yPay = yOf(/פרוט התשלומים/), yDed = yOf(/ניכויי חובה - מסים/);
+  const lines = [];
+  for (const r of p1){
+    if (yPay == null || yDed == null || r.y >= yPay || r.y <= yDed) continue;
+    const it = r.items.filter(i => i.x > 170);
+    const code = it.filter(i => i.x > 545).map(i => i.s).join('');
+    if (!/\d/.test(code)) continue;
+    let name = it.filter(i => i.x > 360 && i.x <= 545 && !(/^\d+(\.\d+)?$/.test(i.s))).map(i => i.s).join(' ').replace(/\*/g, '').trim();
+    if (/הבראה/.test(name)) name = 'הבראה';
+    const nums = it.filter(i => i.x <= 360 && isNum(i.s));
+    const pick = (lo, hi) => { const n = nums.find(i => i.x >= lo && i.x < hi); return n ? toNum(n.s) : null; };
+    lines.push({code, name, rate: pick(290, 360), qty: pick(235, 290), amount: pick(165, 235)});
+  }
+  // ניכויי חובה
+  const deductions = {};
+  const hRow = p1.find(r => /מס הכנסה/.test(r.text) && /ביטוח לאומי/.test(r.text) && r.items.some(i => i.x > 400));
+  if (hRow){
+    const heads = hRow.items.filter(i => i.x > 200);
+    const vRow = p1.find(r => r.y < hRow.y && r.y > hRow.y - 25 && r.items.some(i => i.x > 200 && isNum(i.s)));
+    if (vRow) for (const v of vRow.items.filter(i => i.x > 200 && isNum(i.s))){
+      const h = heads.reduce((a, b) => Math.abs(b.x - v.x) < Math.abs(a.x - v.x) ? b : a);
+      deductions[h.s] = toNum(v.s);
+    }
+  }
+  // קופות גמל וקרן השתלמות
+  const yFundTop = yOf(/קופות גמל\/ביטוחים/), yFundEnd = yOf(/סה"כ ניכויים והפרשות לקופות/);
+  const funds = [];
+  for (const r of p1){
+    if (yFundTop == null || yFundEnd == null || r.y >= yFundTop || r.y <= yFundEnd) continue;
+    const it = r.items.filter(i => i.x > 160);
+    if (!it.some(i => i.x > 545 && /^\d+$/.test(i.s))) continue;
+    const type = it.filter(i => i.x > 330 && i.x < 500 && HEB.test(i.s)).map(i => i.s).join(' ');
+    const fundName = it.filter(i => i.x >= 500 && i.x < 548 && HEB.test(i.s)).map(i => i.s).join(' ');
+    const nums = it.filter(i => i.x < 330 && isNum(i.s));
+    const pick = (lo, hi) => { const n = nums.find(i => i.x >= lo && i.x < hi); return n ? toNum(n.s) : null; };
+    funds.push({type, fundName, base: pick(265, 330), employer: pick(215, 265) || 0, employee: pick(160, 215) || 0});
+  }
+  // עמוד 2
+  let kerenBase = null, minHour = null, seniorityMonths = null;
+  for (const r of p2){
+    if (/לקרן השתלמות/.test(r.text)){ const n = r.items.find(i => isNum(i.s)); if (n) kerenBase = toNum(n.s); }
+    if (/מינימום/.test(r.text)){ const i = r.items.findIndex(i => /לשעה/.test(i.s)); if (i >= 0 && r.items[i + 1] && isNum(r.items[i + 1].s)) minHour = toNum(r.items[i + 1].s); }
+    if (/ותק אצל המעסיק/.test(r.text)){ const ns = r.items.filter(i => /^\d+$/.test(i.s)).map(i => +i.s); if (ns.length >= 2) seniorityMonths = ns[0] * 12 + ns[1]; }
+  }
+  const startRow = p1.find(r => /תחילת עבודה/.test(r.text));
+  const startDate = startRow ? (startRow.text.match(/\d\d\/\d\d\/\d{4}/) || [null])[0] : null;
+  const credit = (() => { for (const r of p1){ const lab = r.items.find(i => i.s === 'נקודות זיכוי'); if (lab){ const v = r.items.find(i => i.x < lab.x && isNum(i.s)); if (v) return toNum(v.s); } } return null; })();
 
-// ---- manual shifts (stored in this browser only) ----
-function loadManual() { try { return JSON.parse(store.get('bodek.manual', '[]')) || []; } catch { return []; } }
-function saveManual(list) { store.set('bodek.manual', JSON.stringify(list)); }
-$('mDate').value = new Date().toISOString().slice(0, 10);
-$('mAdd').addEventListener('click', () => {
-  const date = $('mDate').value, start = $('mStart').value, end = $('mEnd').value;
-  if (!date || !start || !end) { setStatus('יש למלא תאריך, שעת התחלה ושעת סיום.', true); return; }
-  const list = loadManual();
-  list.push({ id: Date.now().toString(36), date, start, end, note: $('mNote').value.trim() });
-  saveManual(list);
-  $('mNote').value = '';
-  $('month').value = date.slice(0, 7); store.set('bodek.month', $('month').value);
-  calculate();
-});
-$('rows').addEventListener('click', e => {
-  const id = e.target.dataset && e.target.dataset.del;
-  if (!id) return;
-  saveManual(loadManual().filter(s => s.id !== id));
-  calculate();
-});
-function manualToRange(s) {
-  const st = new Date(`${s.date}T${s.start}`);
-  let en = new Date(`${s.date}T${s.end}`);
-  if (en <= st) en = new Date(en.getTime() + 864e5); // overnight shift
-  return [st, en];
+  return {
+    employer: 'רשף ביטחון', month, lines, deductions, funds, kerenBase, minHour, seniorityMonths, startDate, creditPoints: credit,
+    gross: leftVal(/^סך-כל התשלומים$/), net: leftVal(/^נטו לתשלום$/),
+    taxTotal: leftVal(/^ניכויי חובה-מסים$/), fundTotal: leftVal(/^ניכוי קופות גמל$/), otherTotal: leftVal(/^ניכויים שונים$/) || 0,
+  };
 }
-const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-
-async function fetchEvents(timeMin, timeMax) {
-  let items = [], pageToken = '';
-  do {
-    const p = new URLSearchParams({ timeMin, timeMax, singleEvents: 'true', orderBy: 'startTime', maxResults: '250' });
-    if (pageToken) p.set('pageToken', pageToken);
-    const r = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events?' + p, { headers: { Authorization: 'Bearer ' + accessToken } });
-    if (r.status === 401) { accessToken = null; throw new Error('פג תוקף ההתחברות – התחבר מחדש.'); }
-    if (!r.ok) throw new Error('שגיאה בקריאת היומן (' + r.status + ')');
-    const j = await r.json();
-    items = items.concat(j.items || []);
-    pageToken = j.nextPageToken || '';
-  } while (pageToken);
-  return items;
+function parsePayslip(pages){
+  pages = normalize(pages);
+  const all = pages.flat().map(i => i.s).join(' ');
+  if (/רשף/.test(all)) return parseReshef(pages);
+  return null;
 }
 
-const fmt = n => n.toLocaleString('he-IL', { maximumFractionDigits: 2 });
-const money = n => '₪' + n.toLocaleString('he-IL', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+/* ===================== משמרות ===================== */
+// shabbat = שעות המשמרת שנופלות בזמן שבת או חג (שבת: שישי 16:00 עד ראשון 04:00)
+const SHIFT_TYPES = [
+  {id: 'morning', label: 'בוקר', time: '07:00–15:00', hours: 8, shabbat: 0, row: 1},
+  {id: 'noon', label: 'צהריים', time: '15:00–23:00', hours: 8, shabbat: 0, row: 1},
+  {id: 'night', label: 'לילה', time: '23:00–07:00', hours: 8, shabbat: 0, row: 1},
+  {id: 'motzash', label: 'לילה של מוצ"ש', time: '23:00–07:00', hours: 8, shabbat: 5, row: 1},
+  {id: 'shabbat', label: 'שבת', time: '8 שעות', hours: 8, shabbat: 8, row: 2},
+  {id: 'holiday', label: 'חג', time: '8 שעות', hours: 8, shabbat: 8, row: 2},
+];
+function summarize(counts){
+  let count = 0, hours = 0, shabbat = 0;
+  for (const t of SHIFT_TYPES){ const n = counts[t.id] || 0; count += n; hours += n * t.hours; shabbat += n * t.shabbat; }
+  return {count, hours, shabbat};
+}
 
-async function calculate() {
-  const [y, m] = $('month').value.split('-').map(Number);
-  if (!y || !m) { setStatus('בחר חודש.', true); return; }
-  const wage = parseFloat($('wage').value) || 0;
-  const kw = $('keyword').value.trim();
-  const start = new Date(y, m - 1, 1), end = new Date(y, m, 1);
+/* ===================== הבדיקה ===================== */
+function check(slip, shifts){
+  const R = rulesFor(slip.month ? slip.month.ym : '1900-01');
+  const out = {checks: [], gapTotal: 0, rules: R};
+  const add = (status, title, why, amount) => { out.checks.push({status, title, why, amount}); if (status === 'gap' && amount > 0) out.gapTotal = r2(out.gapTotal + amount); };
+  if (!R){ add('skip', 'אין כללים לחודש הזה', 'הבדיקה מכירה את הכללים רק מאפריל 2026.'); return out; }
+
+  const L = slip.lines;
+  const base = L.find(l => /שכר יסוד/.test(l.name));
+  const extra = L.filter(l => /%/.test(l.name) && l.qty != null);
+  const havraa = L.find(l => /הבראה/.test(l.name));
+  const travel = L.find(l => /נסיעות/.test(l.name));
+  const days = L.find(l => /ימי עבודה/.test(l.name));
+  const paidHours = (base ? base.qty : 0) + extra.reduce((a, l) => a + l.qty, 0);
+  const S = summarize(shifts);
+  const worked = S.hours, shabbatWorked = S.shabbat, hasShifts = S.count > 0;
+  const rate = base ? base.rate : null;
+
+  // 1. שעות
+  if (!hasShifts) add('skip', 'שעות עבודה', `בתלוש שולמו ${fmtH(paidHours)} שעות. לא הוזנו משמרות, ולכן אין למה להשוות.`);
+  else if (worked - paidHours > 0.01){
+    const miss = worked - paidHours;
+    add('gap', 'חסרות שעות', `עבדת ${fmtH(worked)} שעות לפי המשמרות, ושולמו ${fmtH(paidHours)}. חסרות ${fmtH(miss)} שעות, לפי ${fmt(rate)} ₪ לשעה.`, r2(miss * rate));
+  } else if (paidHours - worked > 0.01){
+    add('info', 'שעות עבודה', `ספרת ${fmtH(worked)} שעות, ובתלוש שולמו ${fmtH(paidHours)}, כלומר ${fmtH(paidHours - worked)} שעות יותר. כנראה חסרה משמרת ברשימה. בדוק את המשמרות למעלה ותקן, ואז בדוק שוב.`);
+  } else add('ok', 'שעות עבודה', `עבדת ${fmtH(worked)} שעות, ושולמו ${fmtH(paidHours)}` + (extra.length ? ` (מתוכן ${fmtH(extra.reduce((a, l) => a + l.qty, 0))} בתוספת: ${extra.map(l => l.name.replace(/שעות\s*/, '')).join(', ')}).` : '.'));
+
+  // 2. שבת
+  if (hasShifts && shabbatWorked > 0){
+    const paidSh = L.filter(l => /שבת|חג|מנוחה/.test(l.name)).reduce((a, l) => a + (l.qty || 0), 0);
+    if (paidSh + 0.01 < shabbatWorked){
+      const miss = shabbatWorked - paidSh;
+      add('gap', 'תוספת שבת וחג', `עבדת ${fmtH(shabbatWorked)} שעות בשבת ובחג (כולל 5 שעות בכל לילה של מוצ"ש, עד 04:00), ובתלוש מופיעות ${fmtH(paidSh)}. על כל שעה כזו מגיעה תוספת של 50%.`, r2(miss * rate * 0.5));
+    } else add('ok', 'תוספת שבת וחג', `${fmtH(shabbatWorked)} שעות בשבת ובחג, ושולמו עם תוספת.`);
+  }
+
+  // 3. תעריף
+  if (rate != null){
+    if (rate + 0.001 < R.sectorMinHour) add('gap', 'תעריף לשעה', `התעריף שלך ${fmt(rate)} ₪, נמוך משכר המינימום בענף (${fmt(R.sectorMinHour)} ₪).`, r2((R.sectorMinHour - rate) * (base.qty || 0)));
+    else add('ok', 'תעריף לשעה', `${fmt(rate)} ₪ לשעה, מעל שכר המינימום בענף (${fmt(R.sectorMinHour)} ₪). אם עברת הכשרה של מאבטח, ייתכן שמגיע לך תעריף גבוה יותר.`);
+  }
+
+  // 4. הבראה
+  const hH = Math.min(hasShifts ? worked : paidHours, R.havraaCapHours);
+  const expH = r2(hH * R.havraaPerHour), paidHv = havraa ? havraa.amount : 0;
+  if (expH - paidHv > 0.5) add('gap', 'הבראה', `מגיע ${fmt(R.havraaPerHour)} ₪ על כל שעת עבודה: ${fmtH(hH)} שעות הן ${fmt(expH)} ₪. שולמו ${fmt(paidHv)} ₪` + (havraa && havraa.qty ? `, על ${fmtH(havraa.qty)} שעות בלבד.` : '.'), r2(expH - paidHv));
+  else add('ok', 'הבראה', `שולמו ${fmt(paidHv)} ₪, כמו שמגיע על ${fmtH(hH)} שעות.`);
+
+  // 5. ימי עבודה ונסיעות
+  if (travel){
+    const dCount = days ? days.qty : null;
+    const nShiftDays = S.count;
+    const perDay = dCount ? r2(travel.amount / dCount) : null;
+    if (hasShifts && dCount != null && nShiftDays > dCount){
+      add('gap', 'נסיעות', `עבדת ${nShiftDays} ימים, והנסיעות שולמו על ${dCount} ימים בלבד (${fmt(perDay)} ₪ ליום).`, r2((nShiftDays - dCount) * perDay));
+    } else add('ok', 'נסיעות', `${fmt(travel.amount)} ₪` + (dCount ? ` על ${fmtH(dCount)} ימי עבודה, ${fmt(perDay)} ₪ ליום.` : '.'));
+  }
+
+  // 6. פנסיה ופיצויים
+  const pens = slip.funds.filter(f => /קצבה|פנסי|תגמולים|פיצויים/.test(f.type));
+  const isExtraBase = f => extra.some(l => Math.abs(l.amount - f.base) < 0.02);
+  const isTravelBase = f => travel && Math.abs(travel.amount - f.base) < 0.02;
+  let pensionGap = 0; const pensionNotes = [];
+  for (const f of pens){
+    if (isTravelBase(f)) continue;
+    const sev = /פיצויים/.test(f.type);
+    const expEr = r2(f.base * (sev ? (isExtraBase(f) ? R.severanceExtras : R.severance) : R.pensionEmployer));
+    const expEe = sev ? 0 : r2(f.base * R.pensionEmployee);
+    if (expEr - f.employer > 0.1){ pensionGap += expEr - f.employer; pensionNotes.push(`${sev ? 'פיצויים' : 'פנסיה'} על ${fmt(f.base)} ₪: הופקדו ${fmt(f.employer)} ₪ במקום ${fmt(expEr)} ₪`); }
+    if (!sev && Math.abs(expEe - f.employee) > 0.1) pensionNotes.push(`ניכוי עובד על ${fmt(f.base)} ₪: ${fmt(f.employee)} ₪, הצפוי ${fmt(expEe)} ₪`);
+  }
+  const mainP = pens.find(f => !/פיצויים/.test(f.type) && !isExtraBase(f) && !isTravelBase(f));
+  const pensBaseExp = r2((base ? base.amount : 0) + paidHv);
+  if (mainP && pensBaseExp - mainP.base > 0.5){ pensionGap += (pensBaseExp - mainP.base) * (R.pensionEmployer + R.severance); pensionNotes.push(`הפנסיה חושבה על ${fmt(mainP.base)} ₪, ושכר היסוד וההבראה הם ${fmt(pensBaseExp)} ₪`); }
+  if (!pens.length) add('info', 'פנסיה', 'אין הפרשה לפנסיה בתלוש הזה. לעובד חדש ההפרשה מתחילה לפעמים רק אחרי כמה חודשים. כדאי לברר.');
+  else if (pensionGap > 0.1) add('gap', 'פנסיה ופיצויים', pensionNotes.join('. ') + '.', r2(pensionGap));
+  else add('ok', 'פנסיה ופיצויים', `המעסיק הפריש ${fmt(pens.reduce((a, f) => a + f.employer, 0))} ₪ ונוכו ממך ${fmt(pens.reduce((a, f) => a + f.employee, 0))} ₪, לפי האחוזים בצו.` + (pensionNotes.length ? ' ' + pensionNotes.join('. ') + '.' : ''));
+
+  // 7. קרן השתלמות
+  const keren = slip.funds.find(f => /השתלמות/.test(f.type));
+  const kH = hasShifts ? worked : paidHours;
+  const kBaseExp = r2(kH * R.generalMinHour), kErExp = r2(kBaseExp * R.kerenEmployer);
+  if (!keren){
+    const waiting = slip.seniorityMonths != null && slip.seniorityMonths < 2;
+    add(waiting ? 'info' : 'gap', 'קרן השתלמות', waiting ? `אין הפקדה עדיין. בחודשיים הראשונים זה תקין, וההפקדה צריכה להגיע אחר כך גם על החודשים האלה (${fmt(kErExp)} ₪ מהמעסיק על החודש הזה).` : `לא הופקדה קרן השתלמות. לפי הצו המעסיק מפקיד 7.5% משכר המינימום על כל שעה: ${fmt(kErExp)} ₪ על החודש הזה.`, waiting ? 0 : kErExp);
+  } else if (kErExp - keren.employer > 0.5) add('gap', 'קרן השתלמות', `המעסיק הפקיד ${fmt(keren.employer)} ₪. לפי ${fmtH(kH)} שעות כפול שכר המינימום (${fmt(R.generalMinHour)} ₪) מגיע ${fmt(kErExp)} ₪.`, r2(kErExp - keren.employer));
+  else add('ok', 'קרן השתלמות', `המעסיק הפקיד ${fmt(keren.employer)} ₪ ונוכו ממך ${fmt(keren.employee)} ₪. הבסיס לפי הצו הוא שכר המינימום כפול השעות (${fmt(kBaseExp)} ₪), ובתלוש הבסיס ${fmt(keren.base)} ₪.`);
+
+  // 8. חשבון הנטו
+  const dedTotal = (slip.taxTotal || 0) + (slip.fundTotal || 0) + (slip.otherTotal || 0);
+  const netExp = r2((slip.gross || 0) - dedTotal);
+  if (slip.net != null && Math.abs(netExp - slip.net) > 0.05) add('gap', 'חשבון הנטו', `ברוטו ${fmt(slip.gross)} פחות ניכויים ${fmt(dedTotal)} הם ${fmt(netExp)} ₪, ובתלוש כתוב נטו ${fmt(slip.net)} ₪.`, r2(netExp - slip.net));
+  else add('ok', 'חשבון הנטו', `ברוטו ${fmt(slip.gross)} ₪ פחות ניכויים ${fmt(dedTotal)} ₪ שווה בדיוק לנטו ${fmt(slip.net)} ₪.`);
+
+  // 9. מס
+  add('skip', 'מס הכנסה וביטוח לאומי', 'מוצגים למטה בפירוט, אבל עדיין לא נבדקים. הבדיקה תלויה בנקודות הזיכוי ובמעסיקים נוספים שיש לך.');
+  return out;
+}
+
+/* ===================== תצוגה ===================== */
+function moneyBreakdown(slip){
+  const d = slip.deductions;
+  const tax = (d['מס הכנסה'] || 0), bl = (d['ביטוח לאומי'] || 0) + (d['ב"ל הפרשים'] || 0), health = (d['ביטוח בריאות'] || 0) + (d['בב"ר הפרשים'] || 0), union = d['דמי טיפול'] || 0;
+  const pensEe = slip.funds.filter(f => !/השתלמות/.test(f.type)).reduce((a, f) => a + f.employee, 0);
+  const kerenEe = slip.funds.filter(f => /השתלמות/.test(f.type)).reduce((a, f) => a + f.employee, 0);
+  const parts = [
+    ['נכנס לחשבון שלך', slip.net, 'var(--net)'],
+    ['פנסיה (חלק שלך)', pensEe, 'var(--fund)'],
+    ['קרן השתלמות (חלק שלך)', kerenEe, 'var(--emp)'],
+    ['ביטוח לאומי', bl, 'var(--tax)'],
+    ['ביטוח בריאות', health, 'var(--tax)'],
+    ['מס הכנסה', tax, 'var(--tax)'],
+    ['דמי טיפול לארגון העובדים', union, 'var(--union)'],
+  ].filter(p => p[1] > 0);
+  const total = parts.reduce((a, p) => a + p[1], 0);
+  const empPens = slip.funds.filter(f => !/השתלמות/.test(f.type)).reduce((a, f) => a + f.employer, 0);
+  const empKeren = slip.funds.filter(f => /השתלמות/.test(f.type)).reduce((a, f) => a + f.employer, 0);
+  return `
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <h3>לאן הלכו ${fmt(slip.gross)} ₪ ברוטו</h3>
+    <div class="bar" role="img" aria-label="חלוקת הברוטו">${parts.map(p => `<span style="width:${(p[1] / total * 100).toFixed(2)}%;background:${p[2]}" title="${esc(p[0])}"></span>`).join('')}</div>
+    <div class="legend">${parts.map(p => `<span class="k"><span class="sw" style="background:${p[2]}"></span>${esc(p[0])}</span><span class="num">${fmt(p[1])} ₪</span>`).join('')}</div>
+    <h3 style="margin-top:6px">המעסיק חוסך לך בנוסף, מעל הברוטו</h3>
+    <div class="legend">
+      <span class="k"><span class="sw" style="background:var(--fund)"></span>פנסיה ופיצויים</span><span class="num">${fmt(empPens)} ₪</span>
+      <span class="k"><span class="sw" style="background:var(--emp)"></span>קרן השתלמות</span><span class="num">${fmt(empKeren)} ₪</span>
+      <span class="sum">נחסך לך החודש בסך הכל</span><span class="sum num">${fmt(r2(empPens + empKeren + pensEe + kerenEe))} ₪</span>
+    </div>
+  </div>`;
+}
+function linesTable(slip){
+  return `<div style="display:flex;flex-direction:column;gap:8px"><h3>מה כתוב בתלוש</h3><div class="tbl-wrap"><table>
+    <thead><tr><th>שורה</th><th class="n">תעריף</th><th class="n">כמות</th><th class="n">סכום</th></tr></thead>
+    <tbody>${slip.lines.map(l => `<tr><td>${esc(l.name)}</td><td class="n">${l.rate != null ? fmt(l.rate) : ''}</td><td class="n">${l.qty != null ? fmtH(l.qty) : ''}</td><td class="n">${l.amount != null ? fmt(l.amount) : ''}</td></tr>`).join('')}
+    <tr><td><b>סך כל התשלומים</b></td><td></td><td></td><td class="n"><b>${fmt(slip.gross)}</b></td></tr></tbody></table></div></div>`;
+}
+function letter(slip, res){
+  const gaps = res.checks.filter(c => c.status === 'gap');
+  if (!gaps.length) return '';
+  const txt = `שלום,\nבדקתי את תלוש השכר שלי לחודש ${slip.month ? slip.month.label : ''}, ונראה לי שיש כמה דברים שכדאי לבדוק:\n` +
+    gaps.map(g => `• ${g.title}: ${g.why} (בערך ${fmt(g.amount)} ₪)`).join('\n') +
+    `\n\nייתכן שאני טועה, ואשמח אם תבדקו ותעדכנו אותי.\nתודה,\n`;
+  return `<div style="display:flex;flex-direction:column;gap:10px">
+    <h3>הודעה מוכנה למחלקת השכר</h3>
+    <p class="note">אפשר לערוך אותה לפני ששולחים. השם לא נשמר בשום מקום.</p>
+    <div class="row"><label for="sig" class="note">השם שלך</label><input type="text" id="sig" placeholder="שם מלא"></div>
+    <textarea id="letterText" aria-label="נוסח ההודעה">${esc(txt)}</textarea>
+    <div class="row"><button type="button" id="copyBtn">העתק את ההודעה</button><span class="note" id="copyMsg" role="status"></span></div>
+  </div>`;
+}
+function renderResult(slip, res, isExample){
+  const el = document.getElementById('result');
+  const gaps = res.checks.filter(c => c.status === 'gap');
+  const label = {ok: 'תקין', gap: 'חסר', info: 'לשים לב', skip: 'לא נבדק'};
+  el.innerHTML = `
+    ${isExample ? '<span class="tag">דוגמה: כך נראית תוצאה. המספרים לא של אדם אמיתי</span>' : ''}
+    <div style="display:flex;flex-direction:column;gap:2px"><h2>תלוש ${esc(slip.month ? slip.month.label : '')}</h2><p class="note">${esc(slip.employer)}${res.rules ? ' · נבדק לפי ' + esc(res.rules.label) : ''}</p></div>
+    <div class="verdict ${gaps.length ? 'gap' : 'ok'}">
+      <span class="big">${gaps.length ? `נראה שחסרים לך ${fmt(res.gapTotal)} ₪` : 'נראה ששולם לך כל מה שמגיע'}</span>
+      <span>${gaps.length ? `נמצאו ${gaps.length} פערים. הפירוט וההודעה למעסיק למטה.` : 'כל הבדיקות שנעשו יצאו תקינות.'}</span>
+    </div>
+    <div class="checks">${res.checks.map(c => `<div class="check ${c.status}"><span class="dot">${label[c.status]}</span><div class="body"><h3>${esc(c.title)}</h3><span class="why">${esc(c.why)}</span>${c.status === 'gap' && c.amount ? `<span class="amt">חסר: <span class="num">${fmt(c.amount)}</span> ₪</span>` : ''}</div></div>`).join('')}</div>
+    ${moneyBreakdown(slip)}
+    ${linesTable(slip)}
+    ${letter(slip, res)}`;
+  const sig = document.getElementById('sig'), ta = document.getElementById('letterText');
+  if (sig && ta){
+    const baseTxt = ta.value;
+    sig.addEventListener('input', () => { ta.value = baseTxt + sig.value; });
+    document.getElementById('copyBtn').addEventListener('click', () => {
+      const msg = document.getElementById('copyMsg');
+      navigator.clipboard.writeText(ta.value).then(() => { msg.textContent = 'ההודעה הועתקה'; }).catch(() => { ta.select(); msg.textContent = 'סמן והעתק ידנית'; });
+    });
+  }
+}
+function renderRules(){
+  const R = RULESETS[RULESETS.length - 1];
+  document.getElementById('rulesBox').innerHTML = `<h3>לפי מה בודקים</h3><ul>${R.sources.map(s => `<li>${esc(s[0])}. <span>${esc(s[1])}${s[2] ? '' : ' (לא אומת)'}</span></li>`).join('')}</ul>
+  <p>זה מידע כללי ולא ייעוץ משפטי. במקרה של ספק, פנה למחלקת השכר או לארגון העובדים.</p>
+  <p>התלוש והיומן נקראים רק במכשיר שלך. שום דבר לא נשלח לשרת ולא נשמר. <a href="https://yoav854.github.io/Bodek/privacy.html" target="_blank" rel="noopener">מדיניות הפרטיות</a></p>`;
+}
+
+/* ===================== מוני המשמרות ===================== */
+const counts = {};
+function buildCounters(){
+  for (const t of SHIFT_TYPES){
+    counts[t.id] = 0;
+    const box = document.createElement('div'); box.className = 'counter'; box.id = 'c-' + t.id;
+    box.innerHTML = `<span class="lbl">${esc(t.label)}</span><span class="time">${esc(t.time)}</span>
+      <div class="stepper"><button type="button" aria-label="פחות משמרות ${esc(t.label)}" data-d="-1">−</button><output id="n-${t.id}" aria-live="polite">0</output><button type="button" aria-label="עוד משמרת ${esc(t.label)}" data-d="1">+</button></div>`;
+    box.querySelectorAll('button').forEach(b => b.addEventListener('click', () => setCount(t.id, counts[t.id] + Number(b.dataset.d))));
+    document.getElementById(t.row === 1 ? 'row1' : 'row2').appendChild(box);
+  }
+}
+function setCount(id, n){
+  counts[id] = Math.max(0, n);
+  document.getElementById('n-' + id).textContent = counts[id];
+  document.getElementById('c-' + id).classList.toggle('on', counts[id] > 0);
+  updateTotals();
+}
+
+/* ===================== יומן ===================== */
+// מזהה הכניסה מ-Google Cloud (פרויקט Bodek-salary). הכניסה עובדת רק מהכתובת המאושרת
+const GOOGLE_CLIENT_ID = '603702704625-604hbttroul1aus8vc4o9pev9bvoeeqr.apps.googleusercontent.com';
+const ON_SITE = location.hostname === 'yoav854.github.io';
+const TYPE_LABEL = Object.fromEntries(SHIFT_TYPES.map(t => [t.id, t.label]));
+const DAY = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+const pad = n => String(n).padStart(2, '0');
+const dKey = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const hm = d => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+// מזהה משמרות לפי שעות: אירוע של 6 עד 13 שעות שמתחיל סביב 7, 15 או 23
+function classifyEvents(events, ym, holidays){
+  const items = [];
+  for (const e of events){
+    if (!e.start || !e.start.dateTime || !e.end || !e.end.dateTime || e.status === 'cancelled') continue;
+    const s = new Date(e.start.dateTime), en = new Date(e.end.dateTime);
+    if (isNaN(s) || isNaN(en) || !dKey(s).startsWith(ym)) continue;
+    const dur = (en - s) / 36e5;
+    const h = s.getHours(), dow = s.getDay();
+    const exact = (h >= 5 && h <= 10) ? 'morning' : (h >= 13 && h <= 17) ? 'noon' : (h >= 21 || h <= 1) ? 'night' : null;
+    const slot = exact || (h < 11 ? 'morning' : h < 19 ? 'noon' : 'night'); // לאירוע שלא במשמרת רגילה: הקרוב ביותר
+    let type = slot;
+    if (slot === 'night'){ if (dow === 6) type = 'motzash'; else if (dow === 5) type = 'shabbat'; }
+    else if (dow === 6 || (dow === 5 && slot === 'noon')) type = 'shabbat';
+    if (type !== 'shabbat' && type !== 'motzash'){
+      const next = new Date(s); next.setDate(next.getDate() + 1);
+      if (holidays.has(dKey(s)) || (slot === 'night' && holidays.has(dKey(next)))) type = 'holiday'; // ביום החג, או בלילה שבו החג נכנס
+    }
+    const title = e.summary || '';
+    const looksLikeShift = !!exact && dur >= 6 && dur <= 13 && (/משמרת|שמירה|אבטח|סייר|סיור|רשף|shift/i.test(title) || (s.getMinutes() === 0 && Math.abs(dur - 8) < 0.01));
+    items.push({date: s, end: en, type, title, on: looksLikeShift, shift: looksLikeShift});
+  }
+  return items.sort((a, b) => a.date - b.date);
+}
+function calRow(it, i, items){
+  const row = document.createElement('label'); row.className = 'calitem' + (it.on ? '' : ' off');
+  row.innerHTML = `<input type="checkbox" id="ci${i}" ${it.on ? 'checked' : ''}><span class="t"><span><b>${DAY[it.date.getDay()]} ${it.date.getDate()}/${it.date.getMonth() + 1}</b> · <span class="num">${hm(it.date)}–${hm(it.end)}</span></span><span>${esc(it.title)}</span></span><span class="kind">${esc(TYPE_LABEL[it.type])}</span>`;
+  row.querySelector('input').addEventListener('change', ev => { it.on = ev.target.checked; row.classList.toggle('off', !it.on); applyCalendar(items); });
+  return row;
+}
+function renderCalendar(items){
+  const shifts = items.filter(i => i.shift), others = items.filter(i => !i.shift);
+  const list = document.getElementById('calList'), msg = document.getElementById('calMsg');
+  list.innerHTML = ''; list.hidden = !items.length;
+  msg.hidden = false;
+  msg.textContent = shifts.length ? `נמצאו ${shifts.length} משמרות בחודש ${shifts[0].date.getMonth() + 1}/${shifts[0].date.getFullYear()}. אם משהו כאן אינו משמרת, בטל את הסימון שלו.` : 'לא נמצאו ביומן משמרות בחודש הזה. אפשר לסמן למטה, או לספור בעצמך.';
+  shifts.forEach((it, i) => list.appendChild(calRow(it, i, items)));
+  if (others.length){ // אירועים אחרים: מקופלים, ומסמנים רק אם חסרה משמרת
+    const det = document.createElement('details'); det.className = 'others';
+    det.innerHTML = `<summary>חסרה משמרת? אירועים אחרים ביומן בחודש הזה (${others.length})</summary>`;
+    const inner = document.createElement('div'); inner.className = 'callist';
+    others.forEach((it, i) => inner.appendChild(calRow(it, 'o' + i, items)));
+    det.appendChild(inner); list.appendChild(det);
+  }
+  applyCalendar(items);
+}
+function applyCalendar(items){
+  for (const t of SHIFT_TYPES) setCount(t.id, items.filter(i => i.on && i.type === t.id).length);
+}
+// ימי חג שבהם אסור לעבוד (בלי ערב חג ובלי חול המועד)
+const HOLIDAY_RE = /ראש השנה|יום כיפור|יום הכיפורים|סוכות|שמחת תורה|שמיני עצרת|פסח|שבועות|יום העצמאות|Rosh Hashana|Yom Kippur|Sukkot|Shmini Atzeret|Simchat Torah|Pesach|Passover|Shavuot|Independence/i;
+const NOT_HOLIDAY_RE = /ערב|חול המועד|חוה"מ|Erev|CH''M|Chol/i;
+function loadScript(src){ return new Promise((ok, bad) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = bad; document.head.appendChild(s); }); }
+// הכפתור של גוגל נטען מראש, כדי שחלון הכניסה ייפתח ישר מהלחיצה (ספארי חוסם חלונות שנפתחים באיחור)
+let gToken = null, gTokenAt = 0, tokenClient = null, gReady = null;
+if (ON_SITE) gReady = loadScript('https://accounts.google.com/gsi/client').then(() => {
+  tokenClient = google.accounts.oauth2.initTokenClient({client_id: GOOGLE_CLIENT_ID, scope: 'https://www.googleapis.com/auth/calendar.events.readonly',
+    callback: r => { if (r.access_token){ gToken = r.access_token; gTokenAt = Date.now(); readGoogle(); } else googleFailed('denied'); },
+    error_callback: () => googleFailed('denied')});
+}).catch(() => { gReady = null; });
+const tokenFresh = () => gToken && Date.now() - gTokenAt < 50 * 6e4; // אסימון של גוגל תקף כשעה
+async function googleList(calId, ym, token){
+  const [y, m] = ym.split('-').map(Number);
+  const from = new Date(y, m - 1, 1), to = new Date(y, m, 1);
+  const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events?singleEvents=true&orderBy=startTime&maxResults=250&timeMin=${from.toISOString()}&timeMax=${to.toISOString()}`;
+  const r = await fetch(url, {headers: {Authorization: 'Bearer ' + token}});
+  if (r.status === 401){ gToken = null; throw new Error('expired'); }
+  if (!r.ok) throw new Error('fetch ' + r.status);
+  return (await r.json()).items || [];
+}
+function googleFailed(code){
+  const msg = document.getElementById('calMsg'); msg.hidden = false;
+  msg.textContent = code === 'denied' ? 'לא התקבל אישור לקרוא את היומן. אפשר לנסות שוב, או לספור משמרות למטה.'
+    : code === 'expired' ? 'החיבור ליומן פג. לחץ שוב על "מלא מהיומן של גוגל".'
+    : code === 'noscript' ? 'הכניסה של גוגל לא נטענה (אולי חוסם פרסומות או רשת חלשה). רענן את הדף ונסה שוב, או ספור משמרות למטה.'
+    : 'לא הצלחתי לקרוא את היומן. נסה שוב, או ספור משמרות למטה.';
+}
+// הלחיצה: אם אין חיבור, פותחים מיד את חלון הכניסה. הקריאה עצמה ממשיכה אחרי האישור
+function fillFromGoogle(){
+  const ym = document.getElementById('calMonth').value, msg = document.getElementById('calMsg');
+  msg.hidden = false;
+  if (!ON_SITE){ showCalendarDemo(); return; }
+  if (!ym){ msg.textContent = 'בחר חודש, או העלה קודם את התלוש והחודש יתמלא לבד.'; return; }
+  if (tokenFresh()){ readGoogle(); return; }
+  if (!tokenClient){ googleFailed('noscript'); return; }
+  msg.textContent = 'מתחבר לגוגל…';
+  tokenClient.requestAccessToken({prompt: ''});
+}
+async function readGoogle(){
+  const ym = document.getElementById('calMonth').value, msg = document.getElementById('calMsg');
+  msg.hidden = false;
   try {
-    let shifts = [];
-    if (accessToken) {
-      setStatus('קורא את היומן…');
-      const events = await fetchEvents(start.toISOString(), end.toISOString());
-      shifts = events
-        .filter(e => e.start && e.start.dateTime && e.end && e.end.dateTime && (e.summary || '').trim().startsWith(kw))
-        .map(e => ({ s: new Date(e.start.dateTime), f: new Date(e.end.dateTime), src: 'יומן' }));
+    msg.textContent = 'קורא את היומן…';
+    const token = gToken;
+    const events = await googleList('primary', ym, token);
+    const holidays = new Set();
+    for (const id of ['iw.jewish#holiday@group.v.calendar.google.com', 'en.jewish#holiday@group.v.calendar.google.com']){
+      try { (await googleList(id, ym, token)).filter(h => HOLIDAY_RE.test(h.summary || '') && !NOT_HOLIDAY_RE.test(h.summary || '')).forEach(h => holidays.add(h.start.date || h.start.dateTime.slice(0, 10))); break; } catch (e){}
     }
-    loadManual().forEach(x => {
-      const [s, f] = manualToRange(x);
-      if (s >= start && s < end) shifts.push({ s, f, src: 'ידני' + (x.note ? ' – ' + x.note : ''), id: x.id });
-    });
-    shifts.sort((a, b) => a.s - b.s);
-    if (!accessToken && !shifts.length) { $('results').hidden = true; setStatus('התחבר עם Google או הוסף משמרת ידנית.'); return; }
-    let tH = 0, tO = 0, tP = 0;
-    const rows = shifts.map(sh => {
-      const s = sh.s, f = sh.f;
-      const h = Math.max(0, (f - s) / 36e5);
-      const h100 = Math.min(h, 8), h125 = Math.min(Math.max(h - 8, 0), 2), h150 = Math.max(h - 10, 0);
-      const pay = wage * (h100 + h125 * 1.25 + h150 * 1.5);
-      tH += h; tO += h125 + h150; tP += pay;
-      const date = s.toLocaleDateString('he-IL', { weekday: 'short', day: 'numeric', month: 'numeric' });
-      const time = s.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' }) + '–' + f.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
-      const del = sh.id ? `<button data-del="${sh.id}" title="מחק משמרת" style="padding:2px 8px">✕</button>` : '';
-      return `<tr><td>${date}</td><td>${time}</td><td>${esc(sh.src)}</td><td>${fmt(h)}</td><td>${fmt(h100)}</td><td>${fmt(h125)}</td><td>${fmt(h150)}</td><td>${money(pay)}</td><td>${del}</td></tr>`;
-    });
-    $('rows').innerHTML = rows.join('') || '<tr><td colspan="9" class="muted">לא נמצאו משמרות בחודש הזה.</td></tr>';
-    $('tShifts').textContent = shifts.length;
-    $('tHours').textContent = fmt(tH);
-    $('tOver').textContent = fmt(tO);
-    $('tPay').textContent = money(tP);
-    $('results').hidden = false;
-    setStatus(`נמצאו ${shifts.length} משמרות.`);
-  } catch (err) { setStatus(err.message, true); }
+    renderCalendar(classifyEvents(events, ym, holidays));
+  } catch (e){ googleFailed(e.message); }
 }
-calculate();
+document.getElementById('calBtn').addEventListener('click', fillFromGoogle);
+window.__showCalendar = (events, ym) => renderCalendar(classifyEvents(events, ym, new Set()));
+
+// לפני שהאתר מחובר לגוגל: יומן מומצא שמראה איך הזיהוי עובד
+function showCalendarDemo(){
+  const E = (t, a, b) => ({summary: t, start: {dateTime: a + ':00+03:00'}, end: {dateTime: b + ':00+03:00'}});
+  const ev = [
+    E('משמרת בוקר', '2026-09-06T07:00', '2026-09-06T15:00'), E('רופא שיניים', '2026-09-06T16:00', '2026-09-06T17:00'),
+    E('צהריים - שער', '2026-09-07T15:00', '2026-09-07T23:00'), E('משמרת לילה', '2026-09-09T23:00', '2026-09-10T07:00'),
+    E('משמרת', '2026-09-12T07:00', '2026-09-12T15:00'), E('לילה מוצ"ש', '2026-09-12T23:00', '2026-09-13T07:00'),
+    E('ארוחה משפחתית', '2026-09-18T19:00', '2026-09-18T22:00'), E('משמרת בוקר', '2026-09-20T07:00', '2026-09-20T15:00'),
+  ];
+  renderCalendar(classifyEvents(ev, '2026-09', new Set()));
+  const msg = document.getElementById('calMsg');
+  msg.textContent = 'דוגמה עם יומן מומצא: החיבור לגוגל יעבוד באתר הקבוע של הבודק. ' + msg.textContent;
+}
+function updateTotals(){
+  const S = summarize(counts);
+  document.getElementById('shiftCount').textContent = S.count;
+  document.getElementById('shiftHours').textContent = fmtH(S.hours);
+}
+buildCounters();
+
+/* ===================== הפעלה ===================== */
+let pdfBuf = null;
+document.getElementById('pdf').addEventListener('change', async e => {
+  const f = e.target.files[0]; if (!f) return;
+  document.getElementById('fname').textContent = f.name;
+  pdfBuf = new Uint8Array(await f.arrayBuffer());
+  currentSlip = null;
+  const go = document.getElementById('go');
+  go.disabled = true; go.textContent = 'קורא את התלוש…';
+  try { // קוראים את התלוש פעם אחת. החודש שלו ממלא את החודש של היומן
+    const pages = await readPdfItems(pdfBuf);
+    if (!pages.flat().length) throw new Error('scan');
+    const slip = parsePayslip(pages);
+    if (!slip) throw new Error('unknown');
+    currentSlip = slip; showError('');
+    if (slip && slip.month){
+      document.getElementById('calMonth').value = slip.month.ym;
+    }
+  } catch (err){ showError(pdfErrorText(err)); }
+  go.disabled = !currentSlip; go.textContent = 'בדוק את התלוש';
+});
+function showError(t){ const e = document.getElementById('error'); e.textContent = t; e.hidden = !t; }
+let currentSlip = null;
+const pdfErrorText = err => err.message === 'scan' ? 'בקובץ הזה אין טקסט, כנראה שהוא צילום סרוק. צריך את קובץ ה-PDF המקורי ממערכת השכר.'
+  : err.message === 'unknown' ? 'המבנה של התלוש הזה עדיין לא מוכר. כרגע הבדיקה מכירה תלושים של רשף ביטחון.'
+  : 'לא הצלחתי לקרוא את הקובץ. ודא שזה קובץ PDF של תלוש שכר.';
+async function runCheck(buf, shifts){
+  const pages = await readPdfItems(buf);
+  if (!pages.flat().length) throw new Error('scan');
+  const slip = parsePayslip(pages);
+  if (!slip) throw new Error('unknown');
+  return {slip, res: check(slip, shifts)};
+}
+document.getElementById('go').addEventListener('click', () => {
+  if (!currentSlip) return;
+  showError('');
+  renderResult(currentSlip, check(currentSlip, {...counts}), false);
+  document.getElementById('result').scrollIntoView({behavior: 'smooth', block: 'start'});
+});
+window.__runCheck = runCheck;
+
+/* דוגמה שמוצגת בפתיחה: עובד מומצא, 10 משמרות, שולמו 78 שעות מתוך 80 */
+(function example(){
+  const base = 78 * 47, hv = r2(78 * 1.64), tr = 160, gross = r2(base + hv + tr);
+  const pb = r2(base + hv);
+  const funds = [
+    {type: 'קצבה שכיר-תגמולים', base: pb, employer: r2(pb * .075), employee: r2(pb * .07)},
+    {type: 'קצבה שכיר-פיצויים', base: pb, employer: r2(pb * .0833), employee: 0},
+    {type: 'קצבה שכיר-תגמולים', base: tr, employer: 8, employee: 8},
+    {type: 'קרן השתלמות', base: 2832, employer: 212.4, employee: 70.8},
+  ];
+  const fundTotal = r2(funds.reduce((a, f) => a + f.employee, 0));
+  const deductions = {'ביטוח לאומי': 41.12, 'ביטוח בריאות': 127.71, 'דמי טיפול': 15};
+  const taxTotal = 183.83;
+  const slip = {employer: 'רשף ביטחון (דוגמה)', month: {ym: '2026-09', label: 'ספטמבר 2026'},
+    lines: [{name: 'שכר יסוד', rate: 47, qty: 78, amount: base}, {name: 'נסיעות', amount: tr}, {name: 'הבראה', rate: 1.64, qty: 78, amount: hv}, {name: 'ימי עבודה', qty: 10}],
+    deductions, funds, gross, taxTotal, fundTotal, otherTotal: 0, net: r2(gross - taxTotal - fundTotal), seniorityMonths: 6};
+  renderResult(slip, check(slip, {morning: 10}), true);
+})();
+renderRules();
 </script>
-</body>
-</html>
