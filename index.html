@@ -56,6 +56,10 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .cal{display:flex;flex-direction:column;gap:10px;padding:12px;border-radius:12px;background:var(--accent-soft)}
 .cal input[type=month]{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
 #calBtn{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.linkish{background:none;border:none;padding:2px 0;color:var(--accent);text-decoration:underline;text-align:start;font-weight:600}
+.freebox{display:flex;flex-direction:column;gap:8px}
+.freebox textarea{min-height:0;height:8.5em}
+.unknown{color:var(--info);font-weight:600}
 .callist{display:flex;flex-direction:column;gap:6px}
 .calitem{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 10px;border-radius:10px;background:var(--surface);border:1px solid var(--line);cursor:pointer}
 .calitem input{width:18px;height:18px;accent-color:var(--accent)}
@@ -84,6 +88,9 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .check .body{display:flex;flex-direction:column;gap:3px;min-width:0}
 .check .why{font-size:.9rem;color:var(--muted)}
 .check .amt{font-weight:700;color:var(--gap)}
+.more summary{cursor:pointer;font-weight:600;color:var(--accent);padding-top:4px}
+.ot{display:flex;flex-direction:column;gap:8px;padding-top:8px}
+.ot table{font-size:.88rem}
 .bar{display:flex;height:28px;border-radius:8px;overflow:hidden;background:var(--line)}
 .bar span{display:block;height:100%}
 .legend{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:.95rem}
@@ -128,6 +135,11 @@ footer ul{margin:0;padding-inline-start:18px}
         <button type="button" id="calBtn">מלא מהיומן של גוגל</button>
         <label for="calMonth" class="note">חודש</label><input type="month" id="calMonth">
       </div>
+      <button type="button" id="freeBtn" class="linkish">או: כתוב את המשמרות בעצמך, איך שנוח לך</button>
+      <div id="freeBox" class="freebox" hidden>
+        <textarea id="freeText" rows="5" placeholder="למשל:&#10;1/11 בוקר&#10;2/11 לילה&#10;בוקר: 4/11, 5/11, 8/11&#10;3 צהריים&#10;מוצ&quot;ש 14/11&#10;20/11 7-15"></textarea>
+        <button type="button" id="freeRun" class="primary">קרא את הרשימה</button>
+      </div>
       <p class="note" id="calMsg" role="status" hidden></p>
       <div id="calList" class="callist" hidden></div>
     </div>
@@ -163,6 +175,7 @@ const RULESETS = [{
     ['פנסיה: עובד 7%, מעסיק 7.5%. פיצויים 8.33%, ועל שעות נוספות 6%', 'צו ההרחבה בענף השמירה', true],
     ['קרן השתלמות: מעסיק 7.5%, עובד 2.5%, לפי שכר המינימום הכללי ולא לפי השכר בפועל', 'צו ההרחבה בענף השמירה', true],
     ['נסיעות: עד 22.60 ₪ ליום', 'מקור משני, לא אומת מול נוסח הצו', false],
+    ['שעות נוספות: ביום חול אחרי 8 שעות, במשמרת לילה אחרי 7. 125% לשעתיים הראשונות ו-150% אחריהן', 'מקורות משניים (כל זכות, זכויות עובדים)', false],
   ]
 }];
 function rulesFor(ym){ // ym = 'YYYY-MM'
@@ -331,11 +344,59 @@ function summarize(counts){
   return {count, hours, shabbat};
 }
 
+/* ===================== שעות נוספות (כלל הענף: יום חול 8 שעות רגילות, לילה 7) ===================== */
+// לכל סוג משמרת של 8 שעות: כמה שעות רגילות, כמה נוספות וכמה בשבת או בחג
+const SHIFT_SPLIT = {
+  morning: {h100: 8, h125: 0, h150: 0, sh150: 0, why: 'בוקר: 8 שעות רגילות'},
+  noon:    {h100: 8, h125: 0, h150: 0, sh150: 0, why: 'צהריים: 8 שעות רגילות'},
+  night:   {h100: 7, h125: 1, h150: 0, sh150: 0, why: 'לילה: 7 שעות רגילות, והשמינית שעה נוספת (125%)'},
+  motzash: {h100: 2, h125: 1, h150: 0, sh150: 5, why: 'לילה של מוצ"ש: 5 שעות שבת (עד 04:00), 2 רגילות, ושעה נוספת אחת (125%)'},
+  shabbat: {h100: 0, h125: 0, h150: 0, sh150: 8, why: 'שבת: 8 שעות עם תוספת 50%'},
+  holiday: {h100: 0, h125: 0, h150: 0, sh150: 8, why: 'חג: 8 שעות עם תוספת 50%'},
+};
+function expectedHours(counts){
+  const E = {h100: 0, h125: 0, h150: 0, sh150: 0};
+  for (const id in SHIFT_SPLIT){ const n = counts[id] || 0; for (const k in E) E[k] += n * SHIFT_SPLIT[id][k]; }
+  return E;
+}
+// מה שולם בתלוש לפי סוג: מהשם של כל שורת שעות (125%, 150%, שבת, חג)
+function paidHoursByKind(L, rate){
+  const P = {h100: 0, h125: 0, h150: 0, sh150: 0, premium: 0};
+  for (const l of L){
+    if (l.qty == null || l.rate == null || /הבראה|ימי עבודה/.test(l.name)) continue;
+    const pct = (l.name.match(/(\d{3})%/) || [])[1];
+    if (/שבת|חג|מנוחה/.test(l.name)) P.sh150 += l.qty;
+    else if (pct === '125') P.h125 += l.qty;
+    else if (pct === '150') P.h150 += l.qty;
+    else if (/שכר יסוד/.test(l.name)) P.h100 += l.qty;
+    else continue;
+    if (!/שכר יסוד/.test(l.name)) P.premium += (l.amount || 0) - l.qty * rate;
+  }
+  P.premium = r2(P.premium);
+  return P;
+}
+function overtimeDetail(E, P, rate, counts){
+  const rows = [
+    ['שעות רגילות', '100%', E.h100, P.h100, 0],
+    ['שעה נוספת ראשונה ושנייה במשמרת', '125%', E.h125, P.h125, .25],
+    ['שעה נוספת שלישית והלאה', '150%', E.h150, P.h150, .5],
+    ['שעות בשבת ובחג', '150%', E.sh150, P.sh150, .5],
+  ].filter(r => r[2] || r[3]);
+  const used = Object.keys(SHIFT_SPLIT).filter(id => counts[id]).map(id => `${counts[id]} × ${SHIFT_SPLIT[id].why}`);
+  return `<div class="ot">
+    <p class="note">איך זה חושב: ${used.map(esc).join(' · ')}.</p>
+    <div class="tbl-wrap"><table><thead><tr><th>סוג השעה</th><th class="n">מגיע</th><th class="n">שולם</th><th class="n">הפרש בתוספת</th></tr></thead><tbody>
+    ${rows.map(r => { const d = r2((r[2] - r[3]) * rate * r[4]); return `<tr><td>${esc(r[0])} <span class="note">(${r[1]})</span></td><td class="n">${fmtH(r[2])}</td><td class="n">${fmtH(r[3])}</td><td class="n">${r[4] ? (d > 0 ? 'חסר ' : d < 0 ? 'עודף ' : '') + fmt(Math.abs(d)) + ' ₪' : '—'}</td></tr>`; }).join('')}
+    </tbody></table></div>
+    <p class="note">"הפרש בתוספת" הוא רק החלק הנוסף על השכר הרגיל (25% או 50% מ-${fmt(rate)} ₪). שעות חסרות לגמרי נבדקות בשורה "שעות עבודה".</p>
+  </div>`;
+}
+
 /* ===================== הבדיקה ===================== */
 function check(slip, shifts){
   const R = rulesFor(slip.month ? slip.month.ym : '1900-01');
   const out = {checks: [], gapTotal: 0, rules: R};
-  const add = (status, title, why, amount) => { out.checks.push({status, title, why, amount}); if (status === 'gap' && amount > 0) out.gapTotal = r2(out.gapTotal + amount); };
+  const add = (status, title, why, amount, detail) => { out.checks.push({status, title, why, amount, detail}); if (status === 'gap' && amount > 0) out.gapTotal = r2(out.gapTotal + amount); };
   if (!R){ add('skip', 'אין כללים לחודש הזה', 'הבדיקה מכירה את הכללים רק מאפריל 2026.'); return out; }
 
   const L = slip.lines;
@@ -358,13 +419,19 @@ function check(slip, shifts){
     add('info', 'שעות עבודה', `ספרת ${fmtH(worked)} שעות, ובתלוש שולמו ${fmtH(paidHours)}, כלומר ${fmtH(paidHours - worked)} שעות יותר. כנראה חסרה משמרת ברשימה. בדוק את המשמרות למעלה ותקן, ואז בדוק שוב.`);
   } else add('ok', 'שעות עבודה', `עבדת ${fmtH(worked)} שעות, ושולמו ${fmtH(paidHours)}` + (extra.length ? ` (מתוכן ${fmtH(extra.reduce((a, l) => a + l.qty, 0))} בתוספת: ${extra.map(l => l.name.replace(/שעות\s*/, '')).join(', ')}).` : '.'));
 
-  // 2. שבת
-  if (hasShifts && shabbatWorked > 0){
-    const paidSh = L.filter(l => /שבת|חג|מנוחה/.test(l.name)).reduce((a, l) => a + (l.qty || 0), 0);
-    if (paidSh + 0.01 < shabbatWorked){
-      const miss = shabbatWorked - paidSh;
-      add('gap', 'תוספת שבת וחג', `עבדת ${fmtH(shabbatWorked)} שעות בשבת ובחג (כולל 5 שעות בכל לילה של מוצ"ש, עד 04:00), ובתלוש מופיעות ${fmtH(paidSh)}. על כל שעה כזו מגיעה תוספת של 50%.`, r2(miss * rate * 0.5));
-    } else add('ok', 'תוספת שבת וחג', `${fmtH(shabbatWorked)} שעות בשבת ובחג, ושולמו עם תוספת.`);
+  // 2. שעות נוספות ותוספת שבת: מה מגיע לפי המשמרות מול מה ששולם
+  if (hasShifts && rate != null){
+    const E = expectedHours(shifts), P = paidHoursByKind(L, rate);
+    const expPrem = r2(rate * (0.25 * E.h125 + 0.5 * E.h150 + 0.5 * E.sh150));
+    const diff = r2(expPrem - P.premium);
+    const parts = h => [h.h125 && `${fmtH(h.h125)} ב-125%`, h.h150 && `${fmtH(h.h150)} ב-150%`, h.sh150 && `${fmtH(h.sh150)} שעות שבת וחג`].filter(Boolean).join(', ') || 'אין';
+    const short = `לפי המשמרות מגיע לך: ${parts(E)}. בתלוש שולם: ${parts(P)}.`;
+    if (Math.abs(diff) <= 0.5) add('ok', 'שעות נוספות ושבת', (E.h125 + E.h150 + E.sh150) ? short + ' זה תואם.' : 'לפי המשמרות שספרת לא מגיעות לך שעות נוספות או תוספת שבת, ובתלוש גם לא שולמו.');
+    else {
+      const detail = overtimeDetail(E, P, rate, shifts);
+      if (diff > 0) add('gap', 'שעות נוספות ושבת', short + ` התוספות ששולמו נמוכות ב-${fmt(diff)} ₪ ממה שמגיע.`, diff, detail);
+      else add('info', 'שעות נוספות ושבת', short + ` שולם לך ${fmt(-diff)} ₪ יותר ממה שיוצא לפי המשמרות. זה לטובתך, אבל כדאי לוודא שספרת את כל המשמרות נכון.`, 0, detail);
+    }
   }
 
   // 3. תעריף
@@ -492,7 +559,7 @@ function renderResult(slip, res, isExample){
       <span class="big">${gaps.length ? `נראה שחסרים לך ${fmt(res.gapTotal)} ₪` : 'נראה ששולם לך כל מה שמגיע'}</span>
       <span>${gaps.length ? `נמצאו ${gaps.length} פערים. הפירוט וההודעה למעסיק למטה.` : 'כל הבדיקות שנעשו יצאו תקינות.'}</span>
     </div>
-    <div class="checks">${res.checks.map(c => `<div class="check ${c.status}"><span class="dot">${label[c.status]}</span><div class="body"><h3>${esc(c.title)}</h3><span class="why">${esc(c.why)}</span>${c.status === 'gap' && c.amount ? `<span class="amt">חסר: <span class="num">${fmt(c.amount)}</span> ₪</span>` : ''}</div></div>`).join('')}</div>
+    <div class="checks">${res.checks.map(c => `<div class="check ${c.status}"><span class="dot">${label[c.status]}</span><div class="body"><h3>${esc(c.title)}</h3><span class="why">${esc(c.why)}</span>${c.status === 'gap' && c.amount ? `<span class="amt">חסר: <span class="num">${fmt(c.amount)}</span> ₪</span>` : ''}${c.detail ? `<details class="more"><summary>פירוט</summary>${c.detail}</details>` : ''}</div></div>`).join('')}</div>
     ${moneyBreakdown(slip)}
     ${linesTable(slip)}
     ${letter(slip, res)}`;
@@ -645,6 +712,63 @@ async function readGoogle(){
 }
 document.getElementById('calBtn').addEventListener('click', fillFromGoogle);
 window.__showCalendar = (events, ym) => renderCalendar(classifyEvents(events, ym, new Set()));
+
+/* ===================== רשימה חופשית ===================== */
+// מבין שורות כמו "1/11 בוקר", "בוקר: 4/11, 5/11", "3 צהריים", "מוצ"ש 14/11", "20/11 7-15"
+const KIND_RE = [
+  ['motzash', /מוצ["״']?ש|מוצאי ?שבת|מוצש/],
+  ['night', /לילה|לילות/],
+  ['noon', /צהר[יי]?ים|צהריים|ערב|אחה["״]?צ|אחר הצהריים/],
+  ['morning', /בוקר|בקרים/],
+  ['holiday', /(^|[^א-ת])חג/],
+  ['shabbat', /שבת/],
+];
+const KIND_TIMES = {morning: ['07:00', '15:00'], noon: ['15:00', '23:00'], night: ['23:00', '07:00'], motzash: ['23:00', '07:00'], shabbat: ['07:00', '15:00'], holiday: ['07:00', '15:00']};
+function kindOf(s){ for (const [k, re] of KIND_RE) if (re.test(s)) return k; return null; }
+function parseFreeText(text, ym){
+  const year = Number((ym || '').slice(0, 4)) || new Date().getFullYear();
+  const counts = {}, read = [], unknown = [];
+  for (const t of SHIFT_TYPES) counts[t.id] = 0;
+  for (const line of String(text).split(/\r?\n/)){
+    let lineKind = kindOf(line);
+    for (let seg of line.split(/[,;،]+/)){
+      seg = seg.trim(); if (!seg) continue;
+      const dm = /(\d{1,2})[\/.](\d{1,2})(?:[\/.](\d{2,4}))?/.exec(seg);
+      let rest = dm ? seg.replace(dm[0], ' ') : seg;
+      const tm = /(\d{1,2})(?::(\d\d))?\s*[-–—]\s*(\d{1,2})(?::(\d\d))?/.exec(rest);
+      if (tm) rest = rest.replace(tm[0], ' ');
+      const kind = kindOf(seg) || lineKind;
+      if (kindOf(seg)) lineKind = kindOf(seg);
+      if (dm){ // משמרת עם תאריך: היום בשבוע קובע שבת ומוצ"ש
+        let y = dm[3] ? Number(dm[3]) : year; if (y < 100) y += 2000;
+        const date = `${y}-${pad(dm[2])}-${pad(dm[1])}`;
+        let [st, en] = tm ? [`${pad(tm[1])}:${tm[2] || '00'}`, `${pad(tm[3])}:${tm[4] || '00'}`] : (KIND_TIMES[kind] || []);
+        if (!st){ unknown.push(seg); continue; }
+        const s = new Date(`${date}T${st}:00`), e = new Date(`${date}T${en}:00`); if (e <= s) e.setDate(e.getDate() + 1);
+        if (isNaN(s)){ unknown.push(seg); continue; }
+        const it = classifyEvents([{summary: 'משמרת', start: {dateTime: `${date}T${st}:00`}, end: {dateTime: e.toISOString()}}], dKey(s).slice(0, 7), new Set())[0];
+        let type = it && it.shift ? it.type : kind;
+        if (kind === 'holiday' || kind === 'shabbat' || kind === 'motzash') type = kind; // מה שהעובד כתב גובר
+        if (!type || !(type in counts)){ unknown.push(seg); continue; }
+        counts[type]++; read.push(`${dm[1]}/${dm[2]} ${TYPE_LABEL[type]}`);
+      } else if (kind){ // בלי תאריך: מספר + סוג, למשל "3 צהריים"
+        const n = Number((rest.match(/\d+/) || [])[0] || 1);
+        counts[kind] += n; read.push(`${n} ${TYPE_LABEL[kind]}`);
+      } else unknown.push(seg);
+    }
+  }
+  return {counts, read, unknown};
+}
+document.getElementById('freeBtn').addEventListener('click', () => { const b = document.getElementById('freeBox'); b.hidden = !b.hidden; if (!b.hidden) document.getElementById('freeText').focus(); });
+document.getElementById('freeRun').addEventListener('click', () => {
+  const msg = document.getElementById('calMsg'); msg.hidden = false;
+  document.getElementById('calList').hidden = true;
+  const r = parseFreeText(document.getElementById('freeText').value, document.getElementById('calMonth').value);
+  for (const t of SHIFT_TYPES) setCount(t.id, r.counts[t.id]);
+  const total = Object.values(r.counts).reduce((a, b) => a + b, 0);
+  msg.innerHTML = (total ? `קראתי ${total} משמרות: ${esc(SHIFT_TYPES.filter(t => r.counts[t.id]).map(t => `${r.counts[t.id]} ${t.label}`).join(', '))}. אפשר לתקן במונים למטה.` : 'לא הצלחתי לקרוא משמרות מהרשימה.')
+    + (r.unknown.length ? ` <span class="unknown">לא הבנתי: ${esc(r.unknown.join(' · '))}</span>` : '');
+});
 
 // לפני שהאתר מחובר לגוגל: יומן מומצא שמראה איך הזיהוי עובד
 function showCalendarDemo(){
