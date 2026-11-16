@@ -65,7 +65,16 @@
       <label>חודש <input type="month" id="month"></label>
       <label>שכר שעתי (₪) <input type="number" id="wage" min="0" step="0.01" value="35.40"></label>
       <label>מילת מפתח בכותרת <input type="text" id="keyword" value="משמרת"></label>
-      <button id="calc" disabled>חשב</button>
+      <button id="calc">חשב</button>
+    </div>
+    <h2 style="margin-top:24px">הוספת משמרת ידנית</h2>
+    <p class="muted" style="margin:0 0 8px;font-size:.9rem">אפשר לרשום משמרות גם בלי להתחבר ליומן. הן נשמרות בדפדפן שלך בלבד ומצטרפות לחישוב.</p>
+    <div class="row">
+      <label>תאריך <input type="date" id="mDate"></label>
+      <label>התחלה <input type="time" id="mStart" value="07:00"></label>
+      <label>סיום <input type="time" id="mEnd" value="15:00"></label>
+      <label>הערה <input type="text" id="mNote" placeholder="לא חובה"></label>
+      <button id="mAdd">הוסף משמרת</button>
     </div>
     <div id="status" class="status"></div>
     <div id="results" hidden>
@@ -77,7 +86,7 @@
       </div>
       <div class="table-scroll">
         <table>
-          <thead><tr><th>תאריך</th><th>משמרת</th><th>שעות</th><th>100%</th><th>125%</th><th>150%</th><th>שכר</th></tr></thead>
+          <thead><tr><th>תאריך</th><th>משמרת</th><th>מקור</th><th>שעות</th><th>100%</th><th>125%</th><th>150%</th><th>שכר</th><th></th></tr></thead>
           <tbody id="rows"></tbody>
         </table>
       </div>
@@ -122,7 +131,7 @@ window.addEventListener('load', () => {
         callback: resp => {
           if (resp.error) { setStatus('ההתחברות נכשלה: ' + resp.error, true); return; }
           accessToken = resp.access_token;
-          $('signin').hidden = true; $('signout').hidden = false; $('calc').disabled = false;
+          $('signin').hidden = true; $('signout').hidden = false;
           setStatus('מחובר. בחר חודש ולחץ "חשב".');
           calculate();
         }
@@ -136,10 +145,38 @@ $('signin').addEventListener('click', () => tokenClient && tokenClient.requestAc
 $('signout').addEventListener('click', () => {
   if (accessToken) google.accounts.oauth2.revoke(accessToken, () => {});
   accessToken = null;
-  $('signin').hidden = false; $('signout').hidden = true; $('calc').disabled = true;
-  $('results').hidden = true; setStatus('התנתקת.');
+  $('signin').hidden = false; $('signout').hidden = true;
+  setStatus('התנתקת. משמרות ידניות עדיין זמינות.'); calculate();
 });
 $('calc').addEventListener('click', calculate);
+
+// ---- manual shifts (stored in this browser only) ----
+function loadManual() { try { return JSON.parse(store.get('bodek.manual', '[]')) || []; } catch { return []; } }
+function saveManual(list) { store.set('bodek.manual', JSON.stringify(list)); }
+$('mDate').value = new Date().toISOString().slice(0, 10);
+$('mAdd').addEventListener('click', () => {
+  const date = $('mDate').value, start = $('mStart').value, end = $('mEnd').value;
+  if (!date || !start || !end) { setStatus('יש למלא תאריך, שעת התחלה ושעת סיום.', true); return; }
+  const list = loadManual();
+  list.push({ id: Date.now().toString(36), date, start, end, note: $('mNote').value.trim() });
+  saveManual(list);
+  $('mNote').value = '';
+  $('month').value = date.slice(0, 7); store.set('bodek.month', $('month').value);
+  calculate();
+});
+$('rows').addEventListener('click', e => {
+  const id = e.target.dataset && e.target.dataset.del;
+  if (!id) return;
+  saveManual(loadManual().filter(s => s.id !== id));
+  calculate();
+});
+function manualToRange(s) {
+  const st = new Date(`${s.date}T${s.start}`);
+  let en = new Date(`${s.date}T${s.end}`);
+  if (en <= st) en = new Date(en.getTime() + 864e5); // overnight shift
+  return [st, en];
+}
+const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 async function fetchEvents(timeMin, timeMax) {
   let items = [], pageToken = '';
@@ -160,28 +197,39 @@ const fmt = n => n.toLocaleString('he-IL', { maximumFractionDigits: 2 });
 const money = n => '₪' + n.toLocaleString('he-IL', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 async function calculate() {
-  if (!accessToken) { setStatus('יש להתחבר קודם.', true); return; }
   const [y, m] = $('month').value.split('-').map(Number);
   if (!y || !m) { setStatus('בחר חודש.', true); return; }
   const wage = parseFloat($('wage').value) || 0;
   const kw = $('keyword').value.trim();
   const start = new Date(y, m - 1, 1), end = new Date(y, m, 1);
-  setStatus('קורא את היומן…');
   try {
-    const events = await fetchEvents(start.toISOString(), end.toISOString());
-    const shifts = events.filter(e => e.start && e.start.dateTime && e.end && e.end.dateTime && (e.summary || '').trim().startsWith(kw));
+    let shifts = [];
+    if (accessToken) {
+      setStatus('קורא את היומן…');
+      const events = await fetchEvents(start.toISOString(), end.toISOString());
+      shifts = events
+        .filter(e => e.start && e.start.dateTime && e.end && e.end.dateTime && (e.summary || '').trim().startsWith(kw))
+        .map(e => ({ s: new Date(e.start.dateTime), f: new Date(e.end.dateTime), src: 'יומן' }));
+    }
+    loadManual().forEach(x => {
+      const [s, f] = manualToRange(x);
+      if (s >= start && s < end) shifts.push({ s, f, src: 'ידני' + (x.note ? ' – ' + x.note : ''), id: x.id });
+    });
+    shifts.sort((a, b) => a.s - b.s);
+    if (!accessToken && !shifts.length) { $('results').hidden = true; setStatus('התחבר עם Google או הוסף משמרת ידנית.'); return; }
     let tH = 0, tO = 0, tP = 0;
-    const rows = shifts.map(e => {
-      const s = new Date(e.start.dateTime), f = new Date(e.end.dateTime);
+    const rows = shifts.map(sh => {
+      const s = sh.s, f = sh.f;
       const h = Math.max(0, (f - s) / 36e5);
       const h100 = Math.min(h, 8), h125 = Math.min(Math.max(h - 8, 0), 2), h150 = Math.max(h - 10, 0);
       const pay = wage * (h100 + h125 * 1.25 + h150 * 1.5);
       tH += h; tO += h125 + h150; tP += pay;
       const date = s.toLocaleDateString('he-IL', { weekday: 'short', day: 'numeric', month: 'numeric' });
       const time = s.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' }) + '–' + f.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
-      return `<tr><td>${date}</td><td>${time}</td><td>${fmt(h)}</td><td>${fmt(h100)}</td><td>${fmt(h125)}</td><td>${fmt(h150)}</td><td>${money(pay)}</td></tr>`;
+      const del = sh.id ? `<button data-del="${sh.id}" title="מחק משמרת" style="padding:2px 8px">✕</button>` : '';
+      return `<tr><td>${date}</td><td>${time}</td><td>${esc(sh.src)}</td><td>${fmt(h)}</td><td>${fmt(h100)}</td><td>${fmt(h125)}</td><td>${fmt(h150)}</td><td>${money(pay)}</td><td>${del}</td></tr>`;
     });
-    $('rows').innerHTML = rows.join('') || '<tr><td colspan="7" class="muted">לא נמצאו משמרות בחודש הזה.</td></tr>';
+    $('rows').innerHTML = rows.join('') || '<tr><td colspan="9" class="muted">לא נמצאו משמרות בחודש הזה.</td></tr>';
     $('tShifts').textContent = shifts.length;
     $('tHours').textContent = fmt(tH);
     $('tOver').textContent = fmt(tO);
@@ -190,6 +238,7 @@ async function calculate() {
     setStatus(`נמצאו ${shifts.length} משמרות.`);
   } catch (err) { setStatus(err.message, true); }
 }
+calculate();
 </script>
 </body>
 </html>
