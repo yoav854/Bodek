@@ -24,6 +24,49 @@
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;direction:rtl;margin:0}
 .wrap{max-width:640px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px}
+.page{max-width:1000px;margin:0 auto;display:flex;flex-direction:column}
+.guide{padding-block:20px 0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+@media (min-width:980px){
+  .page{display:grid;grid-template-columns:300px minmax(0,640px);justify-content:center;gap:28px;align-items:start}
+  .guide{padding-block:20px;padding-left:0;padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .page .wrap{margin:0;padding-right:0}
+}
+.guide-box{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.guide-box summary{cursor:pointer;list-style:none;display:flex;flex-direction:column;gap:2px}
+.guide-box summary::-webkit-details-marker{display:none}
+.guide-box summary h2::after{content:" ▾";color:var(--accent);font-size:.9rem}
+.guide-box[open] summary h2::after{content:" ▴"}
+.steps{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
+.steps li{display:grid;grid-template-columns:28px minmax(0,1fr);gap:8px;align-items:start}
+.steps .emo{font-size:1.25rem;line-height:1.3}
+.steps b{display:block;font-family:var(--display);font-size:.95rem}
+.steps span:not(.emo){display:block;font-size:.86rem;color:var(--muted);line-height:1.45}
+/* ההדגמה: מסך מוקטן שמתנגן 15 שניות */
+.demo{margin-top:14px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--bg)}
+.demo-screen{position:relative;height:270px;padding:12px;display:flex;flex-direction:column;gap:8px;font-size:12px;overflow:hidden}
+.d-top{font-family:var(--display);font-weight:800;font-size:14px}
+.d-file{padding:6px 8px;border:1px dashed var(--line);border-radius:8px;color:var(--muted);transition:all .3s ease}
+.d-file.on{border-style:solid;border-color:var(--accent);color:var(--ink);background:var(--accent-soft)}
+.d-gcal{display:inline-block;padding:5px 9px;border:1px solid var(--line);border-radius:8px;background:var(--surface);direction:ltr;transition:transform .15s ease}
+.d-gcal.press,.d-go.press{transform:scale(.94)}
+.d-counters{display:flex;gap:6px}
+.d-counters span{flex:1;text-align:center;padding:5px 2px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.d-counters b{display:block;font-size:15px;font-family:var(--display);transition:color .2s}
+.d-counters b.lit{color:var(--accent)}
+.d-go{padding:7px;border-radius:8px;background:var(--accent);color:var(--accent-ink);text-align:center;font-weight:700;transition:transform .15s ease}
+.d-result{display:flex;flex-direction:column;gap:4px;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease}
+.d-result.on{opacity:1;transform:none}
+.d-verdict{padding:7px 8px;border-radius:8px;background:var(--gap-soft);color:var(--gap);font-weight:800;font-family:var(--display)}
+.d-check{padding:4px 8px;border-radius:6px;border:1px solid var(--line);opacity:0;transition:opacity .3s ease}
+.d-check.on{opacity:1}
+.d-check.ok{color:var(--ok)} .d-check.gap{color:var(--gap)}
+.d-cursor{position:absolute;width:16px;height:16px;border-radius:50%;background:var(--accent);opacity:.55;box-shadow:0 0 0 4px var(--accent-soft);pointer-events:none;transition:left .6s ease,top .6s ease,transform .15s ease;left:70%;top:85%}
+.d-cursor.click{transform:scale(.7)}
+.demo-bar{display:flex;align-items:center;gap:8px;padding:8px 10px;border-top:1px solid var(--line);background:var(--surface)}
+.d-play{width:32px;height:32px;padding:0;border-radius:50%;flex:none}
+.d-caption{font-size:.86rem;font-weight:600}
+.d-progress{height:3px;background:var(--line)}
+.d-progress span{display:block;height:100%;width:0;background:var(--accent)}
 h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
 h1{font-size:1.9rem;font-weight:800;letter-spacing:-.01em}
 h2{font-size:1.2rem;font-weight:700}
@@ -45,7 +88,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .primary:disabled{opacity:.5;cursor:not-allowed}
 .wrap>*,.panel>*,.panel>div>*{min-width:0}
 .counters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
-.counters.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.counters.two{grid-template-columns:repeat(3,minmax(0,1fr))}
 .counter{border:1px solid var(--line);border-radius:12px;padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
 .counter.on{border-color:var(--accent);background:var(--accent-soft)}
 .counter .lbl{font-family:var(--display);font-weight:700;font-size:.95rem;line-height:1.2}
@@ -135,6 +178,42 @@ footer ul{margin:0;padding-inline-start:18px}
 .drop{position:relative}
 </style>
 
+<div class="page">
+<aside class="guide" aria-labelledby="gTitle">
+  <details id="guideBox" class="guide-box">
+    <summary><h2 id="gTitle">איך משתמשים? 👋</h2><span class="note">חצי דקה, ואתה יודע הכל</span></summary>
+    <ul class="steps">
+      <li><span class="emo" aria-hidden="true">📄</span><div><b>מעלים את התלוש</b><span>קובץ ה-PDF המקורי ממערכת השכר. לא צילום.</span></div></li>
+      <li><span class="emo" aria-hidden="true">🗓️</span><div><b>מוסיפים משמרות</b><span>מ-Google Calendar, בכתיבה חופשית, או בלחיצות על + ו-−.</span></div></li>
+      <li><span class="emo" aria-hidden="true">✅</span><div><b>לוחצים "בדוק את התלוש"</b><span>הבדיקה לוקחת שנייה.</span></div></li>
+      <li><span class="emo" aria-hidden="true">🔍</span><div><b>רואים מה תקין ומה חסר</b><span>ליד כל שורה כתוב למה. "פירוט" מסביר את החישוב.</span></div></li>
+      <li><span class="emo" aria-hidden="true">💸</span><div><b>לאן הלך הכסף</b><span>מס, ביטוח לאומי, פנסיה וקרן השתלמות, בפס אחד.</span></div></li>
+      <li><span class="emo" aria-hidden="true">✉️</span><div><b>חסר כסף?</b><span>יש הודעה מוכנה למחלקת השכר. מעתיקים ושולחים.</span></div></li>
+      <li><span class="emo" aria-hidden="true">🔒</span><div><b>פרטיות</b><span>התלוש והיומן נקראים רק בטלפון שלך. שום דבר לא נשמר.</span></div></li>
+    </ul>
+    <div class="demo" id="demo">
+      <div class="demo-screen" aria-hidden="true">
+        <div class="d-top">בודק התלוש</div>
+        <div class="d-file" id="dFile">📄 MED-ONE-10.pdf</div>
+        <div class="d-row"><span class="d-gcal" id="dGcal">🗓️ Google Calendar</span></div>
+        <div class="d-counters"><span>בוקר <b id="dMorning">0</b></span><span>צהריים <b id="dNoon">0</b></span><span>לילה <b>0</b></span></div>
+        <div class="d-go" id="dGo">בדוק את התלוש</div>
+        <div class="d-result" id="dResult">
+          <div class="d-verdict">נראה שחסרים לך 1.70 ₪</div>
+          <div class="d-check ok" id="dC1">✓ שעות עבודה: 40 מתוך 40</div>
+          <div class="d-check ok" id="dC2">✓ תעריף לשעה</div>
+          <div class="d-check gap" id="dC3">✗ הבראה: חסר 1.70 ₪</div>
+        </div>
+        <span class="d-cursor" id="dCursor"></span>
+      </div>
+      <div class="demo-bar">
+        <button type="button" id="demoPlay" class="d-play" aria-label="הפעל את ההדגמה">▶</button>
+        <span class="d-caption" id="dCaption" role="status">הדגמה של 15 שניות</span>
+      </div>
+      <div class="d-progress"><span id="dProg"></span></div>
+    </div>
+  </details>
+</aside>
 <div class="wrap">
   <header style="display:flex;flex-direction:column;gap:6px">
     <h1>בודק התלוש</h1>
@@ -179,6 +258,7 @@ footer ul{margin:0;padding-inline-start:18px}
   <section id="result" class="panel" aria-live="polite"></section>
 
   <footer id="rulesBox"></footer>
+</div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -359,6 +439,7 @@ const SHIFT_TYPES = [
   {id: 'night', label: 'לילה', time: '23:00–07:00', hours: 8, shabbat: 0, row: 1},
   {id: 'motzash', label: 'לילה של מוצ"ש', time: '23:00–07:00', hours: 8, shabbat: 5, row: 1},
   {id: 'shabbat', label: 'שבת', time: '8 שעות', hours: 8, shabbat: 8, row: 2},
+  {id: 'friNight', label: 'לילה של שישי', time: '23:00–07:00', hours: 8, shabbat: 8, row: 2},
   {id: 'holiday', label: 'חג', time: '8 שעות', hours: 8, shabbat: 8, row: 2},
 ];
 function summarize(counts){
@@ -370,25 +451,27 @@ function summarize(counts){
 /* ===================== שעות נוספות (כלל הענף: יום חול 8 שעות רגילות, לילה 7) ===================== */
 // לכל סוג משמרת של 8 שעות: כמה שעות רגילות, כמה נוספות וכמה בשבת או בחג
 const SHIFT_SPLIT = {
-  morning: {h100: 8, h125: 0, h150: 0, sh150: 0, why: 'בוקר: 8 שעות רגילות'},
-  noon:    {h100: 8, h125: 0, h150: 0, sh150: 0, why: 'צהריים: 8 שעות רגילות'},
-  night:   {h100: 7, h125: 1, h150: 0, sh150: 0, why: 'לילה: 7 שעות רגילות, והשמינית שעה נוספת (125%)'},
-  motzash: {h100: 2, h125: 1, h150: 0, sh150: 5, why: 'לילה של מוצ"ש: 5 שעות שבת (עד 04:00), 2 רגילות, ושעה נוספת אחת (125%)'},
-  shabbat: {h100: 0, h125: 0, h150: 0, sh150: 8, why: 'שבת: 8 שעות עם תוספת 50%'},
-  holiday: {h100: 0, h125: 0, h150: 0, sh150: 8, why: 'חג: 8 שעות עם תוספת 50%'},
+  morning:  {h100: 8, h125: 0, h150: 0, sh150: 0, sh175: 0, why: 'בוקר: 8 שעות רגילות'},
+  noon:     {h100: 8, h125: 0, h150: 0, sh150: 0, sh175: 0, why: 'צהריים: 8 שעות רגילות'},
+  night:    {h100: 7, h125: 1, h150: 0, sh150: 0, sh175: 0, why: 'לילה: 7 שעות רגילות, והשמינית שעה נוספת (125%)'},
+  motzash:  {h100: 2, h125: 1, h150: 0, sh150: 5, sh175: 0, why: 'לילה של מוצ"ש: 5 שעות שבת (עד 04:00), 2 רגילות, ושעה נוספת אחת (125%)'},
+  shabbat:  {h100: 0, h125: 0, h150: 0, sh150: 8, sh175: 0, why: 'שבת: 8 שעות עם תוספת 50%'},
+  friNight: {h100: 0, h125: 0, h150: 0, sh150: 7, sh175: 1, why: 'לילה של שישי: 7 שעות שבת (150%), והשמינית שעה נוספת בשבת (175%)'},
+  holiday:  {h100: 0, h125: 0, h150: 0, sh150: 8, sh175: 0, why: 'חג: 8 שעות עם תוספת 50%'},
 };
 function expectedHours(counts){
-  const E = {h100: 0, h125: 0, h150: 0, sh150: 0};
+  const E = {h100: 0, h125: 0, h150: 0, sh150: 0, sh175: 0};
   for (const id in SHIFT_SPLIT){ const n = counts[id] || 0; for (const k in E) E[k] += n * SHIFT_SPLIT[id][k]; }
   return E;
 }
 // מה שולם בתלוש לפי סוג: מהשם של כל שורת שעות (125%, 150%, שבת, חג)
 function paidHoursByKind(L, rate){
-  const P = {h100: 0, h125: 0, h150: 0, sh150: 0, premium: 0};
+  const P = {h100: 0, h125: 0, h150: 0, sh150: 0, sh175: 0, premium: 0};
   for (const l of L){
     if (l.qty == null || l.rate == null || /הבראה|ימי עבודה/.test(l.name)) continue;
     const pct = (l.name.match(/(\d{3})%/) || [])[1];
-    if (/שבת|חג|מנוחה/.test(l.name)) P.sh150 += l.qty;
+    if (pct === '175' || pct === '200') P.sh175 += l.qty;
+    else if (/שבת|חג|מנוחה/.test(l.name)) P.sh150 += l.qty;
     else if (pct === '125') P.h125 += l.qty;
     else if (pct === '150') P.h150 += l.qty;
     else if (/שכר יסוד/.test(l.name)) P.h100 += l.qty;
@@ -404,6 +487,7 @@ function overtimeDetail(E, P, rate, counts){
     ['שעה נוספת ראשונה ושנייה במשמרת', '125%', E.h125, P.h125, .25],
     ['שעה נוספת שלישית והלאה', '150%', E.h150, P.h150, .5],
     ['שעות בשבת ובחג', '150%', E.sh150, P.sh150, .5],
+    ['שעה נוספת בשבת', '175%', E.sh175, P.sh175, .75],
   ].filter(r => r[2] || r[3]);
   const used = Object.keys(SHIFT_SPLIT).filter(id => counts[id]).map(id => `${counts[id]} × ${SHIFT_SPLIT[id].why}`);
   return `<div class="ot">
@@ -451,15 +535,16 @@ function check(slip, shifts){
   // 3א. שעות נוספות ותוספת שבת, מיד מתחת לתעריף: מה מגיע לפי המשמרות מול מה ששולם
   if (rate != null){
     const P = paidHoursByKind(L, rate);
-    const parts = h => [h.h125 && `${fmtH(h.h125)} ב-125%`, h.h150 && `${fmtH(h.h150)} ב-150%`, h.sh150 && `${fmtH(h.sh150)} שעות שבת וחג`].filter(Boolean).join(', ') || 'אין';
+    const parts = h => [h.h125 && `${fmtH(h.h125)} ב-125%`, h.h150 && `${fmtH(h.h150)} ב-150%`, h.sh150 && `${fmtH(h.sh150)} שעות שבת וחג`, h.sh175 && `${fmtH(h.sh175)} שעה נוספת בשבת (175%)`].filter(Boolean).join(', ') || 'אין';
     if (!hasShifts) add('skip', 'שעות נוספות', `בתלוש שולמו: ${parts(P)}. כדי לבדוק אם זה נכון, הוסף את המשמרות למעלה.`);
     else {
       const E = expectedHours(shifts);
-      const expPrem = r2(rate * (0.25 * E.h125 + 0.5 * E.h150 + 0.5 * E.sh150));
+      const expPrem = r2(rate * (0.25 * E.h125 + 0.5 * E.h150 + 0.5 * E.sh150 + 0.75 * E.sh175));
       const diff = r2(expPrem - P.premium);
       const short = `לפי המשמרות מגיע לך: ${parts(E)}. בתלוש שולם: ${parts(P)}.`;
       const detail = overtimeDetail(E, P, rate, shifts);
-      if (Math.abs(diff) <= 0.5) add('ok', 'שעות נוספות', (E.h125 + E.h150 + E.sh150) ? short + ' זה תואם.' : 'לפי המשמרות שספרת לא מגיעות לך שעות נוספות או תוספת שבת, ובתלוש גם לא שולמו.', 0, (E.h125 + E.h150 + E.sh150) ? detail : null);
+      const any = E.h125 + E.h150 + E.sh150 + E.sh175;
+      if (Math.abs(diff) <= 0.5) add('ok', 'שעות נוספות', any ? short + ' זה תואם.' : 'לפי המשמרות שספרת לא מגיעות לך שעות נוספות או תוספת שבת, ובתלוש גם לא שולמו.', 0, any ? detail : null);
       else if (diff > 0) add('gap', 'שעות נוספות', short + ` התוספות ששולמו נמוכות ב-${fmt(diff)} ₪ ממה שמגיע.`, diff, detail);
       else add('info', 'שעות נוספות', short + ` שולם לך ${fmt(-diff)} ₪ יותר ממה שיוצא לפי המשמרות. זה לטובתך, אבל כדאי לוודא שספרת את כל המשמרות נכון.`, 0, detail);
     }
@@ -647,9 +732,9 @@ function classifyEvents(events, ym, holidays){
     const exact = (h >= 5 && h <= 10) ? 'morning' : (h >= 13 && h <= 17) ? 'noon' : (h >= 21 || h <= 1) ? 'night' : null;
     const slot = exact || (h < 11 ? 'morning' : h < 19 ? 'noon' : 'night'); // לאירוע שלא במשמרת רגילה: הקרוב ביותר
     let type = slot;
-    if (slot === 'night'){ if (dow === 6) type = 'motzash'; else if (dow === 5) type = 'shabbat'; }
+    if (slot === 'night'){ if (dow === 6) type = 'motzash'; else if (dow === 5) type = 'friNight'; }
     else if (dow === 6 || (dow === 5 && slot === 'noon')) type = 'shabbat';
-    if (type !== 'shabbat' && type !== 'motzash'){
+    if (type !== 'shabbat' && type !== 'motzash' && type !== 'friNight'){
       const next = new Date(s); next.setDate(next.getDate() + 1);
       if (holidays.has(dKey(s)) || (slot === 'night' && holidays.has(dKey(next)))) type = 'holiday'; // ביום החג, או בלילה שבו החג נכנס
     }
@@ -744,13 +829,14 @@ window.__showCalendar = (events, ym) => renderCalendar(classifyEvents(events, ym
 // מבין שורות כמו "1/11 בוקר", "בוקר: 4/11, 5/11", "3 צהריים", "מוצ"ש 14/11", "20/11 7-15"
 const KIND_RE = [
   ['motzash', /מוצ["״']?ש|מוצאי ?שבת|מוצש/],
+  ['friNight', /(לילה|ליל) (של )?(יום )?שישי|שישי (ב)?לילה|ליל שבת/],
   ['night', /לילה|לילות/],
   ['noon', /צהר[יי]?ים|צהריים|ערב|אחה["״]?צ|אחר הצהריים/],
   ['morning', /בוקר|בקרים/],
   ['holiday', /(^|[^א-ת])חג/],
   ['shabbat', /שבת/],
 ];
-const KIND_TIMES = {morning: ['07:00', '15:00'], noon: ['15:00', '23:00'], night: ['23:00', '07:00'], motzash: ['23:00', '07:00'], shabbat: ['07:00', '15:00'], holiday: ['07:00', '15:00']};
+const KIND_TIMES = {morning: ['07:00', '15:00'], noon: ['15:00', '23:00'], night: ['23:00', '07:00'], motzash: ['23:00', '07:00'], friNight: ['23:00', '07:00'], shabbat: ['07:00', '15:00'], holiday: ['07:00', '15:00']};
 function kindOf(s){ for (const [k, re] of KIND_RE) if (re.test(s)) return k; return null; }
 function parseFreeText(text, ym){
   const year = Number((ym || '').slice(0, 4)) || new Date().getFullYear();
@@ -775,7 +861,7 @@ function parseFreeText(text, ym){
         if (isNaN(s)){ unknown.push(seg); continue; }
         const it = classifyEvents([{summary: 'משמרת', start: {dateTime: `${date}T${st}:00`}, end: {dateTime: e.toISOString()}}], dKey(s).slice(0, 7), new Set())[0];
         let type = it && it.shift ? it.type : kind;
-        if (kind === 'holiday' || kind === 'shabbat' || kind === 'motzash') type = kind; // מה שהעובד כתב גובר
+        if (['holiday', 'shabbat', 'motzash', 'friNight'].includes(kind)) type = kind; // מה שהעובד כתב גובר
         if (!type || !(type in counts)){ unknown.push(seg); continue; }
         counts[type]++; read.push(`${dm[1]}/${dm[2]} ${TYPE_LABEL[type]}`);
       } else if (kind){ // בלי תאריך: מספר + סוג, למשל "3 צהריים"
@@ -878,5 +964,48 @@ window.__runCheck = runCheck;
     deductions, funds, gross, taxTotal, fundTotal, otherTotal: 0, net: r2(gross - taxTotal - fundTotal), seniorityMonths: 6};
   renderResult(slip, check(slip, {morning: 10}), true);
 })();
+/* ===================== מדריך והדגמה של 15 שניות ===================== */
+(function guideAndDemo(){
+  const box = document.getElementById('guideBox');
+  if (window.matchMedia('(min-width:980px)').matches) box.open = true; // במחשב פתוח, בטלפון מקופל
+  const $d = id => document.getElementById(id);
+  const LEN = 15, reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const CAPS = [[0, '1️⃣ מעלים את התלוש'], [2.5, '2️⃣ ממלאים משמרות מהיומן'], [7, '3️⃣ לוחצים "בדוק"'], [8.5, '4️⃣ רואים מה חסר']];
+  const CUR = [[0, 75, 88], [0.4, 50, 20], [2.4, 50, 20], [2.8, 55, 33], [6.8, 55, 33], [7.2, 50, 62], [8.2, 50, 62], [8.8, 80, 92]];
+  function render(t){
+    $d('dFile').classList.toggle('on', t >= 1.1);
+    $d('dGcal').classList.toggle('press', t >= 3.1 && t < 3.4);
+    const m = t < 3.6 ? 0 : Math.min(4, 1 + Math.floor((t - 3.6) / 0.45)), n = t >= 5.6 ? 1 : 0;
+    $d('dMorning').textContent = m; $d('dMorning').classList.toggle('lit', m > 0);
+    $d('dNoon').textContent = n; $d('dNoon').classList.toggle('lit', n > 0);
+    $d('dGo').classList.toggle('press', t >= 7.5 && t < 7.8);
+    $d('dResult').classList.toggle('on', t >= 8);
+    [['dC1', 8.4], ['dC2', 8.8], ['dC3', 9.2]].forEach(([id, at]) => $d(id).classList.toggle('on', t >= at));
+    let c = CUR[0]; for (const p of CUR) if (t >= p[0]) c = p;
+    const cur = $d('dCursor'); cur.style.left = c[1] + '%'; cur.style.top = c[2] + '%';
+    cur.classList.toggle('click', [1.0, 3.2, 7.6].some(x => t >= x && t < x + 0.25));
+    let cap = CAPS[0][1]; for (const p of CAPS) if (t >= p[0]) cap = p[1];
+    $d('dCaption').textContent = cap;
+    $d('dProg').style.width = (Math.min(t, LEN) / LEN * 100) + '%';
+  }
+  let start = null, raf = null;
+  function frame(now){
+    const t = (now - start) / 1000;
+    render(t);
+    if (t < LEN) raf = requestAnimationFrame(frame);
+    else { raf = null; $d('demoPlay').textContent = '↻'; $d('demoPlay').setAttribute('aria-label', 'הפעל שוב את ההדגמה'); }
+  }
+  function play(){
+    if (raf){ cancelAnimationFrame(raf); raf = null; $d('demoPlay').textContent = '▶'; return; } // לחיצה בזמן ניגון עוצרת
+    start = performance.now(); $d('demoPlay').textContent = '⏸'; $d('demoPlay').setAttribute('aria-label', 'עצור את ההדגמה');
+    raf = requestAnimationFrame(frame);
+  }
+  render(LEN); $d('dCaption').textContent = 'הדגמה של 15 שניות. לחץ ▶'; $d('dProg').style.width = '0%'; // מצב מנוחה: התוצאה הסופית
+  $d('demoPlay').addEventListener('click', play);
+  const auto = () => { if (!reduce && box.open && !raf && start === null) play(); };
+  box.addEventListener('toggle', auto);
+  auto();
+})();
+
 renderRules();
 </script>
