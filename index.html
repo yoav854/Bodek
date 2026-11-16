@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>בודק התלוש – חישוב שכר ממשמרות ביומן Google</title>
+<meta name="description" content="בודק התלוש מחשב את השכר הצפוי לפי משמרות העבודה ביומן Google שלך, כדי שתוכל לבדוק את תלוש השכר.">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  :root { --bg:#f6f8fa; --card:#fff; --text:#1f2328; --muted:#59636e; --line:#d1d9e0; --accent:#1a7f37; --accent-ink:#fff; --warn:#9a6700; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0d1117; --card:#161b22; --text:#e6edf3; --muted:#9198a1; --line:#30363d; --accent:#2ea043; --accent-ink:#fff; --warn:#d29922; } }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif; background:var(--bg); color:var(--text); line-height:1.6; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 24px 16px 48px; }
+  header h1 { margin:0 0 4px; font-size: 2rem; }
+  header p { margin:0; color:var(--muted); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; margin-top:20px; }
+  h2 { margin:0 0 12px; font-size:1.2rem; }
+  ol, ul { padding-inline-start: 1.3rem; margin: 0; }
+  .row { display:flex; flex-wrap:wrap; gap:12px; align-items:end; }
+  label { display:flex; flex-direction:column; gap:4px; font-size:.9rem; color:var(--muted); }
+  input, select { font: inherit; padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--text); min-width: 140px; }
+  button { font: inherit; padding:9px 16px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--text); cursor:pointer; }
+  button.primary { background:var(--accent); border-color:var(--accent); color:var(--accent-ink); font-weight:600; }
+  button:disabled { opacity:.5; cursor:default; }
+  table { width:100%; border-collapse: collapse; margin-top: 12px; font-variant-numeric: tabular-nums; }
+  th, td { text-align:right; padding:8px 6px; border-bottom:1px solid var(--line); }
+  th { color:var(--muted); font-weight:600; font-size:.9rem; }
+  .totals { display:grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap:12px; margin-top:16px; }
+  .stat { border:1px solid var(--line); border-radius:10px; padding:12px; }
+  .stat b { display:block; font-size:1.4rem; }
+  .stat span { color:var(--muted); font-size:.85rem; }
+  .muted { color:var(--muted); }
+  .status { margin-top:10px; color:var(--muted); min-height:1.4em; }
+  .status.err { color:var(--warn); }
+  footer { margin-top:32px; color:var(--muted); font-size:.9rem; }
+  a { color:#0969da; } @media (prefers-color-scheme: dark) { a { color:#4493f8; } }
+  .table-scroll { overflow-x:auto; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>בודק התלוש</h1>
+    <p>מחשב את השכר הצפוי לפי משמרות העבודה ביומן Google שלך – כדי לבדוק שהתלוש נכון.</p>
+  </header>
+
+  <section class="card">
+    <h2>איך זה עובד</h2>
+    <ol>
+      <li>רושמים כל משמרת ביומן Google כאירוע שהכותרת שלו מתחילה במילה <strong>"משמרת"</strong>.</li>
+      <li>מתחברים עם Google ומאשרים <strong>צפייה בלבד</strong> באירועי היומן.</li>
+      <li>בוחרים חודש ושכר שעתי – והאתר מחשב שעות, שעות נוספות (125% / 150%) ושכר ברוטו צפוי.</li>
+    </ol>
+    <p class="muted" style="margin-top:12px">כל החישוב נעשה בדפדפן שלך. שום מידע לא נשלח לשרת ולא נשמר אצלנו. פרטים ב<a href="privacy.html">מדיניות הפרטיות</a>.</p>
+  </section>
+
+  <section class="card">
+    <h2>חישוב</h2>
+    <div class="row">
+      <button id="signin" class="primary" disabled>התחברות עם Google</button>
+      <button id="signout" hidden>התנתקות</button>
+    </div>
+    <div class="row" style="margin-top:16px">
+      <label>חודש <input type="month" id="month"></label>
+      <label>שכר שעתי (₪) <input type="number" id="wage" min="0" step="0.01" value="35.40"></label>
+      <label>מילת מפתח בכותרת <input type="text" id="keyword" value="משמרת"></label>
+      <button id="calc" disabled>חשב</button>
+    </div>
+    <div id="status" class="status"></div>
+    <div id="results" hidden>
+      <div class="totals">
+        <div class="stat"><b id="tShifts">0</b><span>משמרות</span></div>
+        <div class="stat"><b id="tHours">0</b><span>סה"כ שעות</span></div>
+        <div class="stat"><b id="tOver">0</b><span>שעות נוספות</span></div>
+        <div class="stat"><b id="tPay">₪0</b><span>שכר ברוטו צפוי</span></div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>תאריך</th><th>משמרת</th><th>שעות</th><th>100%</th><th>125%</th><th>150%</th><th>שכר</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <p class="muted" style="font-size:.85rem">החישוב הוא הערכה: 8 שעות ראשונות במשמרת ב-100%, שעתיים נוספות ב-125%, ומעבר לכך 150%. הוא לא כולל תוספות, נסיעות או ניכויים.</p>
+    </div>
+  </section>
+
+  <footer>
+    <a href="privacy.html">מדיניות פרטיות</a> · יצירת קשר: <a href="mailto:yoav854@gmail.com">yoav854@gmail.com</a>
+  </footer>
+</div>
+
+<script>
+const CLIENT_ID = '603702704625-604hbttroul1aus8vc4o9pev9bvoeeqr.apps.googleusercontent.com';
+const SCOPE = 'https://www.googleapis.com/auth/calendar.events.readonly';
+let tokenClient = null, accessToken = null;
+
+const $ = id => document.getElementById(id);
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch {} }
+};
+
+// defaults
+(function init() {
+  const now = new Date();
+  $('month').value = store.get('bodek.month', `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`);
+  $('wage').value = store.get('bodek.wage', $('wage').value);
+  $('keyword').value = store.get('bodek.keyword', $('keyword').value);
+  ['month', 'wage', 'keyword'].forEach(id => $(id).addEventListener('change', e => store.set('bodek.' + id, e.target.value)));
+})();
+
+function setStatus(msg, err) { $('status').textContent = msg || ''; $('status').className = 'status' + (err ? ' err' : ''); }
+
+window.addEventListener('load', () => {
+  const wait = setInterval(() => {
+    if (window.google && google.accounts && google.accounts.oauth2) {
+      clearInterval(wait);
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPE,
+        callback: resp => {
+          if (resp.error) { setStatus('ההתחברות נכשלה: ' + resp.error, true); return; }
+          accessToken = resp.access_token;
+          $('signin').hidden = true; $('signout').hidden = false; $('calc').disabled = false;
+          setStatus('מחובר. בחר חודש ולחץ "חשב".');
+          calculate();
+        }
+      });
+      $('signin').disabled = false;
+    }
+  }, 200);
+});
+
+$('signin').addEventListener('click', () => tokenClient && tokenClient.requestAccessToken({ prompt: '' }));
+$('signout').addEventListener('click', () => {
+  if (accessToken) google.accounts.oauth2.revoke(accessToken, () => {});
+  accessToken = null;
+  $('signin').hidden = false; $('signout').hidden = true; $('calc').disabled = true;
+  $('results').hidden = true; setStatus('התנתקת.');
+});
+$('calc').addEventListener('click', calculate);
+
+async function fetchEvents(timeMin, timeMax) {
+  let items = [], pageToken = '';
+  do {
+    const p = new URLSearchParams({ timeMin, timeMax, singleEvents: 'true', orderBy: 'startTime', maxResults: '250' });
+    if (pageToken) p.set('pageToken', pageToken);
+    const r = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events?' + p, { headers: { Authorization: 'Bearer ' + accessToken } });
+    if (r.status === 401) { accessToken = null; throw new Error('פג תוקף ההתחברות – התחבר מחדש.'); }
+    if (!r.ok) throw new Error('שגיאה בקריאת היומן (' + r.status + ')');
+    const j = await r.json();
+    items = items.concat(j.items || []);
+    pageToken = j.nextPageToken || '';
+  } while (pageToken);
+  return items;
+}
+
+const fmt = n => n.toLocaleString('he-IL', { maximumFractionDigits: 2 });
+const money = n => '₪' + n.toLocaleString('he-IL', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+async function calculate() {
+  if (!accessToken) { setStatus('יש להתחבר קודם.', true); return; }
+  const [y, m] = $('month').value.split('-').map(Number);
+  if (!y || !m) { setStatus('בחר חודש.', true); return; }
+  const wage = parseFloat($('wage').value) || 0;
+  const kw = $('keyword').value.trim();
+  const start = new Date(y, m - 1, 1), end = new Date(y, m, 1);
+  setStatus('קורא את היומן…');
+  try {
+    const events = await fetchEvents(start.toISOString(), end.toISOString());
+    const shifts = events.filter(e => e.start && e.start.dateTime && e.end && e.end.dateTime && (e.summary || '').trim().startsWith(kw));
+    let tH = 0, tO = 0, tP = 0;
+    const rows = shifts.map(e => {
+      const s = new Date(e.start.dateTime), f = new Date(e.end.dateTime);
+      const h = Math.max(0, (f - s) / 36e5);
+      const h100 = Math.min(h, 8), h125 = Math.min(Math.max(h - 8, 0), 2), h150 = Math.max(h - 10, 0);
+      const pay = wage * (h100 + h125 * 1.25 + h150 * 1.5);
+      tH += h; tO += h125 + h150; tP += pay;
+      const date = s.toLocaleDateString('he-IL', { weekday: 'short', day: 'numeric', month: 'numeric' });
+      const time = s.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' }) + '–' + f.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+      return `<tr><td>${date}</td><td>${time}</td><td>${fmt(h)}</td><td>${fmt(h100)}</td><td>${fmt(h125)}</td><td>${fmt(h150)}</td><td>${money(pay)}</td></tr>`;
+    });
+    $('rows').innerHTML = rows.join('') || '<tr><td colspan="7" class="muted">לא נמצאו משמרות בחודש הזה.</td></tr>';
+    $('tShifts').textContent = shifts.length;
+    $('tHours').textContent = fmt(tH);
+    $('tOver').textContent = fmt(tO);
+    $('tPay').textContent = money(tP);
+    $('results').hidden = false;
+    setStatus(`נמצאו ${shifts.length} משמרות.`);
+  } catch (err) { setStatus(err.message, true); }
+}
+</script>
+</body>
+</html>
