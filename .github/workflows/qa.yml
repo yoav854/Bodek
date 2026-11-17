@@ -13,11 +13,15 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      - name: גרסת כרום
+        run: google-chrome --version
       - name: בדיקת הקוד שהועלה
         shell: pwsh
         run: ./qa/run-suite.ps1
       - name: המתנה לפרסום ב-Vercel
+        if: always()
         run: sleep 90
       - name: בדיקת האתר החי
+        if: always()
         shell: pwsh
         run: ./qa/run-suite.ps1 -Target live

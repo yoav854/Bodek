@@ -39,13 +39,21 @@ try {
   if (-not $chrome) { Write-Output '🔴 קריטי | לא נמצא Chrome | להתקין Google Chrome'; exit 2 }
 
   $url = ([Uri]$html).AbsoluteUri
-  $chromeArgs = @('--headless=new', '--disable-gpu', '--no-first-run', '--no-sandbox', "--user-data-dir=$(Join-Path $work 'profile')", '--virtual-time-budget=15000', '--dump-dom', $url)
+  $chromeArgs = @('--headless=new', '--disable-gpu', '--disable-dev-shm-usage', '--no-first-run', '--no-sandbox', "--user-data-dir=$(Join-Path $work 'profile')", '--virtual-time-budget=15000', '--dump-dom', $url)
   $domFile = Join-Path $work 'dom.html'; $errFile = Join-Path $work 'err.txt'
-  Start-Process $chrome -ArgumentList $chromeArgs -RedirectStandardOutput $domFile -RedirectStandardError $errFile -Wait -NoNewWindow
-  $dom = & $read $domFile
+  if ($IsLinux -or $IsMacOS) {
+    # בלינוקס (GitHub) מפעילים ישירות: Start-Process שם לא העביר לכרום את כתובת הדף
+    & $chrome @chromeArgs 1> $domFile 2> $errFile
+  } else {
+    Start-Process $chrome -ArgumentList $chromeArgs -RedirectStandardOutput $domFile -RedirectStandardError $errFile -Wait -NoNewWindow
+  }
+  $dom = if (Test-Path $domFile) { & $read $domFile } else { '' }
   $ms = [regex]::Matches($dom, '<pre id="qa-out">(.*?)</pre>', 'Singleline')
-  if (-not $ms.Count) { $e = (& $read $errFile); $msg = '🔴 קריטי | חבילת הבדיקות לא הסתיימה (הדף קרס או לא נטען) | ' + ($e -split "
-" | Select-Object -Last 3) -join ' / '; Write-Output $msg; if ($env:GITHUB_ACTIONS) { Write-Output "::error::$msg" }; exit 2 }
+  if (-not $ms.Count) {
+    $e = if (Test-Path $errFile) { & $read $errFile } else { '' }
+    $msg = '🔴 קריטי | חבילת הבדיקות לא הסתיימה (הדף קרס או לא נטען) | ' + (($e -split "`n" | Where-Object { $_ -notmatch 'dbus' } | Select-Object -Last 15) -join ' / ')
+    Write-Output $msg; if ($env:GITHUB_ACTIONS) { Write-Output "::error::$msg"; Write-Output "--- chrome log ---"; Write-Output $e }; exit 2
+  }
   $res = [Net.WebUtility]::HtmlDecode($ms[$ms.Count - 1].Groups[1].Value) | ConvertFrom-Json
   $icon = @{ 'קריטי' = '🔴'; 'גבוה' = '🟠'; 'בינוני' = '🟡' }
   $failed = @($res | Where-Object { -not $_.pass })
