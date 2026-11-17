@@ -28,6 +28,10 @@ try {
   if ($ExtraCases) { $inject += '<script>' + (& $read $ExtraCases) + '</script>' }
   $inject += '<script>' + (& $read (Join-Path $qa 'runner.js')) + '</script>'
   $harness = if ($page.Contains('</body>')) { $page.Replace('</body>', $inject + '</body>') } else { $page + $inject }
+  # לוכד שגיאות בראש הדף: אם החבילה לא מסיימת, נכתב qa-err עם הכותרת, מצב הטעינה והשגיאות, כדי שהכישלון יסביר את עצמו
+  $catcher = '<script>window.__qaErr=[];addEventListener("error",function(e){__qaErr.push((e.message||("resource failed: "+((e.target&&(e.target.src||e.target.href))||"?")))+(e.lineno?" @"+e.lineno:""))},true);addEventListener("unhandledrejection",function(e){__qaErr.push("promise: "+(e.reason&&e.reason.message||e.reason))});setTimeout(function(){if(!document.getElementById("qa-out")){var p=document.createElement("pre");p.id="qa-err";p.textContent=JSON.stringify({title:document.title,ready:document.readyState,len:document.documentElement.outerHTML.length,err:__qaErr});document.body.appendChild(p)}},12000)</script>'
+  $hi = $harness.IndexOf('<head>')
+  $harness = if ($hi -ge 0) { $harness.Insert($hi + 6, $catcher) } else { $catcher + $harness }
   $html = Join-Path $work 'qa.html'
   [IO.File]::WriteAllText($html, $harness, $utf8)
 
@@ -38,20 +42,30 @@ try {
   $chrome = $cands | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
   if (-not $chrome) { Write-Output '🔴 קריטי | לא נמצא Chrome | להתקין Google Chrome'; exit 2 }
 
-  $url = ([Uri]$html).AbsoluteUri
-  $chromeArgs = @('--headless=new', '--disable-gpu', '--disable-dev-shm-usage', '--no-first-run', '--no-sandbox', "--user-data-dir=$(Join-Path $work 'profile')", '--virtual-time-budget=15000', '--dump-dom', $url)
   $domFile = Join-Path $work 'dom.html'; $errFile = Join-Path $work 'err.txt'
+  $baseArgs = @('--headless=new', '--disable-gpu', '--disable-dev-shm-usage', '--no-first-run', '--no-sandbox', "--user-data-dir=$(Join-Path $work 'profile')", '--virtual-time-budget=15000', '--dump-dom')
   if ($IsLinux -or $IsMacOS) {
-    # בלינוקס (GitHub) מפעילים ישירות: Start-Process שם לא העביר לכרום את כתובת הדף
-    & $chrome @chromeArgs 1> $domFile 2> $errFile
+    # בלינוקס (GitHub) כרום לא קיבל מ-pwsh את כתובת הקובץ ופתח לשונית ריקה (chrome://newtab).
+    # לכן, כמו באבחון שעבד: שרת http מקומי, וכרום מופעל דרך bash.
+    $port = Get-Random -Minimum 20000 -Maximum 40000
+    $srv = Start-Process python3 -ArgumentList @('-m', 'http.server', "$port", '--bind', '127.0.0.1', '--directory', $work) -PassThru
+    try {
+      Start-Sleep -Seconds 2
+      $url = "http://127.0.0.1:$port/qa.html"
+      $cmd = "'$chrome' " + (($baseArgs | ForEach-Object { "'$_'" }) -join ' ') + " '$url' > '$domFile' 2> '$errFile'"
+      & bash -c $cmd
+    } finally { Stop-Process -Id $srv.Id -Force -ErrorAction SilentlyContinue }
   } else {
-    Start-Process $chrome -ArgumentList $chromeArgs -RedirectStandardOutput $domFile -RedirectStandardError $errFile -Wait -NoNewWindow
+    $url = ([Uri]$html).AbsoluteUri
+    Start-Process $chrome -ArgumentList ($baseArgs + $url) -RedirectStandardOutput $domFile -RedirectStandardError $errFile -Wait -NoNewWindow
   }
   $dom = if (Test-Path $domFile) { & $read $domFile } else { '' }
   $ms = [regex]::Matches($dom, '<pre id="qa-out">(.*?)</pre>', 'Singleline')
   if (-not $ms.Count) {
     $e = if (Test-Path $errFile) { & $read $errFile } else { '' }
-    $msg = '🔴 קריטי | חבילת הבדיקות לא הסתיימה (הדף קרס או לא נטען) | ' + (($e -split "`n" | Where-Object { $_ -notmatch 'dbus' } | Select-Object -Last 15) -join ' / ')
+    $qe = [regex]::Match($dom, '<pre id="qa-err">(.*?)</pre>', 'Singleline')
+    $diag = if ($qe.Success) { 'בדף: ' + [Net.WebUtility]::HtmlDecode($qe.Groups[1].Value) } else { "אורך הפלט מכרום: $($dom.Length) | " + (($e -split "`n" | Where-Object { $_ -notmatch 'dbus' } | Select-Object -Last 15) -join ' / ') }
+    $msg = '🔴 קריטי | חבילת הבדיקות לא הסתיימה (הדף קרס או לא נטען) | ' + $diag
     Write-Output $msg; if ($env:GITHUB_ACTIONS) { Write-Output "::error::$msg"; Write-Output "--- chrome log ---"; Write-Output $e }; exit 2
   }
   $res = [Net.WebUtility]::HtmlDecode($ms[$ms.Count - 1].Groups[1].Value) | ConvertFrom-Json

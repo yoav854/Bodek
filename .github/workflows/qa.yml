@@ -1,9 +1,10 @@
 # בדיקה אוטומטית בכל עדכון: התלושים הפיקטיביים רצים מול הקוד, ואחרי הפרסום גם מול האתר החי.
 # כשבדיקה נכשלת, GitHub שולח מייל לבעל המאגר.
+# ענף שמתחיל ב-ci- מריץ את הבדיקות בלי לפרסם את האתר (לניסויים בבדיקה עצמה).
 name: QA - תלושים פיקטיביים
 on:
   push:
-    branches: [main]
+    branches: [main, 'ci-*']
   workflow_dispatch:
 permissions:
   contents: read
@@ -12,21 +13,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - name: גרסת כרום ואבחון
-        run: |
-          google-chrome --version
-          echo '<html><body><pre id="x">OK</pre></body></html>' > /tmp/t.html
-          C="google-chrome --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage"
-          r1=$($C --dump-dom file:///tmp/t.html 2>/tmp/e1 | grep -c 'id="x"'); echo "::notice::file-plain=$r1 | $(grep -v dbus /tmp/e1 | tail -2 | tr '\n' ' ')"
-          r2=$($C --user-data-dir=/tmp/p2 --virtual-time-budget=15000 --dump-dom file:///tmp/t.html 2>/tmp/e2 | grep -c 'id="x"'); echo "::notice::file-profile-vtb=$r2 | $(grep -v dbus /tmp/e2 | tail -2 | tr '\n' ' ')"
-          (cd /tmp && python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 2
-          r3=$($C --dump-dom http://127.0.0.1:8765/t.html 2>/tmp/e3 | grep -c 'id="x"'); echo "::notice::http=$r3 | $(grep -v dbus /tmp/e3 | tail -2 | tr '\n' ' ')"
+      - uses: actions/checkout@v5
+      - name: גרסת כרום
+        run: google-chrome --version
       - name: בדיקת הקוד שהועלה
         shell: pwsh
         run: ./qa/run-suite.ps1
       - name: המתנה לפרסום ב-Vercel
-        if: always()
+        if: always() && github.ref == 'refs/heads/main'
         run: sleep 90
       - name: בדיקת האתר החי
         if: always()
