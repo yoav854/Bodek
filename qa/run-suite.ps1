@@ -44,12 +44,14 @@ try {
   Start-Process $chrome -ArgumentList $chromeArgs -RedirectStandardOutput $domFile -RedirectStandardError $errFile -Wait -NoNewWindow
   $dom = & $read $domFile
   $ms = [regex]::Matches($dom, '<pre id="qa-out">(.*?)</pre>', 'Singleline')
-  if (-not $ms.Count) { Write-Output '🔴 קריטי | חבילת הבדיקות לא הסתיימה (הדף קרס או לא נטען) | להריץ את הדף ולבדוק שגיאות JavaScript'; exit 2 }
+  if (-not $ms.Count) { $e = (& $read $errFile); $msg = '🔴 קריטי | חבילת הבדיקות לא הסתיימה (הדף קרס או לא נטען) | ' + ($e -split "
+" | Select-Object -Last 3) -join ' / '; Write-Output $msg; if ($env:GITHUB_ACTIONS) { Write-Output "::error::$msg" }; exit 2 }
   $res = [Net.WebUtility]::HtmlDecode($ms[$ms.Count - 1].Groups[1].Value) | ConvertFrom-Json
   $icon = @{ 'קריטי' = '🔴'; 'גבוה' = '🟠'; 'בינוני' = '🟡' }
   $failed = @($res | Where-Object { -not $_.pass })
-  foreach ($f in $failed) { Write-Output ("{0} {1} | [{2}] {3}: {4} | {5}" -f $icon[$f.sev], $f.sev, $f.area, $f.name, $f.problem, $f.fix) }
+  foreach ($f in $failed) { $line = "{0} {1} | [{2}] {3}: {4} | {5}" -f $icon[$f.sev], $f.sev, $f.area, $f.name, $f.problem, $f.fix; Write-Output $line; if ($env:GITHUB_ACTIONS) { Write-Output "::error::$line" } }
   Write-Output ("🟢 תקין | {0} מתוך {1} בדיקות עברו ({2}) | —" -f @($res | Where-Object { $_.pass }).Count, $res.Count, $Target)
   if ($failed.Count) { exit 1 } else { exit 0 }
 }
+catch { $msg = "🔴 קריטי | ההרצה נכשלה: $($_.Exception.Message) | לבדוק את run-suite.ps1"; Write-Output $msg; if ($env:GITHUB_ACTIONS) { Write-Output "::error::$msg" }; exit 2 }
 finally { Remove-Item -Recurse -Force $work -ErrorAction SilentlyContinue }
