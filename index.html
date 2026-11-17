@@ -146,6 +146,28 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .others summary{cursor:pointer;font-weight:600;color:var(--accent);padding:6px 2px}
 .others .callist{margin-top:6px}
 .sub{font-size:.85rem;color:var(--muted);font-weight:600;letter-spacing:.03em}
+/* דרגה ושכר אישי */
+.roles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.role{position:relative;border:1px solid var(--line);border-radius:12px;padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;cursor:pointer}
+.role input{position:absolute;opacity:0;width:1px;height:1px}
+.role b{font-family:var(--display);font-size:.95rem;line-height:1.2}
+.role:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.role:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;align-self:flex-start}
+.seg label{padding:7px 14px;cursor:pointer;font-weight:600;position:relative}
+.seg input{position:absolute;opacity:0;width:1px;height:1px}
+.seg label:has(input:checked){background:var(--accent);color:var(--accent-ink)}
+.seg label:focus-within{outline:3px solid var(--accent);outline-offset:-3px}
+.fields{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:4px;flex:1 1 150px;min-width:0}
+.field>span{font-size:.85rem;color:var(--muted);font-weight:600}
+.field input,.field select{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);width:100%;min-width:0}
+.field select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.mix{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.vars{display:flex;flex-direction:column;gap:10px}
+.var{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) minmax(0,2fr) auto;gap:8px;align-items:end;padding:10px;border:1px solid var(--line);border-radius:12px}
+.var .del{padding:8px 10px}
+@media (max-width:520px){.roles{grid-template-columns:1fr}.var{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.var .wide{grid-column:1/-1}}
 .total-hours{font-weight:700}
 @media (max-width:520px){.counters{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .err{background:var(--gap-soft);color:var(--gap);border-radius:10px;padding:12px;font-weight:600}
@@ -243,8 +265,36 @@ footer ul{margin:0;padding-inline-start:18px}
     </label>
   </section>
 
+  <section class="panel" aria-labelledby="sRole">
+    <div class="step"><b>שלב 2</b><h2 id="sRole">התפקיד שלך</h2></div>
+    <div class="roles" role="radiogroup" aria-labelledby="sRole">
+      <label class="role"><input type="radio" name="role" value="guard" checked><b>מאבטח</b><span class="note">47 ₪ לשעה</span></label>
+      <label class="role"><input type="radio" name="role" value="ramash"><b>ראש משמרת (רמ"ש)</b><span class="note">52 ₪ לשעה</span></label>
+      <label class="role"><input type="radio" name="role" value="lead"><b>ראש צוות</b><span class="note">לפי השכר שלך</span></label>
+    </div>
+    <div id="mixBox" class="mix">
+      <span id="mixLbl">עבדת חלק מהמשמרות כרמ"ש? כמה:</span>
+      <div class="stepper"><button type="button" id="mixMinus" aria-label="פחות">−</button><output id="mixN" aria-live="polite">0</output><button type="button" id="mixPlus" aria-label="עוד">+</button></div>
+    </div>
+    <div id="leadBox" hidden style="display:flex;flex-direction:column;gap:10px">
+      <div class="seg" role="radiogroup" aria-label="סוג השכר">
+        <label><input type="radio" name="payType" value="hourly" checked>שעתי</label>
+        <label><input type="radio" name="payType" value="global">גלובלי</label>
+      </div>
+      <div class="fields" id="hourlyBox">
+        <label class="field"><span>השכר שלך לשעה (₪)</span><input type="number" id="leadRate" inputmode="decimal" min="0" step="0.01" placeholder="למשל 55"></label>
+      </div>
+      <div class="fields" id="globalBox" hidden>
+        <label class="field"><span>שכר גלובלי לחודש (₪)</span><input type="number" id="leadGlobal" inputmode="decimal" min="0" step="1" placeholder="למשל 9000"></label>
+        <label class="field"><span>איפה הוא בתלוש</span><select id="leadLine"><option value="">קודם העלה את התלוש</option></select></label>
+        <label class="field"><span>ערך שעה לשעות נוספות (₪)</span><input type="number" id="leadHour" inputmode="decimal" min="0" step="0.01" placeholder="אם ריק: חלקי 182"></label>
+      </div>
+    </div>
+    <p class="note">מה שתקליד כאן נשאר רק במכשיר שלך, ונמחק כשסוגרים את הדף.</p>
+  </section>
+
   <section class="panel" aria-labelledby="s2">
-    <div class="step"><b>שלב 2</b><h2 id="s2">כמה משמרות עבדת בחודש הזה</h2></div>
+    <div class="step"><b>שלב 3</b><h2 id="s2">כמה משמרות עבדת בחודש הזה</h2></div>
     <div class="cal">
       <div class="row">
         <button type="button" id="calBtn" class="gcal" aria-label="מלא משמרות מ-Google Calendar"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="3" fill="#fff"/><path d="M5.5 2.5h13a3 3 0 0 1 3 3V7h-19V5.5a3 3 0 0 1 3-3z" fill="#4285F4"/><path d="M21.5 7v11.5a3 3 0 0 1-3 3H17V7z" fill="#FBBC04"/><path d="M2.5 18.5V17H17v4.5H5.5a3 3 0 0 1-3-3z" fill="#34A853"/><path d="M2.5 7H7v10H2.5z" fill="#EA4335"/><text x="12" y="15.6" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="7.5" fill="#4285F4">31</text></svg><span>Google Calendar</span></button>
@@ -265,6 +315,13 @@ footer ul{margin:0;padding-inline-start:18px}
     <p class="note">סך הכל: <span class="total-hours num" id="shiftCount">0</span> משמרות · <span class="total-hours num" id="shiftHours">0</span> שעות</p>
   </section>
 
+  <section class="panel" aria-labelledby="sVars">
+    <div class="step"><b>שלב 4</b><h2 id="sVars">תוספות שמגיעות לך (לא חובה)</h2></div>
+    <p class="note">למשל שיחות טלפון או נסיעות במונית: שם, סכום ליחידה וכמות. אם התוספת מופיעה בתלוש, בחר את השורה שלה, והבודק ישווה.</p>
+    <div id="vars" class="vars"></div>
+    <button type="button" id="addVar" class="linkish">+ הוסף משתנה</button>
+  </section>
+
   <button class="primary" id="go" type="button" disabled>בדוק את התלוש</button>
   <div id="error" class="err" hidden></div>
 
@@ -281,6 +338,8 @@ const RULESETS = [{
   from: '2026-04-01',
   label: 'כללי ענף השמירה מ-1.4.2026',
   sectorMinHour: 39.11, generalMinHour: 35.40,
+  roleRates: {guard: 47, ramash: 52}, // תעריפי רשף ביטחון לפי דרגה (מיואב, 17.11.2026). ראש צוות מקליד את השכר שלו
+  globalDivisor: 182, // ערך שעה לשעות נוספות בשכר גלובלי, כשלא הוקלד
   havraaPerHour: 1.64, havraaCapHours: 182,
   pensionEmployee: 0.07, pensionEmployer: 0.075, severance: 0.0833, severanceExtras: 0.06,
   kerenEmployer: 0.075, kerenEmployee: 0.025, kerenCapHours: 182, travelDayCap: 22.60,
@@ -294,6 +353,7 @@ const RULESETS = [{
   verified: {keren: false},
   sources: [
     ['שכר מינימום בענף, עובד רגיל: 39.11 ₪ לשעה', 'כל זכות, עודכן 19.4.2026', true],
+    ['תעריף ברשף ביטחון: מאבטח 47 ₪, ראש משמרת (רמ"ש) 52 ₪ לשעה. ראש צוות לפי השכר שהוא מקליד', 'מהעובדים ברשף, 17.11.2026', true],
     ['שכר מינימום כללי: 35.40 ₪ לשעה', 'כל זכות, עודכן 17.8.2026', true],
     ['הבראה: 7 ימים בשנה (ותק עד 3 שנים), 511.60 ₪ ליום, חלקי 182 שעות: 1.64 ₪ לכל שעת עבודה', 'כל זכות, ערך היום עודכן ביוני 2026', true],
     ['פנסיה: עובד 7%, מעסיק 7.5%. פיצויים 8.33%, ועל שעות נוספות 6%', 'צו ההרחבה בענף השמירה', true],
@@ -541,29 +601,55 @@ function check(slip, shifts, opts = {}){
   if (!R){ add('skip', 'אין כללים לחודש הזה', 'הבדיקה מכירה את הכללים רק מאפריל 2026.'); return out; }
 
   const L = slip.lines;
-  const base = L.find(l => /שכר יסוד/.test(l.name));
+  const S = summarize(shifts);
+  const worked = S.hours, shabbatWorked = S.shabbat, hasShifts = S.count > 0;
+  // הדרגה והשכר האישי (שלב 2). שום דבר מזה לא נשמר ולא נשלח
+  const PR = opts.profile || {role: 'guard', mix: 0, vars: []};
+  const isGlobal = PR.role === 'lead' && PR.payType === 'global';
+  const globalLine = isGlobal && PR.leadLine !== '' && PR.leadLine != null ? L[+PR.leadLine] : null;
+  const base = isGlobal ? globalLine : L.find(l => /שכר יסוד/.test(l.name));
   const extra = L.filter(l => /%/.test(l.name) && l.qty != null);
   const havraa = L.find(l => /הבראה/.test(l.name));
   const travel = L.find(l => /נסיעות/.test(l.name));
   const days = L.find(l => /ימי עבודה/.test(l.name));
-  const paidHours = (base ? base.qty : 0) + extra.reduce((a, l) => a + l.qty, 0);
-  const S = summarize(shifts);
-  const worked = S.hours, shabbatWorked = S.shabbat, hasShifts = S.count > 0;
-  const rate = base ? base.rate : null;
+  const paidHours = (!isGlobal && base ? base.qty : 0) + extra.reduce((a, l) => a + l.qty, 0);
+  const hourValue = isGlobal ? (PR.leadHour > 0 ? PR.leadHour : (PR.leadGlobal > 0 ? r2(PR.leadGlobal / R.globalDivisor) : null)) : null;
+  const rate = isGlobal ? hourValue : (base ? base.rate : null);
+  // התעריף שמגיע: מאבטח ורמ"ש לפי משמרת (חלק מהמשמרות בדרגה האחרת), ראש צוות שעתי לפי מה שהקליד
+  let expRate = null, rateHow = '';
+  if (PR.role === 'lead'){ if (!isGlobal && PR.leadRate > 0){ expRate = PR.leadRate; rateHow = `השכר שהקלדת: ${fmt(expRate)} ₪ לשעה`; } }
+  else {
+    const other = PR.role === 'guard' ? 'ramash' : 'guard', own = PR.role;
+    const nOther = hasShifts ? Math.min(PR.mix || 0, S.count) : 0, nOwn = hasShifts ? S.count - nOther : 1;
+    expRate = r2((nOwn * R.roleRates[own] + nOther * R.roleRates[other]) / (nOwn + nOther));
+    const name = {guard: 'מאבטח', ramash: 'רמ"ש'};
+    rateHow = nOther ? `${nOwn} משמרות כ${name[own]} (${fmt(R.roleRates[own])} ₪) ו-${nOther} כ${name[other]} (${fmt(R.roleRates[other])} ₪): בממוצע ${fmt(expRate)} ₪ לשעה`
+      : `${name[own]}: ${fmt(expRate)} ₪ לשעה`;
+  }
 
-  // 1. שעות
-  if (!hasShifts) add('skip', 'שעות עבודה', `בתלוש שולמו ${fmtH(paidHours)} שעות. לא הוזנו משמרות, ולכן אין למה להשוות.`);
+  // 1. שעות (בשכר גלובלי השעות לא משנות את הבסיס)
+  if (isGlobal) add('skip', 'שעות עבודה', 'בשכר גלובלי הבסיס לא תלוי במספר השעות, ולכן בודקים את הסכום הגלובלי במקום.');
+  else if (!hasShifts) add('skip', 'שעות עבודה', `בתלוש שולמו ${fmtH(paidHours)} שעות. לא הוזנו משמרות, ולכן אין למה להשוות.`);
   else if (worked - paidHours > 0.01){
-    const miss = worked - paidHours;
-    add('gap', 'חסרות שעות', `עבדת ${fmtH(worked)} שעות לפי המשמרות, ושולמו ${fmtH(paidHours)}. חסרות ${fmtH(miss)} שעות, לפי ${fmt(rate)} ₪ לשעה.`, r2(miss * rate));
+    const miss = worked - paidHours, hr = expRate || rate;
+    add('gap', 'חסרות שעות', `עבדת ${fmtH(worked)} שעות לפי המשמרות, ושולמו ${fmtH(paidHours)}. חסרות ${fmtH(miss)} שעות, לפי ${fmt(hr)} ₪ לשעה.`, r2(miss * hr));
   } else if (paidHours - worked > 0.01){
     add('info', 'שעות עבודה', `ספרת ${fmtH(worked)} שעות, ובתלוש שולמו ${fmtH(paidHours)}, כלומר ${fmtH(paidHours - worked)} שעות יותר. כנראה חסרה משמרת ברשימה. בדוק את המשמרות למעלה ותקן, ואז בדוק שוב.`);
   } else add('ok', 'שעות עבודה', `עבדת ${fmtH(worked)} שעות, ושולמו ${fmtH(paidHours)}` + (extra.length ? ` (מתוכן ${fmtH(extra.reduce((a, l) => a + l.qty, 0))} בתוספת: ${extra.map(l => l.name.replace(/שעות\s*/, '')).join(', ')}).` : '.'));
 
-  // 3. תעריף
-  if (rate != null){
-    if (rate + 0.001 < R.sectorMinHour) add('gap', 'תעריף לשעה', `התעריף שלך ${fmt(rate)} ₪, נמוך משכר המינימום בענף (${fmt(R.sectorMinHour)} ₪).`, r2((R.sectorMinHour - rate) * (base.qty || 0)));
-    else add('ok', 'תעריף לשעה', `${fmt(rate)} ₪ לשעה, מעל שכר המינימום בענף (${fmt(R.sectorMinHour)} ₪). אם עברת הכשרה של מאבטח, ייתכן שמגיע לך תעריף גבוה יותר.`);
+  // 2. תעריף, או שכר גלובלי
+  if (isGlobal){
+    if (!(PR.leadGlobal > 0)) add('skip', 'שכר גלובלי', 'לא הקלדת את השכר הגלובלי, ולכן אין למה להשוות.');
+    else if (!globalLine) add('skip', 'שכר גלובלי', 'בחר בשלב 2 באיזו שורה בתלוש מופיע השכר הגלובלי.');
+    else if (PR.leadGlobal - globalLine.amount > 0.5) add('gap', 'שכר גלובלי', `השכר הגלובלי שלך ${fmt(PR.leadGlobal)} ₪, ובשורה "${globalLine.name}" שולמו ${fmt(globalLine.amount)} ₪.`, r2(PR.leadGlobal - globalLine.amount));
+    else add('ok', 'שכר גלובלי', `בשורה "${globalLine.name}" שולמו ${fmt(globalLine.amount)} ₪, כמו השכר הגלובלי שהקלדת.` + (hourValue ? ` שעות נוספות נבדקות לפי ${fmt(hourValue)} ₪ לשעה${PR.leadHour > 0 ? '' : ` (השכר חלקי ${R.globalDivisor})`}.` : ''));
+  } else if (rate != null){
+    const baseLines = L.filter(l => /שכר יסוד/.test(l.name) && l.qty);
+    const bq = baseLines.reduce((a, l) => a + l.qty, 0), paidRate = bq ? r2(baseLines.reduce((a, l) => a + (l.amount || 0), 0) / bq) : rate;
+    if (expRate == null) add('skip', 'תעריף לשעה', `בתלוש ${fmt(paidRate)} ₪ לשעה. כדי לבדוק אותו, הקלד בשלב 2 את השכר שלך לשעה.`);
+    else if (expRate - paidRate > 0.005) add('gap', 'תעריף לשעה', `בתלוש שולמו ${fmt(paidRate)} ₪ לשעה. לפי ${rateHow}.`, r2((expRate - paidRate) * bq));
+    else add('ok', 'תעריף לשעה', `${fmt(paidRate)} ₪ לשעה, כמו שמגיע (${rateHow}).`);
+    if (expRate != null && expRate + 0.001 < R.sectorMinHour) add('info', 'שכר מינימום בענף', `השכר שהקלדת (${fmt(expRate)} ₪) נמוך משכר המינימום בענף (${fmt(R.sectorMinHour)} ₪ לשעה). כדאי לבדוק.`);
   }
 
   // 3א. שעות נוספות ותוספת שבת, מיד מתחת לתעריף: מה מגיע לפי המשמרות מול מה ששולם
@@ -634,6 +720,18 @@ function check(slip, shifts, opts = {}){
     add(kSev, 'קרן השתלמות', `המעסיק הפקיד ${fmt(keren.employer)} ₪, על בסיס ${fmt(keren.base)} ₪. לפי הצו הבסיס הוא ${kHow}, ומגיע ${fmt(kErExp)} ₪` + (kSev === 'info' ? `, כלומר ${fmt(r2(kErExp - keren.employer))} ₪ יותר.` : '.') + kNote, kSev === 'gap' ? r2(kErExp - keren.employer) : 0);
     if (kSev === 'info') out.kerenUnverified = r2(kErExp - keren.employer); // נספר בסטטיסטיקה (החלטה 34) גם כשהכלל לא אומת
   } else add('ok', 'קרן השתלמות', `המעסיק הפקיד ${fmt(keren.employer)} ₪ ונוכו ממך ${fmt(keren.employee)} ₪. הבסיס לפי הצו: ${kHow}. בתלוש הבסיס ${fmt(keren.base)} ₪.`);
+
+  // 7א. תוספות אישיות (שלב 4): סכום ליחידה כפול כמות, מול השורה שהעובד בחר
+  for (const v of (PR.vars || [])){
+    const exp = r2((v.unit || 0) * (v.qty || 0));
+    if (!(exp > 0)) continue;
+    const title = v.name || 'תוספת';
+    const line = v.line !== '' && v.line != null ? L[+v.line] : null;
+    const paid = line ? (line.amount || 0) : 0;
+    const how = `${fmtH(v.qty)} × ${fmt(v.unit)} ₪ = ${fmt(exp)} ₪`;
+    if (exp - paid > 0.5) add('gap', title, line ? `מגיע ${how}. בשורה "${line.name}" שולמו ${fmt(paid)} ₪.` : `מגיע ${how}, ולא בחרת שורה בתלוש, כלומר לא שולם.`, r2(exp - paid));
+    else add('ok', title, `מגיע ${how}. בשורה "${line.name}" שולמו ${fmt(paid)} ₪.`);
+  }
 
   // 8. חשבון הנטו
   const dedTotal = (slip.taxTotal || 0) + (slip.fundTotal || 0) + (slip.otherTotal || 0);
@@ -743,14 +841,14 @@ function letter(slip, res){
 }
 /* הבדיקה האחרונה שהוצגה, כדי לחשב מחדש כשהעובד מוסיף עבודה נוספת. שום דבר לא נשמר אחרי סגירת הדף */
 let lastCtx = null, otherGross = 0;
-function showResult(slip, shifts, isExample){
-  lastCtx = {slip, shifts, isExample};
-  renderResult(slip, check(slip, shifts, {otherGross}), isExample);
+function showResult(slip, shifts, isExample, profile){
+  lastCtx = {slip, shifts, isExample, profile};
+  renderResult(slip, check(slip, shifts, {otherGross, profile}), isExample);
 }
 function rerender(v, focusId){
   otherGross = v;
   if (!lastCtx) return;
-  renderResult(lastCtx.slip, check(lastCtx.slip, lastCtx.shifts, {otherGross}), lastCtx.isExample);
+  renderResult(lastCtx.slip, check(lastCtx.slip, lastCtx.shifts, {otherGross, profile: lastCtx.profile}), lastCtx.isExample);
   const f = document.getElementById(focusId); if (f) f.focus({preventScroll: true});
 }
 function renderResult(slip, res, isExample){
@@ -1004,6 +1102,59 @@ function updateTotals(){
 }
 buildCounters();
 
+/* ===================== דרגה, שכר אישי ותוספות (שלבים 2 ו-4). רק בזיכרון של הדף ===================== */
+let mixN = 0;
+const numVal = id => { const v = parseFloat(document.getElementById(id).value); return v > 0 ? v : 0; };
+function getProfile(){
+  const role = document.querySelector('input[name=role]:checked').value;
+  return {
+    role, mix: mixN,
+    payType: document.querySelector('input[name=payType]:checked').value,
+    leadRate: numVal('leadRate'), leadGlobal: numVal('leadGlobal'), leadHour: numVal('leadHour'),
+    leadLine: document.getElementById('leadLine').value,
+    vars: [...document.querySelectorAll('#vars .var')].map(r => ({
+      name: r.querySelector('.vName').value.trim(), unit: parseFloat(r.querySelector('.vUnit').value) || 0,
+      qty: parseFloat(r.querySelector('.vQty').value) || 0, line: r.querySelector('.vLine').value})),
+  };
+}
+function setMix(n){ mixN = Math.max(0, n); document.getElementById('mixN').textContent = mixN; }
+function syncRole(){
+  const role = document.querySelector('input[name=role]:checked').value;
+  document.getElementById('mixBox').hidden = role === 'lead';
+  document.getElementById('leadBox').hidden = role !== 'lead';
+  document.getElementById('mixLbl').textContent = role === 'guard' ? 'עבדת חלק מהמשמרות כרמ"ש? כמה:' : 'עבדת חלק מהמשמרות כמאבטח? כמה:';
+  const global = document.querySelector('input[name=payType]:checked').value === 'global';
+  document.getElementById('hourlyBox').hidden = global;
+  document.getElementById('globalBox').hidden = !global;
+}
+document.querySelectorAll('input[name=role]').forEach(r => r.addEventListener('change', () => { setMix(0); syncRole(); }));
+document.querySelectorAll('input[name=payType]').forEach(r => r.addEventListener('change', syncRole));
+document.getElementById('mixMinus').addEventListener('click', () => setMix(mixN - 1));
+document.getElementById('mixPlus').addEventListener('click', () => setMix(mixN + 1));
+// רשימת שורות התלוש לבחירה: לשכר הגלובלי ולכל תוספת
+function lineOptions(empty){
+  const L = currentSlip ? currentSlip.lines : [];
+  return `<option value="">${esc(empty)}</option>` + L.map((l, i) => `<option value="${i}">${esc(l.name)}${l.amount != null ? ' · ' + fmt(l.amount) + ' ₪' : ''}</option>`).join('');
+}
+function fillLineSelects(){
+  const g = document.getElementById('leadLine'), gv = g.value;
+  g.innerHTML = currentSlip ? lineOptions('בחר שורה') : '<option value="">קודם העלה את התלוש</option>'; g.value = gv;
+  document.querySelectorAll('#vars .vLine').forEach(s => { const v = s.value; s.innerHTML = lineOptions(currentSlip ? 'לא מופיע בתלוש' : 'קודם העלה את התלוש'); s.value = v; });
+}
+let varSeq = 0;
+document.getElementById('addVar').addEventListener('click', () => {
+  const k = ++varSeq, row = document.createElement('div'); row.className = 'var';
+  row.innerHTML = `<label class="field wide"><span>שם</span><input class="vName" id="vName${k}" placeholder="למשל שיחות טלפון"></label>
+    <label class="field"><span>סכום ליחידה (₪)</span><input class="vUnit" id="vUnit${k}" type="number" inputmode="decimal" min="0" step="0.01"></label>
+    <label class="field"><span>כמות</span><input class="vQty" id="vQty${k}" type="number" inputmode="decimal" min="0" step="1" value="1"></label>
+    <label class="field wide"><span>השורה בתלוש</span><select class="vLine" id="vLine${k}">${lineOptions(currentSlip ? 'לא מופיע בתלוש' : 'קודם העלה את התלוש')}</select></label>
+    <button type="button" class="del" aria-label="מחק את התוספת">✕</button>`;
+  row.querySelector('.del').addEventListener('click', () => row.remove());
+  document.getElementById('vars').appendChild(row);
+  row.querySelector('.vName').focus();
+});
+syncRole();
+
 /* ===================== הפעלה ===================== */
 let pdfBuf = null;
 document.getElementById('pdf').addEventListener('change', async e => {
@@ -1018,7 +1169,7 @@ document.getElementById('pdf').addEventListener('change', async e => {
     if (!pages.flat().length) throw new Error('scan');
     const slip = parsePayslip(pages);
     if (!slip) throw new Error('unknown');
-    currentSlip = slip; showError('');
+    currentSlip = slip; showError(''); fillLineSelects();
     if (slip && slip.month){
       document.getElementById('calMonth').value = slip.month.ym;
     }
@@ -1055,8 +1206,9 @@ async function recordStats(slip, res){
 document.getElementById('go').addEventListener('click', () => {
   if (!currentSlip) return;
   showError('');
-  showResult(currentSlip, {...counts}, false);
-  recordStats(currentSlip, check(currentSlip, {...counts}));
+  const profile = getProfile();
+  showResult(currentSlip, {...counts}, false, profile);
+  recordStats(currentSlip, check(currentSlip, {...counts}, {profile}));
   const res = document.getElementById('result');
   res.classList.remove('enter'); void res.offsetWidth; res.classList.add('enter'); // הכרטיסים עולים אחד אחרי השני
   res.scrollIntoView({behavior: 'smooth', block: 'start'});
