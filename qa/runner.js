@@ -1,0 +1,83 @@
+/* מריץ את QA_CASES מול check() של הדף, ועוד בדיקות מסך, אבטחה ושמירה. התוצאה נכתבת כ-JSON לאלמנט pre בשם qa-out.
+   הרשת ל-Supabase חסומה כאן: שום בדיקה לא כותבת למסד הנתונים האמיתי. */
+(async function(){
+  const res = [];
+  const ok = (area, name) => res.push({area, name, pass: true});
+  const bad = (area, name, sev, problem, fix) => res.push({area, name, pass: false, sev, problem, fix});
+  const posts = [];
+  const realFetch = window.fetch;
+  window.fetch = (u, o) => { if (String(u).includes('supabase.co')){ posts.push({u: String(u), body: o && o.body}); return Promise.resolve(new Response(null, {status: 204})); } return realFetch(u, o); };
+  try {
+    // 1. חישובים
+    for (const c of window.QA_CASES){
+      let r;
+      try { r = check(c.slip, c.shifts, {profile: c.profile}); }
+      catch (e){ bad('חישוב', c.name, 'קריטי', `check() קרס: ${e.message}`, 'לבדוק את המקרה הזה ב-check()'); continue; }
+      const fails = [];
+      for (const [title, status, amount] of c.expect){
+        const got = r.checks.find(x => x.title === title);
+        if (!got){ fails.push(`חסרה הבדיקה "${title}"`); continue; }
+        if (got.status !== status) fails.push(`"${title}": צפוי ${status}, התקבל ${got.status}${got.amount ? ' ' + got.amount : ''}`);
+        else if (amount != null && Math.abs((got.amount || 0) - amount) > 0.01) fails.push(`"${title}": צפוי ${amount} ₪, התקבל ${got.amount} ₪`);
+      }
+      fails.length ? bad('חישוב', c.name, 'קריטי', fails.join('; '), 'לתקן את החישוב ב-check()') : ok('חישוב', c.name);
+    }
+
+    // 2. מסך: בחירת תפקיד בכניסה
+    const pick = document.getElementById('rolePick');
+    if (!pick) bad('מסך', 'בחירת תפקיד', 'גבוה', 'מסך בחירת התפקיד לא קיים', 'להחזיר את #rolePick');
+    else { pick.querySelector('[data-role=guard]').click(); document.getElementById('rolePick') ? bad('מסך', 'בחירת תפקיד', 'גבוה', 'המסך לא נסגר אחרי בחירה', 'לבדוק את rolePick()') : ok('מסך', 'בחירת תפקיד'); }
+
+    // 3. מסך: חסימה כשחודש התלוש שונה מחודש הדיווח (החלטה 48)
+    const s0 = window.QA_CASES[0].slip, cm = document.getElementById('calMonth'), go = document.getElementById('go'), err = document.getElementById('error'), out = document.getElementById('result');
+    currentSlip = s0; go.disabled = false;
+    cm.value = '2026-09'; out.innerHTML = ''; go.click();
+    (!err.hidden && !out.innerText.trim()) ? ok('מסך', 'חודש לא תואם נחסם') : bad('מסך', 'חודש לא תואם נחסם', 'קריטי', 'בדיקה רצה כשהחודשים שונים', 'לבדוק את monthProblem() ב-go');
+    const before = posts.length;
+    cm.value = '2026-10'; go.click(); await new Promise(r => setTimeout(r, 300));
+    (err.hidden && out.innerText.includes('תלוש')) ? ok('מסך', 'חודש תואם עובר') : bad('מסך', 'חודש תואם עובר', 'קריטי', 'בדיקה תקינה נחסמה', 'לבדוק את monthProblem()');
+
+    // 4. שמירה: מה נשלח לסטטיסטיקה (בלי לשלוח באמת)
+    const p = posts.slice(before).find(x => x.u.includes('record_check'));
+    if (!p) bad('שמירה', 'רישום סטטיסטיקה', 'גבוה', 'בדיקה תקינה לא נשלחה לסטטיסטיקה', 'לבדוק את recordStats() אחרי go');
+    else {
+      const b = JSON.parse(p.body), probs = [];
+      if (!/^[0-9a-f]{64}$/.test(b.p_fingerprint)) probs.push('טביעת אצבע לא תקינה');
+      if (b.p_month !== '2026-10-01') probs.push('חודש שגוי: ' + b.p_month);
+      if (typeof b.p_gap !== 'number' || b.p_gap < 0) probs.push('סכום לא תקין');
+      const keys = Object.keys(b).sort().join(',');
+      if (keys !== 'p_fingerprint,p_gap,p_has_gap,p_month') probs.push('נשלחים שדות נוספים: ' + keys);
+      probs.length ? bad('שמירה', 'רישום סטטיסטיקה', 'קריטי', probs.join('; '), 'לתקן את recordStats()') : ok('שמירה', 'רישום סטטיסטיקה (רק 4 שדות, בלי פרטים)');
+    }
+    const fp1 = p && JSON.parse(p.body).p_fingerprint;
+    // בדיקה חוזרת של אותו תלוש עם משמרות אחרות: אותה טביעת אצבע (החלטה 51)
+    const counts0 = counts.morning; setCount('morning', 6); go.click(); await new Promise(r => setTimeout(r, 300)); setCount('morning', counts0);
+    const p2 = posts.filter(x => x.u.includes('record_check')).pop();
+    (p2 && JSON.parse(p2.body).p_fingerprint === fp1) ? ok('שמירה', 'בדיקה חוזרת מחליפה את הקודמת') : bad('שמירה', 'בדיקה חוזרת', 'גבוה', 'טביעת האצבע משתנה עם המשמרות, ובדיקות יספרו פעמיים', 'לבנות את טביעת האצבע מהתלוש בלבד');
+
+    // 5. מסך: רשימה חופשית מחוץ לחודש, ויומן + רשימה עם חפיפה (החלטות 48-49)
+    const fr = parseFreeText('1/9 בוקר\n2/10 בוקר', '2026-10');
+    (fr.read.length === 1 && fr.unknown.length === 1) ? ok('מסך', 'תאריך מחוץ לחודש נדחה') : bad('מסך', 'תאריך מחוץ לחודש', 'בינוני', `נקראו ${fr.read.length}, נדחו ${fr.unknown.length}`, 'לבדוק את parseFreeText()');
+    if (window.__showCalendar){
+      const ev = (d, s, e) => ({summary: 'משמרת', start: {dateTime: `2026-10-${d}T${s}:00`}, end: {dateTime: `2026-10-${d}T${e}:00`}});
+      window.__showCalendar([ev('04', '07:00', '15:00'), ev('05', '07:00', '15:00')], '2026-10');
+      document.getElementById('freeText').value = '5/10 בוקר\n7/10 בוקר';
+      document.getElementById('freeRun').click();
+      counts.morning === 3 ? ok('מסך', 'יומן + רשימה, חפיפה נספרת פעם אחת') : bad('מסך', 'חפיפה יומן/רשימה', 'גבוה', `נספרו ${counts.morning} בקרים במקום 3`, 'לבדוק את applySources()');
+    }
+
+    // 6. אבטחה: טקסט זדוני בשורת תלוש לא רץ
+    window.__xss = 0;
+    const evil = JSON.parse(JSON.stringify(s0)); evil.lines[0].name = '<img src=x onerror="window.__xss=1">שכר יסוד'; evil.employer = '<script>window.__xss=1<\/script>';
+    showResult(evil, {morning: 10}, false, {role: 'guard', vars: [{name: '<b onmouseover=x>שם</b>', unit: 1, qty: 1, line: ''}]});
+    await new Promise(r => setTimeout(r, 200));
+    window.__xss ? bad('אבטחה', 'XSS', 'קריטי', 'קוד מתוך התלוש רץ בדף', 'לעבור כל טקסט מהתלוש דרך esc()') : ok('אבטחה', 'XSS נחסם');
+
+    // 7. אבטחה: אין סודות בקוד הדף
+    const html = document.documentElement.outerHTML;
+    // הדפוס בנוי מחלקים, כדי שהבדיקה לא תמצא את עצמה
+    new RegExp([['service', 'role'].join('_'), ['sb', 'secret', ''].join('_'), ['GOCSPX', ''].join('-')].join('|')).test(html) ? bad('אבטחה', 'סודות בדף', 'קריטי', 'מפתח סודי מופיע בקוד הדף', 'להסיר מיד ולהחליף את המפתח') : ok('אבטחה', 'אין סודות בדף');
+  } catch (e){ bad('כללי', 'הרצה', 'קריטי', 'חבילת הבדיקות קרסה: ' + e.message, 'לבדוק את הדף ואת runner.js'); }
+  const pre = document.createElement('pre'); pre.id = 'qa-out'; pre.textContent = JSON.stringify(res); document.body.appendChild(pre);
+  document.title = 'QA_DONE';
+})();
