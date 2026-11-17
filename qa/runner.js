@@ -82,6 +82,10 @@
       miss.length ? bad('תמיכה', 'התאמת שאלות', 'בינוני', miss.join('; '), 'לעדכן מילות מפתח ב-FAQ') : ok('תמיכה', 'התאמת שאלות');
       const s = sb.scrub('ת"ז 123456789, קיבלתי 4,350.20 ₪, מייל a.b@test.com, 8 שעות');
       (/\d{5}|4,350|@/.test(s) || !s.includes('8 שעות')) ? bad('תמיכה', 'מחיקת פרטים אישיים', 'קריטי', 'נשאר: ' + s, 'לתקן את scrub()') : ok('תמיכה', 'מחיקת פרטים אישיים לפני שליחה');
+      const s2 = sb.scrub('שילמו 850 ולא 3200, תעריף 47.5, ב-5/10 עבדתי 8 שעות');
+      (/850|3200|47\.5/.test(s2) || !s2.includes('5/10') || !s2.includes('8 שעות')) ? bad('תמיכה', 'מחיקת סכומים קצרים', 'בינוני', 'נשאר: ' + s2, 'לתקן את scrub(): כל מספר של 3 ספרות ומעלה') : ok('תמיכה', 'מחיקת סכומים קצרים, תאריך ושעות נשארים');
+      const noMatch = [['מתי מגיע התלוש של החודש', 'month'], ['קיבלתי 1250 בונוס', 'overtime']].filter(([q, id]) => (sb.match(q) || {}).id === id).map(([q, id]) => `"${q}"→${id}`);
+      noMatch.length ? bad('תמיכה', 'התאמה שגויה', 'בינוני', noMatch.join('; '), 'לבדוק את match(): מילה שלמה ומספר עומד לבד') : ok('תמיכה', 'אין התאמה לחלק ממילה או ממספר');
       const R = RULESETS[0], hv = sb.FAQ.find(f => f.id === 'havraa').a;
       hv.includes(fmt(R.havraaPerHour)) ? ok('תמיכה', 'תשובות מתאימות לכללי הבודק') : bad('תמיכה', 'תשובות', 'גבוה', 'תשובת ההבראה לא תואמת ל-RULESETS', 'לבנות את התשובה מ-RULESETS');
       const nb = posts.length;
@@ -100,7 +104,19 @@
         pr.length ? bad('תמיכה', 'שליחת דיווח', 'קריטי', pr.join('; '), 'לתקן את send()') : ok('תמיכה', 'דיווח תקלה נשלח בלי פרטים מזהים');
       }
       window.__xss === 2 ? bad('אבטחה', 'XSS בעיגול', 'קריטי', 'קוד מהודעת המשתמש רץ', 'להעביר את ההודעה דרך esc()') : ok('אבטחה', 'XSS בעיגול נחסם');
-      document.getElementById('sbClose').click();
+      // תקציר: שתי שאלות בלי תשובה, הראשונה נשלחת כתקלה. בתקציר נשארת רק השנייה. פתיחה חוזרת שולחת רק את מה שחדש
+      const ask = async q => { document.getElementById('sbText').value = q; document.getElementById('sbForm').requestSubmit(); await new Promise(r => setTimeout(r, 100)); };
+      await ask('זברה סגולה אחת'); await ask('זברה סגולה שתיים');
+      const btns = [...document.querySelectorAll('#sbLog button.linkish')]; btns[btns.length - 2].click(); await new Promise(r => setTimeout(r, 200));
+      const ns = posts.length; document.getElementById('sbClose').click(); await new Promise(r => setTimeout(r, 200));
+      const sum1 = posts.slice(ns).find(x => x.u.includes('submit_feedback') && JSON.parse(x.body).p_kind === 'summary');
+      const t1 = sum1 ? JSON.parse(sum1.body).p_text : '';
+      (t1.includes('שתיים') && !t1.includes('אחת')) ? ok('תמיכה', 'תקציר בלי השאלה שכבר נשלחה כתקלה') : bad('תמיכה', 'תקציר', 'בינוני', 'בתקציר: ' + (t1 || 'לא נשלח'), 'לבדוק את unanswered ב-onclick');
+      document.getElementById('sbOpen').click(); await ask('זברה סגולה שלוש');
+      const ns2 = posts.length; document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape'})); await new Promise(r => setTimeout(r, 200));
+      const sum2 = posts.slice(ns2).find(x => x.u.includes('submit_feedback') && JSON.parse(x.body).p_kind === 'summary');
+      const t2 = sum2 ? JSON.parse(sum2.body).p_text : '';
+      (document.getElementById('sbPanel').hidden && t2.includes('שלוש') && !t2.includes('שתיים')) ? ok('תמיכה', 'Esc סוגר, ותקציר שני שולח רק את החדש') : bad('תמיכה', 'תקציר שני / Esc', 'בינוני', `נסגר: ${document.getElementById('sbPanel').hidden}, בתקציר: ${t2 || 'לא נשלח'}`, 'לבדוק את sendSummary() ואת Esc');
     }
 
     // 8. אבטחה: אין סודות בקוד הדף
