@@ -82,6 +82,7 @@ h2{font-size:1.2rem;font-weight:700}
 h3{font-size:1rem;font-weight:700}
 p{margin:0}
 .lead{color:var(--muted)}
+.safe{display:inline;background:#c62828;color:#fff;font-weight:800;padding:2px 8px;border-radius:6px;-webkit-box-decoration-break:clone;box-decoration-break:clone;line-height:1.9}
 .num{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px}
 .step{display:flex;gap:10px;align-items:baseline}
@@ -241,7 +242,7 @@ body.picking{overflow:hidden}
     <div class="pick-opts">
       <button type="button" data-role="guard"><b>מאבטח</b><span>47 ₪ לשעה</span></button>
       <button type="button" data-role="ramash"><b>ראש משמרת (רמ"ש)</b><span>52 ₪ לכל שעה, משמרת של 8 או 12 שעות</span></button>
-      <button type="button" data-role="lead"><b>ראש צוות</b><span>לפי השכר שלך: שעתי או גלובלי</span></button>
+      <button type="button" data-role="lead"><b>ראש צוות</b><span>שכר שעתי או גלובלי</span></button>
     </div>
   </div>
 </div>
@@ -285,7 +286,7 @@ body.picking{overflow:hidden}
 <div class="wrap">
   <header style="display:flex;flex-direction:column;gap:6px">
     <h1>בודק התלוש</h1>
-    <p class="lead">לעובדי שמירה ואבטחה. מעלים את התלוש, מוסיפים את המשמרות, ורואים אם שולם לך כל מה שמגיע לך ולאן הלך הכסף.</p>
+    <p class="lead">לעובדי שמירה ואבטחה. מעלים את התלוש, מוסיפים את המשמרות, ורואים אם שולם לך כל מה שמגיע לך ולאן הלך הכסף. <strong class="safe">המידע לא נשמר, לאף אחד אין אפשרות לראות את הפרטים והקבצים שלך!</strong></p>
     <p class="note">את המשמרות אפשר לספור בלחיצות, או למלא אוטומטית מיומן Google. החיבור ליומן הוא לצפייה בלבד, והאירועים נקראים רק במכשיר שלך.</p>
   </header>
 
@@ -303,7 +304,7 @@ body.picking{overflow:hidden}
     <div class="roles" role="radiogroup" aria-labelledby="sRole">
       <label class="role"><input type="radio" name="role" value="guard" checked><b>מאבטח</b><span class="note">47 ₪ לשעה</span></label>
       <label class="role"><input type="radio" name="role" value="ramash"><b>ראש משמרת (רמ"ש)</b><span class="note">52 ₪ לשעה</span></label>
-      <label class="role"><input type="radio" name="role" value="lead"><b>ראש צוות</b><span class="note">לפי השכר שלך</span></label>
+      <label class="role"><input type="radio" name="role" value="lead"><b>ראש צוות</b></label>
     </div>
     <div id="leadBox" hidden style="display:flex;flex-direction:column;gap:10px">
       <div class="seg" role="radiogroup" aria-label="סוג השכר">
@@ -333,13 +334,14 @@ body.picking{overflow:hidden}
       <div class="row">
         <button type="button" id="calBtn" class="gcal" aria-label="מלא משמרות מ-Google Calendar"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="3" fill="#fff"/><path d="M5.5 2.5h13a3 3 0 0 1 3 3V7h-19V5.5a3 3 0 0 1 3-3z" fill="#4285F4"/><path d="M21.5 7v11.5a3 3 0 0 1-3 3H17V7z" fill="#FBBC04"/><path d="M2.5 18.5V17H17v4.5H5.5a3 3 0 0 1-3-3z" fill="#34A853"/><path d="M2.5 7H7v10H2.5z" fill="#EA4335"/><text x="12" y="15.6" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="7.5" fill="#4285F4">31</text></svg><span>Google Calendar</span></button>
       </div>
-      <button type="button" id="freeBtn" class="linkish">או: כתוב את המשמרות בעצמך, איך שנוח לך</button>
-      <div id="freeBox" class="freebox" hidden>
+      <label for="freeText" class="sub">או: כתוב את המשמרות בעצמך, איך שנוח לך (אפשר גם יחד עם היומן)</label>
+      <div id="freeBox" class="freebox">
         <textarea id="freeText" rows="5" placeholder="למשל:&#10;1/11 בוקר&#10;2/11 לילה&#10;בוקר: 4/11, 5/11, 8/11&#10;3 צהריים&#10;מוצ&quot;ש 14/11&#10;20/11 7-15"></textarea>
         <button type="button" id="freeRun" class="primary">קרא את הרשימה</button>
       </div>
       <p class="note" id="calMsg" role="status" hidden></p>
       <div id="calList" class="callist" hidden></div>
+      <p class="note unknown" id="mergeMsg" role="status" hidden></p>
     </div>
     <span class="sub">או ספור בעצמך:</span>
     <div id="primarySlot" class="slot"></div>
@@ -1087,9 +1089,32 @@ function renderCalendar(items){
   }
   applyCalendar(items);
 }
-function applyCalendar(items){
+function applyCalendar(items){ calSel = items.filter(i => i.on); applySources(); }
+/* היומן והרשימה החופשית נספרים יחד (החלטה 49). משמרת מהרשימה שחופפת בזמן למשמרת מסומנת ביומן נספרת פעם אחת, ומוצגת כחפיפה */
+let calSel = [], freeRes = null;
+function applySources(){
+  const tally = {}, dups = [];
+  const add = (type, n) => { tally[type] = (tally[type] || 0) + n; };
+  for (const c of calSel) add(c.type, 1);
+  let undated = 0;
+  if (freeRes){
+    for (const it of freeRes.items){
+      const hit = calSel.find(c => c.date < it.end && it.date < c.end);
+      if (hit) dups.push(`"${it.text}" חופפת ל${TYPE_LABEL[hit.type]} ביומן ב-${hit.date.getDate()}/${hit.date.getMonth() + 1} (${hm(hit.date)}–${hm(hit.end)})`);
+      else add(it.type, 1);
+    }
+    // משמרות בלי תאריך ("3 צהריים"): נספרות, אבל אי אפשר לבדוק להן חפיפה
+    const dated = {}; for (const it of freeRes.items) dated[it.type] = (dated[it.type] || 0) + 1;
+    for (const [type, n] of Object.entries(freeRes.counts)){ const u = n - (dated[type] || 0); if (u > 0){ add(type, u); undated += u; } }
+  }
   const K = fillKind();
-  for (const t of SHIFT_TYPES) if (t.kind === K) setCount(t.id, items.filter(i => i.on && i.type === t.base).length);
+  for (const t of SHIFT_TYPES) if (t.kind === K) setCount(t.id, tally[t.base] || 0);
+  const box = document.getElementById('mergeMsg');
+  const parts = [];
+  if (dups.length) parts.push(`<b>${dups.length === 1 ? 'נמצאה משמרת אחת שרשומה גם ביומן וגם ברשימה, והיא נספרה' : `נמצאו ${dups.length} משמרות שרשומות גם ביומן וגם ברשימה, והן נספרו`} פעם אחת:</b> ${esc(dups.join(' · '))}.`);
+  if (undated && calSel.length) parts.push(undated === 1 ? 'משמרת אחת מהרשימה בלי תאריך נוספה על היומן. אי אפשר לבדוק אם היא חופפת. אם היא כבר ביומן, מחק אותה מהרשימה.'
+    : `${undated} משמרות מהרשימה בלי תאריך נוספו על היומן. אי אפשר לבדוק אם הן חופפות. אם הן כבר ביומן, מחק אותן מהרשימה.`);
+  box.innerHTML = parts.join(' '); box.hidden = !parts.length;
 }
 // ימי חג שבהם אסור לעבוד (בלי ערב חג ובלי חול המועד)
 const HOLIDAY_RE = /ראש השנה|יום כיפור|יום הכיפורים|סוכות|שמחת תורה|שמיני עצרת|פסח|שבועות|יום העצמאות|Rosh Hashana|Yom Kippur|Sukkot|Shmini Atzeret|Simchat Torah|Pesach|Passover|Shavuot|Independence/i;
@@ -1162,7 +1187,7 @@ const KIND_TIMES = {morning: ['07:00', '15:00'], noon: ['15:00', '23:00'], night
 function kindOf(s){ for (const [k, re] of KIND_RE) if (re.test(s)) return k; return null; }
 function parseFreeText(text, ym){
   const year = Number((ym || '').slice(0, 4)) || new Date().getFullYear();
-  const counts = {}, read = [], unknown = [];
+  const counts = {}, read = [], unknown = [], items = []; // items: משמרות עם תאריך ושעות, לבדיקת חפיפה עם היומן
   for (const t of SHIFT_TYPES) counts[t.id] = 0;
   for (const line of String(text).split(/\r?\n/)){
     let lineKind = kindOf(line);
@@ -1187,24 +1212,24 @@ function parseFreeText(text, ym){
         if (['holiday', 'shabbat', 'motzash', 'friNight'].includes(kind)) type = kind; // מה שהעובד כתב גובר
         if (!type || !(type in counts)){ unknown.push(seg); continue; }
         counts[type]++; read.push(`${dm[1]}/${dm[2]} ${TYPE_LABEL[type]}`);
+        items.push({date: s, end: e, type, text: seg});
       } else if (kind){ // בלי תאריך: מספר + סוג, למשל "3 צהריים"
         const n = Number((rest.match(/\d+/) || [])[0] || 1);
         counts[kind] += n; read.push(`${n} ${TYPE_LABEL[kind]}`);
       } else unknown.push(seg);
     }
   }
-  return {counts, read, unknown};
+  return {counts, read, unknown, items};
 }
-document.getElementById('freeBtn').addEventListener('click', () => { const b = document.getElementById('freeBox'); b.hidden = !b.hidden; if (!b.hidden) document.getElementById('freeText').focus(); });
 document.getElementById('freeRun').addEventListener('click', () => {
   const msg = document.getElementById('calMsg'); msg.hidden = false;
   document.getElementById('calList').hidden = true;
   const r = parseFreeText(document.getElementById('freeText').value, document.getElementById('calMonth').value);
-  const K = fillKind();
-  for (const t of SHIFT_TYPES) if (t.kind === K) setCount(t.id, r.counts[t.base] || 0);
+  freeRes = r;
   const total = Object.values(r.counts).reduce((a, b) => a + b, 0);
-  msg.innerHTML = (total ? `קראתי ${total} משמרות: ${esc(SHIFT_TYPES.filter(t => r.counts[t.id]).map(t => `${r.counts[t.id]} ${t.label}`).join(', '))}. אפשר לתקן במונים למטה.` : 'לא הצלחתי לקרוא משמרות מהרשימה.')
+  msg.innerHTML = (total ? `מהרשימה קראתי ${total} משמרות: ${esc(SHIFT_TYPES.filter(t => r.counts[t.id]).map(t => `${r.counts[t.id]} ${t.label}`).join(', '))}. אפשר לתקן במונים למטה.` : 'לא הצלחתי לקרוא משמרות מהרשימה.')
     + (r.unknown.length ? ` <span class="unknown">לא הבנתי: ${esc(r.unknown.join(' · '))}</span>` : '');
+  applySources();
 });
 
 // לפני שהאתר מחובר לגוגל: יומן מומצא שמראה איך הזיהוי עובד
