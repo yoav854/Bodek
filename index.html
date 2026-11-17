@@ -676,9 +676,9 @@ const regularHours = E => E.h100 + E.r + E.sh150;
 const premUnits = E => 0.25 * E.h125 + 0.5 * E.h150 + 0.5 * E.sh150 + 0.75 * E.sh175 + 1 * E.sh200;
 // מה שולם בתלוש לפי סוג: מהשם של כל שורת שעות (125%, 150%, שבת, חג)
 // שורת "תוספת כוללת 9%" במקום גמול שעות נוספות בימי חול (צו 2014, סעיף 8(ב)(2)): חוקית רק בהסכמה בכתב
-const isNineLine = l => /(^|[^\d.])9\s*%|תוספת כוללת/.test(l.name);
+const isNineLine = l => /(^|[^\d.])9\s*%/.test(l.name) && /כולל|גלובל|נוספות/.test(l.name) && !/ותק|הכשרה|תפקיד/.test(l.name);
 // שורה שמשלמת רק את התוספת (למשל "תוספת שבת 50%" ב-23.50 ₪), ולא את השעה כולה: התעריף בה נמוך בהרבה מתעריף השעה
-const isPremOnly = (l, baseRate) => baseRate > 0 && l.rate != null && l.rate < baseRate * 0.9;
+const isPremOnly = (l, baseRate) => (/תוספת/.test(l.name) && !/שעות/.test(l.name)) || (baseRate > 0 && l.rate != null && l.rate < baseRate * 0.6);
 function paidHoursByKind(L, rate, baseRate){
   const P = {h100: 0, h125: 0, h150: 0, sh150: 0, sh175: 0, sh200: 0, premium: 0};
   for (const l of L){
@@ -745,8 +745,9 @@ function check(slip, shifts, opts = {}){
   const globalLine = isGlobal && PR.leadLine !== '' && PR.leadLine != null ? L[+PR.leadLine] : null;
   const base = isGlobal ? globalLine : L.find(l => /שכר יסוד/.test(l.name));
   // תעריף השעה הרגיל בתלוש, כדי לזהות שורות שמשלמות רק את התוספת (בלי השעה עצמה)
-  const baseRateSlip = (() => { const rs = L.filter(l => /שכר יסוד/.test(l.name) && l.rate > 0).map(l => l.rate); return rs.length ? Math.min(...rs) : null; })();
-  const nine = L.find(isNineLine);
+  const gHour = isGlobal ? (PR.leadHour > 0 ? PR.leadHour : (PR.leadGlobal > 0 ? PR.leadGlobal / R.globalDivisor : null)) : null;
+  const baseRateSlip = (() => { const rs = L.filter(l => /שכר יסוד/.test(l.name)).map(l => l.rate > 0 ? l.rate : (l.qty > 0 && l.amount > 0 ? l.amount / l.qty : null)).filter(x => x > 0); return rs.length ? Math.min(...rs) : gHour; })();
+  const nines = L.filter(isNineLine), nine = nines[0], nineSum = r2(nines.reduce((a, l) => a + (l.amount || 0), 0));
   // שעות ששולמו בתוספת. לא נספרות: שורת 9% ושורות של תוספת בלבד, כי השעות שלהן כבר בשכר היסוד
   const extra = L.filter(l => (/%/.test(l.name) || /שבת|חג|מנוחה/.test(l.name)) && !/הבראה|נסיעות|שכר יסוד/.test(l.name) && l.qty != null && !isNineLine(l) && !isPremOnly(l, baseRateSlip));
   const havraa = L.find(l => /הבראה/.test(l.name));
@@ -790,6 +791,7 @@ function check(slip, shifts, opts = {}){
   // 1. שעות (בשכר גלובלי השעות לא משנות את הבסיס)
   if (isGlobal && !worked && !paidHours) add('skip', 'שעות עבודה', 'בשכר גלובלי הבסיס לא תלוי במספר השעות, ולכן בודקים את הסכום הגלובלי במקום.');
   else if (!hasShifts) add('skip', 'שעות עבודה', `בתלוש שולמו ${fmtH(paidHours)} שעות. לא הוזנו משמרות, ולכן אין למה להשוות.`);
+  else if (!isGlobal && !baseLines.length && !extra.length) add('skip', 'שעות עבודה', 'לא מצאתי בתלוש שורת "שכר יסוד" עם מספר שעות, ולכן אי אפשר לספור כמה שעות שולמו. אם השכר מופיע בשם אחר, דווח לנו בעיגול העזרה.');
   else if (worked - paidHours > 0.01){
     const miss = worked - paidHours, hr = expRate || rate;
     add('gap', 'חסרות שעות', `עבדת ${fmtH(worked)} שעות לפי המשמרות, ושולמו ${fmtH(paidHours)}. חסרות ${fmtH(miss)} שעות, לפי ${fmt(hr)} ₪ לשעה.`, r2(miss * hr));
@@ -827,9 +829,10 @@ function check(slip, shifts, opts = {}){
         const expNine = r2(0.09 * rate * (wk(EK.guard) + wk(EK.lead)));
         const shabPrem = r2((kindRate.guard || 0) * shabU(EK.guard) + (kindRate.lead || 0) * shabU(EK.lead));
         const fullOt = expPremAll;
-        expPrem = expLow = r2(shabPrem + expNine);
-        P.premium = r2(P.premium + (nine.amount || 0));
-        nineNote = ` בתלוש יש "${nine.name}" (${fmt(nine.amount || 0)} ₪): תוספת כוללת של 9% על כל שעות החול, במקום תשלום על כל שעה נוספת. זה חוקי רק אם חתמת על הסכם בכתב, ואפשר לבטל אותו בהודעה של 30 יום (צו ההרחבה בענף השמירה 2014, סעיף 8(ב)). אם לא חתמת, מגיע לך תשלום מלא על השעות הנוספות: ${fmt(fullOt)} ₪ בתוספות במקום ${fmt(expPrem)} ₪.`;
+        // פער רק מתחת לשתי הקריאות: עם הסכם (9%) ובלי הסכם (גמול מלא לפי 8.6)
+        expLow = Math.min(r2(shabPrem + expNine), expPremLow); expPrem = Math.max(r2(shabPrem + expNine), expPremLow);
+        P.premium = r2(P.premium + nineSum);
+        nineNote = ` בתלוש יש "${nine.name}" (${fmt(nineSum)} ₪): תוספת כוללת של 9% על כל שעות החול, במקום תשלום על כל שעה נוספת. זה חוקי רק אם חתמת על הסכם בכתב, ואפשר לבטל אותו בהודעה של 30 יום (צו ההרחבה בענף השמירה 2014, סעיף 8(ב)). אם לא חתמת, מגיע לך תשלום מלא על השעות הנוספות: ${fmt(fullOt)} ₪ בתוספות במקום ${fmt(expPrem)} ₪.`;
       }
       const diff = r2(expPrem - P.premium), diffLow = r2(expLow - P.premium);
       const short = `לפי המשמרות מגיע לך: ${parts(E)}. בתלוש שולם: ${parts(P)}.` + (E.r ? ` משמרות רמ"ש (${fmtH(E.r)} שעות) משולמות בתעריף אחיד, בלי תוספות.` : '') + nineNote;
@@ -851,7 +854,8 @@ function check(slip, shifts, opts = {}){
   const allH = hasShifts ? S.hours : paidHours;
   const hReg = Math.min(regH, R.havraaCapHours), hAll = Math.min(allH, R.havraaCapHours);
   const expHReg = r2(hReg * R.havraaPerHour), expHAll = r2(hAll * R.havraaPerHour), paidHv = havraa ? havraa.amount : 0;
-  if (isGlobal && !havraa) add('info', 'הבראה', 'אין שורת הבראה בתלוש. לעובד בשכר חודשי מותר לשלם את ההבראה פעם בשנה, במשכורות יוני עד ספטמבר (צו ההרחבה 2014, סעיף 11(ה)). אם עברו החודשים האלה ולא קיבלת, זה פער.');
+  if (isGlobal && havraa && expHReg - paidHv > 0.5) add('info', 'הבראה', `שולמו ${fmt(paidHv)} ₪ הבראה. בשכר חודשי ההבראה יכולה להיות משולמת פעם בשנה (צו 2014, סעיף 11(ה)), ולכן הבודק לא משווה אותה לשעות. כדאי לוודא שבשנה כולה קיבלת 7 ימי הבראה לפחות.`);
+  else if (isGlobal && !havraa) add('info', 'הבראה', 'אין שורת הבראה בתלוש. לעובד בשכר חודשי מותר לשלם את ההבראה פעם בשנה, במשכורות יוני עד ספטמבר (צו ההרחבה 2014, סעיף 11(ה)). אם עברו החודשים האלה ולא קיבלת, זה פער.');
   else if (expHReg - paidHv > 0.5) add('gap', 'הבראה', `מגיע ${fmt(R.havraaPerHour)} ₪ על כל שעת עבודה רגילה: ${fmtH(hReg)} שעות הן ${fmt(expHReg)} ₪. שולמו ${fmt(paidHv)} ₪` + (havraa && havraa.qty ? `, על ${fmtH(havraa.qty)} שעות בלבד.` : '.'), r2(expHReg - paidHv));
   else if (expHAll - paidHv > 0.5) add('info', 'הבראה', `שולמו ${fmt(paidHv)} ₪, על השעות הרגילות (${fmtH(hReg)} שעות). על השעות הנוספות (${fmtH(hAll - hReg)}) לא שולמה הבראה. לא ברור אם מגיעה עליהן הבראה, ולכן זה לא נספר כפער.`);
   else add('ok', 'הבראה', `שולמו ${fmt(paidHv)} ₪, כמו שמגיע על ${fmtH(hAll)} שעות.`);
@@ -874,9 +878,10 @@ function check(slip, shifts, opts = {}){
   const extraAll = L.filter(l => (/%/.test(l.name) || /שבת|חג|מנוחה/.test(l.name)) && l.amount && !/הבראה|נסיעות/.test(l.name));
   const extraSum = r2(extraAll.reduce((a, l) => a + l.amount, 0));
   const isExtraBase = f => extraAll.some(l => Math.abs(l.amount - f.base) < 0.02) || (extraAll.length > 1 && Math.abs(extraSum - f.base) < 0.02);
-  const isTravelBase = f => travel && Math.abs(travel.amount - f.base) < 0.02;
+  const isTravelBase = f => travel && f.base > 0 && (Math.abs(travel.amount - f.base) < 0.02 || (f.base <= travel.amount + 0.5 && f.base >= travel.amount * 0.5 && Math.abs(f.employer - f.base * R.pensionTravel) < 0.1));
   let pensionGap = 0; const pensionNotes = [];
   for (const f of pens){
+    if (!(f.base > 0)){ pensionNotes.push(`בשורת "${f.type}" לא הצלחתי לקרוא את הבסיס, ולכן היא לא נבדקה`); continue; }
     if (isTravelBase(f)) continue;
     const sev = /פיצויים/.test(f.type);
     const expEr = r2(f.base * (sev ? (isExtraBase(f) ? R.severanceExtras : R.severance) : R.pensionEmployer));
@@ -884,7 +889,7 @@ function check(slip, shifts, opts = {}){
     if (expEr - f.employer > 0.1){ pensionGap += expEr - f.employer; pensionNotes.push(`${sev ? 'פיצויים' : 'פנסיה'} על ${fmt(f.base)} ₪: הופקדו ${fmt(f.employer)} ₪ במקום ${fmt(expEr)} ₪`); }
     if (!sev && Math.abs(expEe - f.employee) > 0.1) pensionNotes.push(`ניכוי עובד על ${fmt(f.base)} ₪: ${fmt(f.employee)} ₪, הצפוי ${fmt(expEe)} ₪`);
   }
-  const mainP = pens.find(f => !/פיצויים/.test(f.type) && !isExtraBase(f) && !isTravelBase(f));
+  const mainP = pens.find(f => f.base > 0 && !/פיצויים/.test(f.type) && !isExtraBase(f) && !isTravelBase(f));
   // בסיס הפנסיה: כל שורות שכר היסוד (מאבטח ורמ"ש) והשכר הגלובלי, ועוד ההבראה
   const pensBaseExp = r2(baseLines.reduce((a, l) => a + (l.amount || 0), 0) + (globalLine ? globalLine.amount || 0 : 0) + paidHv);
   if (mainP && pensBaseExp - mainP.base > 0.5){ pensionGap += (pensBaseExp - mainP.base) * (R.pensionEmployer + R.severance); pensionNotes.push(`הפנסיה חושבה על ${fmt(mainP.base)} ₪, ושכר היסוד וההבראה הם ${fmt(pensBaseExp)} ₪`); }
@@ -897,7 +902,7 @@ function check(slip, shifts, opts = {}){
       const inMain = mainP && mainP.base - pensBaseExp > travel.amount - 0.5;
       if (inMain) pensionNotes.push(`הנסיעות (${fmt(travel.amount)} ₪) כנראה כלולות בבסיס הפנסיה הראשי`);
       else { pensionGap += tErExp; pensionNotes.push(`לא הופקדה פנסיה על הנסיעות (${fmt(travel.amount)} ₪). המעסיק מפקיד עליהן 5%: ${fmt(tErExp)} ₪`); }
-    } else if (tErExp - tEr > 0.1){ pensionGap += tErExp - tEr; pensionNotes.push(`פנסיה על הנסיעות (${fmt(travel.amount)} ₪): הופקדו ${fmt(tEr)} ₪ במקום ${fmt(tErExp)} ₪ (5%)`); }
+    } else if (tErExp - tEr > 0.5){ pensionGap += tErExp - tEr; pensionNotes.push(`פנסיה על הנסיעות (${fmt(travel.amount)} ₪): הופקדו ${fmt(tEr)} ₪ במקום ${fmt(tErExp)} ₪ (5%)`); }
     if (tf.length && tEe - r2(travel.amount * R.pensionTravel) > 0.1) pensionNotes.push(`על הנסיעות נוכו ממך ${fmt(tEe)} ₪, יותר מ-5% (${fmt(tErExp)} ₪)`);
   }
   if (!pens.length) add('info', 'פנסיה', 'אין הפרשה לפנסיה בתלוש הזה. לפי הצו הפנסיה מתחילה אחרי חודש עבודה, רטרואקטיבית מהיום הראשון. אם עבדת יותר מחודש, כדאי לברר.');
@@ -910,7 +915,8 @@ function check(slip, shifts, opts = {}){
   const kH = Math.min(regH, R.kerenCapHours), kHAll = Math.min(allH, R.kerenCapHours);
   const kBaseExp = r2(kH * R.generalMinHour + paidHv), kErExp = r2(kBaseExp * R.kerenEmployer);
   const kErAll = r2((kHAll * R.generalMinHour + paidHv) * R.kerenEmployer);
-  const kSev = R.verified.keren ? 'gap' : 'info', kNote = R.verified.keren ? '' : UNVERIFIED;
+  // בשכר גלובלי אין מקור לבסיס של עובד חודשי, ולכן רק "לשים לב"
+  const kSev = R.verified.keren && !isGlobal ? 'gap' : 'info', kNote = !R.verified.keren ? UNVERIFIED : (isGlobal ? ' בשכר חודשי (גלובלי) הצו לא אומר במפורש איך מחשבים את הבסיס, ולכן זה לא נספר כפער.' : '');
   const kHow = `${fmtH(kH)} שעות כפול שכר המינימום (${fmt(R.generalMinHour)} ₪), ועוד ההבראה (${fmt(paidHv)} ₪), הם ${fmt(kBaseExp)} ₪`;
   if (!keren){
     const early = slip.seniorityMonths != null && slip.seniorityMonths < 2;
@@ -928,8 +934,8 @@ function check(slip, shifts, opts = {}){
     } else if (kErAll - keren.employer > 0.5) add('info', 'קרן השתלמות', `המעסיק הפקיד ${fmt(keren.employer)} ₪, על השעות הרגילות (${kHow}). על ${fmtH(kHAll - kH)} השעות הנוספות לא הופקד (עוד ${fmt(r2(kErAll - keren.employer))} ₪). לא ברור אם שעות נוספות נכנסות לבסיס, ולכן זה לא נספר כפער.`);
     else add('ok', 'קרן השתלמות', `המעסיק הפקיד ${fmt(keren.employer)} ₪ ונוכו ממך ${fmt(keren.employee)} ₪. הבסיס לפי הצו: ${kHow}. בתלוש הבסיס ${fmt(keren.base)} ₪.`);
     // ניכוי עודף: נוכה מהעובד יותר מ-2.5% מהבסיס שמופיע בתלוש עצמו
-    const exE = r2(keren.base * R.kerenEmployee), over = r2(keren.employee - exE);
-    if (over > 0.5) add('gap', 'קרן השתלמות - ניכוי ממך', `נוכו ממך ${fmt(keren.employee)} ₪ לקרן ההשתלמות, אבל חלק העובד הוא 2.5% מהבסיס שבתלוש (${fmt(keren.base)} ₪), כלומר ${fmt(exE)} ₪. נוכו ממך ${fmt(over)} ₪ יותר מדי.`, over);
+    const exE = r2((keren.base || 0) * R.kerenEmployee), over = r2(keren.employee - exE);
+    if (keren.base > 0 && over > 0.5) add('gap', 'קרן השתלמות - ניכוי ממך', `נוכו ממך ${fmt(keren.employee)} ₪ לקרן ההשתלמות, אבל חלק העובד הוא 2.5% מהבסיס שבתלוש (${fmt(keren.base)} ₪), כלומר ${fmt(exE)} ₪. נוכו ממך ${fmt(over)} ₪ יותר מדי.`, over);
   }
 
   // 7א. תוספות אישיות (שלב 4): סכום ליחידה כפול כמות, מול השורה שהעובד בחר
