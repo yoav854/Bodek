@@ -106,7 +106,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .stepper button{width:34px;height:34px;padding:0;border-radius:50%;font-size:1.15rem;line-height:1}
 .stepper output{min-width:1.6em;font-family:var(--display);font-weight:800;font-size:1.25rem;font-variant-numeric:tabular-nums}
 .cal{display:flex;flex-direction:column;gap:10px;padding:12px;border-radius:12px;background:var(--accent-soft)}
-.cal input[type=month]{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
+#calMonth,.cal input[type=month]{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
 .gcal{display:inline-flex;align-items:center;gap:8px;background:var(--surface);color:var(--ink);border-color:var(--line);direction:ltr;font-family:"Heebo",Arial,sans-serif}
 .gcal svg{flex:none}
 /* הנפשות עדינות: רק כשהמשתמש לא ביקש להפחית תנועה */
@@ -324,10 +324,14 @@ body.picking{overflow:hidden}
 
   <section class="panel" aria-labelledby="s2">
     <div class="step"><b>שלב 3</b><h2 id="s2">כמה משמרות עבדת בחודש הזה</h2></div>
+    <div class="mix">
+      <label for="calMonth"><b>על איזה חודש הדיווח?</b></label><input type="month" id="calMonth" required>
+      <span class="note">חייב להיות החודש של התלוש. אפשר לבדוק גם חודשים קודמים.</span>
+    </div>
+    <p class="err" id="monthWarn" hidden></p>
     <div class="cal">
       <div class="row">
         <button type="button" id="calBtn" class="gcal" aria-label="מלא משמרות מ-Google Calendar"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="3" fill="#fff"/><path d="M5.5 2.5h13a3 3 0 0 1 3 3V7h-19V5.5a3 3 0 0 1 3-3z" fill="#4285F4"/><path d="M21.5 7v11.5a3 3 0 0 1-3 3H17V7z" fill="#FBBC04"/><path d="M2.5 18.5V17H17v4.5H5.5a3 3 0 0 1-3-3z" fill="#34A853"/><path d="M2.5 7H7v10H2.5z" fill="#EA4335"/><text x="12" y="15.6" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="7.5" fill="#4285F4">31</text></svg><span>Google Calendar</span></button>
-        <label for="calMonth" class="note">חודש</label><input type="month" id="calMonth">
       </div>
       <button type="button" id="freeBtn" class="linkish">או: כתוב את המשמרות בעצמך, איך שנוח לך</button>
       <div id="freeBox" class="freebox" hidden>
@@ -1173,6 +1177,7 @@ function parseFreeText(text, ym){
       if (dm){ // משמרת עם תאריך: היום בשבוע קובע שבת ומוצ"ש
         let y = dm[3] ? Number(dm[3]) : year; if (y < 100) y += 2000;
         const date = `${y}-${pad(dm[2])}-${pad(dm[1])}`;
+        if (ym && date.slice(0, 7) !== ym){ unknown.push(seg + ' (לא בחודש הדיווח)'); continue; } // רק משמרות מהחודש שנבחר
         let [st, en] = tm ? [`${pad(tm[1])}:${tm[2] || '00'}`, `${pad(tm[3])}:${tm[4] || '00'}`] : (KIND_TIMES[kind] || []);
         if (!st){ unknown.push(seg); continue; }
         const s = new Date(`${date}T${st}:00`), e = new Date(`${date}T${en}:00`); if (e <= s) e.setDate(e.getDate() + 1);
@@ -1333,14 +1338,35 @@ document.getElementById('pdf').addEventListener('change', async e => {
     const slip = parsePayslip(pages);
     if (!slip) throw new Error('unknown');
     currentSlip = slip; showError(''); fillLineSelects();
-    if (slip && slip.month){
-      document.getElementById('calMonth').value = slip.month.ym;
-    }
+    // חודש הדיווח: אם עוד לא נבחר, לוקחים את החודש של התלוש. אם נבחר חודש אחר, לא משנים בשקט, אלא מזהירים
+    const cm = document.getElementById('calMonth');
+    if (slip.month && !cm.value) cm.value = slip.month.ym;
+    checkMonth();
   } catch (err){ showError(pdfErrorText(err)); }
   go.disabled = !currentSlip; go.textContent = 'בדוק את התלוש'; go.classList.remove('busy');
 });
 function showError(t){ const e = document.getElementById('error'); e.textContent = t; e.hidden = !t; }
 let currentSlip = null;
+/* בדיקה רק כשהחודש בתלוש הוא החודש שדווח באתר (החלטה 48). מחזיר הודעת שגיאה, או ריק אם הכל תקין */
+const ymLabel = ym => { const [y, m] = ym.split('-').map(Number); return new Date(y, m - 1, 1).toLocaleDateString('he-IL', {month: 'long', year: 'numeric'}); };
+function monthProblem(){
+  const ym = document.getElementById('calMonth').value;
+  if (!currentSlip) return '';
+  if (!currentSlip.month || !currentSlip.month.ym) return 'לא מצאתי בתלוש את החודש שלו, ולכן אי אפשר לבדוק אותו.';
+  if (!ym) return `בחר בשלב 3 את חודש הדיווח: ${ymLabel(currentSlip.month.ym)}, החודש של התלוש.`;
+  if (ym !== currentSlip.month.ym) return `התלוש הוא של ${ymLabel(currentSlip.month.ym)}, והדיווח באתר הוא על ${ymLabel(ym)}. אפשר לבדוק רק כשהם אותו חודש: העלה את התלוש של ${ymLabel(ym)}, או שנה את חודש הדיווח ובדוק שהמשמרות הן של החודש הזה.`;
+  return '';
+}
+function checkMonth(){
+  const p = monthProblem(), w = document.getElementById('monthWarn');
+  w.textContent = p; w.hidden = !p;
+  return !p;
+}
+document.getElementById('calMonth').addEventListener('change', () => {
+  checkMonth();
+  const any = Object.values(counts).some(n => n > 0);
+  if (any){ const msg = document.getElementById('calMsg'); msg.hidden = false; msg.textContent = 'שינית את חודש הדיווח. ודא שהמשמרות במונים הן של החודש החדש.'; }
+});
 const pdfErrorText = err => err.message === 'scan' ? 'בקובץ הזה אין טקסט, כנראה שהוא צילום סרוק. צריך את קובץ ה-PDF המקורי ממערכת השכר.'
   : err.message === 'unknown' ? 'המבנה של התלוש הזה עדיין לא מוכר. כרגע הבדיקה מכירה תלושים של רשף ביטחון.'
   : 'לא הצלחתי לקרוא את הקובץ. ודא שזה קובץ PDF של תלוש שכר.';
@@ -1368,6 +1394,13 @@ async function recordStats(slip, res){
 }
 document.getElementById('go').addEventListener('click', () => {
   if (!currentSlip) return;
+  const problem = monthProblem();
+  if (problem){ // לא בודקים ולא רושמים סטטיסטיקה כשהחודשים לא תואמים
+    checkMonth(); showError(problem);
+    document.getElementById('result').innerHTML = '';
+    document.getElementById('calMonth').scrollIntoView({behavior: 'smooth', block: 'center'});
+    return;
+  }
   showError('');
   const profile = getProfile(), shifts = currentShifts();
   showResult(currentSlip, shifts, false, profile);
