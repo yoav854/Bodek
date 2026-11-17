@@ -11,6 +11,9 @@
   };
   const guard = {role: 'guard', vars: []}, ramash = {role: 'ramash', vars: []};
   const hv = h => line('הבראה', h, 1.64);
+  // קרן השתלמות (ידע-קרן-השתלמות.md): בסיס = שעות (עד 182) × 35.40 + ההבראה ששולמה. מעסיק 7.5%, עובד 2.5%.
+  // 10 בקרים = 80 שעות: 80 × 35.40 + 131.20 = 2,963.20. מעסיק 222.24, עובד 74.08
+  const kr = (base, er, ee) => ({funds: [{type: 'קרן השתלמות', base, employer: er, employee: ee}]});
 
   window.QA_CASES = [
     // ---------- מאבטח ----------
@@ -52,6 +55,24 @@
     {name: 'ראש צוות גלובלי, חסר 200', slip: slip([line('משכורת', null, null, 8800), hv(160)]), shifts: {L_morning: 20},
       profile: {role: 'lead', payType: 'global', leadGlobal: 9000, leadLine: '0', leadHour: 0, vars: []},
       expect: [['שכר גלובלי', 'gap', 200], ['שעות עבודה', 'skip']]},
+
+    // ---------- קרן השתלמות (אומת 17.11.2026) ----------
+    {name: 'קרן תקינה', slip: slip([line('שכר יסוד', 80, 47), hv(80)], kr(2963.2, 222.24, 74.08)), shifts: {morning: 10}, profile: guard,
+      expect: [['קרן השתלמות', 'ok']]},
+    {name: 'קרן בלי ההבראה בבסיס', slip: slip([line('שכר יסוד', 80, 47), hv(80)], kr(2832, 212.4, 70.8)), shifts: {morning: 10}, profile: guard,
+      expect: [['קרן השתלמות', 'gap', 9.84]]},
+    {name: 'קרן חסרה בחודש הראשון (ברשף מהיום הראשון)', slip: slip([line('שכר יסוד', 80, 47), hv(80)], {seniorityMonths: 0}), shifts: {morning: 10}, profile: guard,
+      expect: [['קרן השתלמות', 'gap', 222.24]]},
+    {name: 'קרן, ניכוי עודף מהעובד', slip: slip([line('שכר יסוד', 80, 47), hv(80)], kr(2963.2, 222.24, 100)), shifts: {morning: 10}, profile: guard,
+      expect: [['קרן השתלמות', 'ok'], ['קרן השתלמות - ניכוי ממך', 'gap', 25.92]]},
+    {name: 'קרן, הפקדה רטרואקטיבית על 3 חודשים', slip: slip([line('שכר יסוד', 80, 47), hv(80)], kr(8889.6, 666.72, 222.24)), shifts: {morning: 10}, profile: guard,
+      expect: [['קרן השתלמות', 'ok']]},
+    // 200 שעות: התקרה 182. 182 × 35.40 + 298.48 = 6,741.28. מעסיק 505.60
+    {name: 'קרן, תקרה של 182 שעות', slip: slip([line('שכר יסוד', 200, 47), hv(182)], kr(6741.28, 505.6, 168.53)), shifts: {morning: 25}, profile: guard,
+      expect: [['קרן השתלמות', 'ok']]},
+    // תוספת השבת לא נכנסת לבסיס: 80 שעות, אותו בסיס כמו 10 בקרים
+    {name: 'קרן, משמרת שבת לא מגדילה את הבסיס', slip: slip([line('שכר יסוד', 72, 47), line('שעות שבת 150%', 8, 70.5), hv(80)], kr(2963.2, 222.24, 74.08)),
+      shifts: {morning: 9, shabbat: 1}, profile: guard, expect: [['קרן השתלמות', 'ok']]},
 
     // ---------- תוספות ----------
     {name: 'תוספת שלא שולמה', slip: slip([line('שכר יסוד', 80, 47), hv(80)]), shifts: {morning: 10},
