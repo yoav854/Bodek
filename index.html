@@ -788,7 +788,7 @@ function check(slip, shifts, opts = {}){
   }
 
   // 4. הבראה
-  const hH =Math.min(hasShifts ? worked : paidHours, R.havraaCapHours);
+  const hH = Math.min(hasShifts ? S.hours : paidHours, R.havraaCapHours); // כל שעות העבודה, גם של ראש צוות גלובלי
   const expH = r2(hH * R.havraaPerHour), paidHv = havraa ? havraa.amount : 0;
   if (expH - paidHv > 0.5) add('gap', 'הבראה', `מגיע ${fmt(R.havraaPerHour)} ₪ על כל שעת עבודה: ${fmtH(hH)} שעות הן ${fmt(expH)} ₪. שולמו ${fmt(paidHv)} ₪` + (havraa && havraa.qty ? `, על ${fmtH(havraa.qty)} שעות בלבד.` : '.'), r2(expH - paidHv));
   else add('ok', 'הבראה', `שולמו ${fmt(paidHv)} ₪, כמו שמגיע על ${fmtH(hH)} שעות.`);
@@ -817,7 +817,8 @@ function check(slip, shifts, opts = {}){
     if (!sev && Math.abs(expEe - f.employee) > 0.1) pensionNotes.push(`ניכוי עובד על ${fmt(f.base)} ₪: ${fmt(f.employee)} ₪, הצפוי ${fmt(expEe)} ₪`);
   }
   const mainP = pens.find(f => !/פיצויים/.test(f.type) && !isExtraBase(f) && !isTravelBase(f));
-  const pensBaseExp = r2((base ? base.amount : 0) + paidHv);
+  // בסיס הפנסיה: כל שורות שכר היסוד (מאבטח ורמ"ש) והשכר הגלובלי, ועוד ההבראה
+  const pensBaseExp = r2(baseLines.reduce((a, l) => a + (l.amount || 0), 0) + (globalLine ? globalLine.amount || 0 : 0) + paidHv);
   if (mainP && pensBaseExp - mainP.base > 0.5){ pensionGap += (pensBaseExp - mainP.base) * (R.pensionEmployer + R.severance); pensionNotes.push(`הפנסיה חושבה על ${fmt(mainP.base)} ₪, ושכר היסוד וההבראה הם ${fmt(pensBaseExp)} ₪`); }
   if (!pens.length) add('info', 'פנסיה', 'אין הפרשה לפנסיה בתלוש הזה. לעובד חדש ההפרשה מתחילה לפעמים רק אחרי כמה חודשים. כדאי לברר.');
   else if (pensionGap > 0.1) add('gap', 'פנסיה ופיצויים', pensionNotes.join('. ') + '.', r2(pensionGap));
@@ -825,7 +826,7 @@ function check(slip, shifts, opts = {}){
 
   // 7. קרן השתלמות
   const keren = slip.funds.find(f => /השתלמות/.test(f.type));
-  const kH = Math.min(hasShifts ? worked : paidHours, R.kerenCapHours);
+  const kH = Math.min(hasShifts ? S.hours : paidHours, R.kerenCapHours);
   const kBaseExp = r2(kH * R.generalMinHour + paidHv), kErExp = r2(kBaseExp * R.kerenEmployer);
   const kSev = R.verified.keren ? 'gap' : 'info', kNote = R.verified.keren ? '' : UNVERIFIED;
   const kHow = `${fmtH(kH)} שעות כפול שכר המינימום (${fmt(R.generalMinHour)} ₪), ועוד ההבראה (${fmt(paidHv)} ₪), הם ${fmt(kBaseExp)} ₪`;
