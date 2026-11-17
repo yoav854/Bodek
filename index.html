@@ -815,7 +815,7 @@ function setCount(id, n){
 /* ===================== יומן ===================== */
 // מזהה הכניסה מ-Google Cloud (פרויקט Bodek-salary). הכניסה עובדת רק מהכתובת המאושרת
 const GOOGLE_CLIENT_ID = '603702704625-604hbttroul1aus8vc4o9pev9bvoeeqr.apps.googleusercontent.com';
-const ON_SITE = location.hostname === 'yoav854.github.io';
+const ON_SITE = ['yoav854.github.io', 'bodek-eight.vercel.app'].includes(location.hostname);
 const TYPE_LABEL = Object.fromEntries(SHIFT_TYPES.map(t => [t.id, t.label]));
 const DAY = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
 const pad = n => String(n).padStart(2, '0');
