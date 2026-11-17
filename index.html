@@ -1409,6 +1409,7 @@ const STATS_KEY = 'sb_publishable_RIUtKFbtioKIwhNtPebgmg_QMjfUR17'; // מפתח 
 async function recordStats(slip, res){
   try {
     if (!slip.month || !slip.month.ym || !crypto.subtle) return;
+    // טביעת האצבע מהתלוש בלבד, בלי המשמרות: בדיקה חוזרת של אותו תלוש (למשל אחרי תיקון משמרות) מחליפה את הקודמת (החלטה 51)
     const src = JSON.stringify([slip.employer, slip.month.ym, slip.gross, slip.net, slip.lines.map(l => [l.name, l.qty, l.rate, l.amount])]);
     const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(src));
     const fp = [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2, '0')).join('');
