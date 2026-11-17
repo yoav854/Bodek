@@ -164,6 +164,10 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .field input,.field select{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);width:100%;min-width:0}
 .field select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .mix{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.slot{display:flex;flex-direction:column;gap:10px}
+.others .slot{margin-top:8px}
+.ovr{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) auto;gap:8px;align-items:end;padding:10px;border:1px solid var(--line);border-radius:12px}
+@media (max-width:520px){.ovr{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.ovr .wide{grid-column:1/-1}}
 .vars{display:flex;flex-direction:column;gap:10px}
 .var{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) minmax(0,2fr) auto;gap:8px;align-items:end;padding:10px;border:1px solid var(--line);border-radius:12px}
 .var .del{padding:8px 10px}
@@ -272,10 +276,6 @@ footer ul{margin:0;padding-inline-start:18px}
       <label class="role"><input type="radio" name="role" value="ramash"><b>ראש משמרת (רמ"ש)</b><span class="note">52 ₪ לשעה</span></label>
       <label class="role"><input type="radio" name="role" value="lead"><b>ראש צוות</b><span class="note">לפי השכר שלך</span></label>
     </div>
-    <div id="mixBox" class="mix">
-      <span id="mixLbl">עבדת חלק מהמשמרות כרמ"ש? כמה:</span>
-      <div class="stepper"><button type="button" id="mixMinus" aria-label="פחות">−</button><output id="mixN" aria-live="polite">0</output><button type="button" id="mixPlus" aria-label="עוד">+</button></div>
-    </div>
     <div id="leadBox" hidden style="display:flex;flex-direction:column;gap:10px">
       <div class="seg" role="radiogroup" aria-label="סוג השכר">
         <label><input type="radio" name="payType" value="hourly" checked>שעתי</label>
@@ -309,9 +309,30 @@ footer ul{margin:0;padding-inline-start:18px}
       <div id="calList" class="callist" hidden></div>
     </div>
     <span class="sub">או ספור בעצמך:</span>
-    <div class="counters" id="row1"></div>
-    <span class="sub">משמרות בשבת ובחג (משמרת שכולה בתוך השבת או החג)</span>
-    <div class="counters two" id="row2"></div>
+    <div id="primarySlot" class="slot"></div>
+    <details class="others" id="otherBox"><summary id="otherSum">עבדת גם כרמ"ש?</summary><div id="otherSlot" class="slot"></div></details>
+    <div hidden>
+      <div id="guardBlock" class="slot">
+        <div class="counters" id="row1"></div>
+        <span class="sub">משמרות בשבת ובחג (משמרת שכולה בתוך השבת או החג)</span>
+        <div class="counters two" id="row2"></div>
+      </div>
+      <div id="ramBlock" class="slot">
+        <div class="mix">
+          <span>משמרת רמ"ש אצלך היא:</span>
+          <div class="seg" role="radiogroup" aria-label="אורך משמרת רמ&quot;ש">
+            <label><input type="radio" name="rLen" value="12" checked>12 שעות</label>
+            <label><input type="radio" name="rLen" value="8">8 שעות</label>
+          </div>
+        </div>
+        <span class="sub">משמרות כראש משמרת (רמ"ש), 52 ₪ לכל שעה. אין רמ"ש בשבת ובחג</span>
+        <div class="counters two" id="row3"></div>
+      </div>
+    </div>
+    <details class="others" id="ovrBox"><summary>חלק מהמשמרות היו באורך אחר?</summary>
+      <div class="vars" id="ovrs"></div>
+      <button type="button" id="addOvr" class="linkish">+ שנה שעות למשמרות</button>
+    </details>
     <p class="note">סך הכל: <span class="total-hours num" id="shiftCount">0</span> משמרות · <span class="total-hours num" id="shiftHours">0</span> שעות</p>
   </section>
 
@@ -524,36 +545,67 @@ const SHIFT_TYPES = [
   {id: 'shabbat', label: 'שבת', time: '8 שעות', hours: 8, shabbat: 8, row: 2},
   {id: 'friNight', label: 'לילה של שישי', time: '23:00–07:00', hours: 8, shabbat: 8, row: 2},
   {id: 'holiday', label: 'חג', time: '8 שעות', hours: 8, shabbat: 8, row: 2},
+  // ראש משמרת (רמ"ש): תעריף אחיד לכל השעות, בלי שעות נוספות ובלי שבת וחג (החלטות 43-45)
+  {id: 'rDay', label: 'משמרת רמ"ש', time: '06:00–18:00', hours: 12, shabbat: 0, row: 3, ramash: true},
+  {id: 'rFri', label: 'שישי', time: '06:00–14:00', hours: 8, shabbat: 0, row: 3, ramash: true},
 ];
-function summarize(counts){
+// shifts = מונים לפי סוג, ועוד _len (אורך משמרת רמ"ש: 8 או 12) ו-_ovr (משמרות עם שעות אחרות: [{type, n, hours}])
+const typeHours = (t, sh) => t.id === 'rDay' ? ((sh && sh._len) || 12) : t.hours;
+function shiftGroups(sh){ // כל משמרת עם מספר השעות שלה: [{t, n, h}]
+  const out = [];
+  for (const t of SHIFT_TYPES){
+    let left = sh[t.id] || 0; if (!left) continue;
+    for (const o of ((sh && sh._ovr) || [])){
+      if (o.type !== t.id || !(o.n > 0) || !(o.hours > 0)) continue;
+      const n = Math.min(o.n, left); if (n){ out.push({t, n, h: o.hours}); left -= n; }
+    }
+    if (left) out.push({t, n: left, h: typeHours(t, sh)});
+  }
+  return out;
+}
+function summarize(sh){
   let count = 0, hours = 0, shabbat = 0;
-  for (const t of SHIFT_TYPES){ const n = counts[t.id] || 0; count += n; hours += n * t.hours; shabbat += n * t.shabbat; }
+  for (const g of shiftGroups(sh)){ count += g.n; hours += g.n * g.h; shabbat += g.n * splitShift(g.t.id, g.h).shab; }
   return {count, hours, shabbat};
 }
 
 /* ===================== שעות נוספות (כלל הענף: יום חול 8 שעות רגילות, לילה 7) ===================== */
-// לכל סוג משמרת של 8 שעות: כמה שעות רגילות, כמה נוספות וכמה בשבת או בחג
-const SHIFT_SPLIT = {
-  morning:  {h100: 8, h125: 0, h150: 0, sh150: 0, sh175: 0, why: 'בוקר: 8 שעות רגילות'},
-  noon:     {h100: 8, h125: 0, h150: 0, sh150: 0, sh175: 0, why: 'צהריים: 8 שעות רגילות'},
-  night:    {h100: 7, h125: 1, h150: 0, sh150: 0, sh175: 0, why: 'לילה: 7 שעות רגילות, והשמינית שעה נוספת (125%)'},
-  motzash:  {h100: 2, h125: 1, h150: 0, sh150: 5, sh175: 0, why: 'לילה של מוצ"ש: 5 שעות שבת (עד 04:00), 2 רגילות, ושעה נוספת אחת (125%)'},
-  shabbat:  {h100: 0, h125: 0, h150: 0, sh150: 8, sh175: 0, why: 'שבת: 8 שעות עם תוספת 50%'},
-  friNight: {h100: 0, h125: 0, h150: 0, sh150: 7, sh175: 1, why: 'לילה של שישי: 7 שעות שבת (150%), והשמינית שעה נוספת בשבת (175%)'},
-  holiday:  {h100: 0, h125: 0, h150: 0, sh150: 8, sh175: 0, why: 'חג: 8 שעות עם תוספת 50%'},
-};
-function expectedHours(counts){
-  const E = {h100: 0, h125: 0, h150: 0, sh150: 0, sh175: 0};
-  for (const id in SHIFT_SPLIT){ const n = counts[id] || 0; for (const k in E) E[k] += n * SHIFT_SPLIT[id][k]; }
+// משמרת של h שעות: כמה רגילות, כמה נוספות וכמה בשבת או בחג. ב-8 שעות זה בדיוק כלל הענף.
+// מעבר לזה לפי חוק שעות עבודה: שתיים ב-125% והשאר 150%. בשבת: שתיים ב-175% והשאר 200%
+const SHIFT_NAME = {morning: 'בוקר', noon: 'צהריים', night: 'לילה', motzash: 'לילה של מוצ"ש', shabbat: 'שבת', friNight: 'לילה של שישי', holiday: 'חג', rDay: 'משמרת רמ"ש', rFri: 'שישי של רמ"ש'};
+function splitShift(id, h){
+  const S = {h100: 0, h125: 0, h150: 0, sh150: 0, sh175: 0, sh200: 0, r: 0, shab: 0};
+  const ot = (lim, rest) => { const o = Math.max(0, rest - lim); S.h125 += Math.min(o, 2); S.h150 += Math.max(0, o - 2); return rest - o; };
+  const shabOt = lim => { S.sh150 = Math.min(h, lim); const o = h - S.sh150; S.sh175 = Math.min(o, 2); S.sh200 = Math.max(0, o - 2); S.shab = h; };
+  if (id === 'rDay' || id === 'rFri') S.r = h; // רמ"ש: הכל בתעריף אחיד
+  else if (id === 'morning' || id === 'noon') S.h100 = ot(8, h);
+  else if (id === 'night') S.h100 = ot(7, h);
+  else if (id === 'motzash'){ const sh = Math.min(h, 5); S.sh150 = sh; S.shab = sh; const o = Math.max(0, h - 7); S.h125 = Math.min(o, 2); S.h150 = Math.max(0, o - 2); S.h100 = Math.max(0, h - sh - o); }
+  else if (id === 'friNight') shabOt(7);
+  else shabOt(8); // שבת וחג
+  return S;
+}
+function splitWhy(id, h){
+  const s = splitShift(id, h), p = [];
+  if (s.r) return `${SHIFT_NAME[id]} (${fmtH(h)} שעות): הכל בתעריף רמ"ש, בלי תוספות`;
+  if (s.h100) p.push(`${fmtH(s.h100)} רגילות`); if (s.sh150) p.push(`${fmtH(s.sh150)} שבת או חג (150%)`);
+  if (s.h125) p.push(`${fmtH(s.h125)} ב-125%`); if (s.h150) p.push(`${fmtH(s.h150)} ב-150%`);
+  if (s.sh175) p.push(`${fmtH(s.sh175)} ב-175%`); if (s.sh200) p.push(`${fmtH(s.sh200)} ב-200%`);
+  return `${SHIFT_NAME[id]} (${fmtH(h)} שעות): ${p.join(', ')}`;
+}
+function expectedHours(sh){
+  const E = {h100: 0, h125: 0, h150: 0, sh150: 0, sh175: 0, sh200: 0, r: 0};
+  for (const g of shiftGroups(sh)){ const s = splitShift(g.t.id, g.h); for (const k in E) E[k] += g.n * s[k]; }
   return E;
 }
 // מה שולם בתלוש לפי סוג: מהשם של כל שורת שעות (125%, 150%, שבת, חג)
 function paidHoursByKind(L, rate){
-  const P = {h100: 0, h125: 0, h150: 0, sh150: 0, sh175: 0, premium: 0};
+  const P = {h100: 0, h125: 0, h150: 0, sh150: 0, sh175: 0, sh200: 0, premium: 0};
   for (const l of L){
     if (l.qty == null || l.rate == null || /הבראה|ימי עבודה/.test(l.name)) continue;
     const pct = (l.name.match(/(\d{3})%/) || [])[1];
-    if (pct === '175' || pct === '200') P.sh175 += l.qty;
+    if (pct === '175') P.sh175 += l.qty;
+    else if (pct === '200') P.sh200 += l.qty;
     else if (/שבת|חג|מנוחה/.test(l.name)) P.sh150 += l.qty;
     else if (pct === '125') P.h125 += l.qty;
     else if (pct === '150') P.h150 += l.qty;
@@ -570,9 +622,10 @@ function overtimeDetail(E, P, rate, counts){
     ['שעה נוספת ראשונה ושנייה במשמרת', '125%', E.h125, P.h125, .25],
     ['שעה נוספת שלישית והלאה', '150%', E.h150, P.h150, .5],
     ['שעות בשבת ובחג', '150%', E.sh150, P.sh150, .5],
-    ['שעה נוספת בשבת', '175%', E.sh175, P.sh175, .75],
+    ['שעה נוספת ראשונה ושנייה בשבת', '175%', E.sh175, P.sh175, .75],
+    ['שעה נוספת שלישית והלאה בשבת', '200%', E.sh200, P.sh200, 1],
   ].filter(r => r[2] || r[3]);
-  const used = Object.keys(SHIFT_SPLIT).filter(id => counts[id]).map(id => `${counts[id]} × ${SHIFT_SPLIT[id].why}`);
+  const used = shiftGroups(counts).map(g => `${g.n} × ${splitWhy(g.t.id, g.h)}`);
   return `<div class="ot">
     <p class="note">איך זה חושב: ${used.map(esc).join(' · ')}.</p>
     <div class="tbl-wrap"><table><thead><tr><th>סוג השעה</th><th class="n">מגיע</th><th class="n">שולם</th><th class="n">הפרש בתוספת</th></tr></thead><tbody>
@@ -612,19 +665,21 @@ function check(slip, shifts, opts = {}){
   const havraa = L.find(l => /הבראה/.test(l.name));
   const travel = L.find(l => /נסיעות/.test(l.name));
   const days = L.find(l => /ימי עבודה/.test(l.name));
-  const paidHours = (!isGlobal && base ? base.qty : 0) + extra.reduce((a, l) => a + l.qty, 0);
+  const paidHours = (isGlobal ? 0 : L.filter(l => /שכר יסוד/.test(l.name) && l.qty).reduce((a, l) => a + l.qty, 0)) + extra.reduce((a, l) => a + l.qty, 0);
   const hourValue = isGlobal ? (PR.leadHour > 0 ? PR.leadHour : (PR.leadGlobal > 0 ? r2(PR.leadGlobal / R.globalDivisor) : null)) : null;
-  const rate = isGlobal ? hourValue : (base ? base.rate : null);
-  // התעריף שמגיע: מאבטח ורמ"ש לפי משמרת (חלק מהמשמרות בדרגה האחרת), ראש צוות שעתי לפי מה שהקליד
+  // שכר בסיס: כמה שורות "שכר יסוד" (למשל מאבטח ורמ"ש). התוספות על שעות נוספות מחושבות לפי התעריף הנמוך, של מאבטח
+  const baseLines = isGlobal ? [] : L.filter(l => /שכר יסוד/.test(l.name) && l.qty);
+  const rate = isGlobal ? hourValue : (baseLines.length ? Math.min(...baseLines.map(l => l.rate).filter(x => x != null)) : (base ? base.rate : null));
+  // התעריף שמגיע לשעות הבסיס: שעות מאבטח ב-47, שעות רמ"ש ב-52 (החלטה 39), ראש צוות שעתי לפי מה שהקליד
   let expRate = null, rateHow = '';
   if (PR.role === 'lead'){ if (!isGlobal && PR.leadRate > 0){ expRate = PR.leadRate; rateHow = `השכר שהקלדת: ${fmt(expRate)} ₪ לשעה`; } }
   else {
-    const other = PR.role === 'guard' ? 'ramash' : 'guard', own = PR.role;
-    const nOther = hasShifts ? Math.min(PR.mix || 0, S.count) : 0, nOwn = hasShifts ? S.count - nOther : 1;
-    expRate = r2((nOwn * R.roleRates[own] + nOther * R.roleRates[other]) / (nOwn + nOther));
-    const name = {guard: 'מאבטח', ramash: 'רמ"ש'};
-    rateHow = nOther ? `${nOwn} משמרות כ${name[own]} (${fmt(R.roleRates[own])} ₪) ו-${nOther} כ${name[other]} (${fmt(R.roleRates[other])} ₪): בממוצע ${fmt(expRate)} ₪ לשעה`
-      : `${name[own]}: ${fmt(expRate)} ₪ לשעה`;
+    const E0 = expectedHours(shifts), gH = E0.h100, rH = E0.r; // רק שעות שנכנסות לשורת "שכר יסוד"
+    const own = PR.role === 'ramash' ? 'ramash' : 'guard';
+    if (!gH && !rH) expRate = R.roleRates[own];
+    else expRate = r2((gH * R.roleRates.guard + rH * R.roleRates.ramash) / (gH + rH));
+    rateHow = gH && rH ? `${fmtH(gH)} שעות רגילות כמאבטח (${fmt(R.roleRates.guard)} ₪) ו-${fmtH(rH)} שעות כרמ"ש (${fmt(R.roleRates.ramash)} ₪): בממוצע ${fmt(expRate)} ₪ לשעה`
+      : rH ? `רמ"ש: ${fmt(expRate)} ₪ לשעה` : (!gH && own === 'ramash') ? `רמ"ש: ${fmt(expRate)} ₪ לשעה` : `מאבטח: ${fmt(expRate)} ₪ לשעה`;
   }
 
   // 1. שעות (בשכר גלובלי השעות לא משנות את הבסיס)
@@ -644,7 +699,6 @@ function check(slip, shifts, opts = {}){
     else if (PR.leadGlobal - globalLine.amount > 0.5) add('gap', 'שכר גלובלי', `השכר הגלובלי שלך ${fmt(PR.leadGlobal)} ₪, ובשורה "${globalLine.name}" שולמו ${fmt(globalLine.amount)} ₪.`, r2(PR.leadGlobal - globalLine.amount));
     else add('ok', 'שכר גלובלי', `בשורה "${globalLine.name}" שולמו ${fmt(globalLine.amount)} ₪, כמו השכר הגלובלי שהקלדת.` + (hourValue ? ` שעות נוספות נבדקות לפי ${fmt(hourValue)} ₪ לשעה${PR.leadHour > 0 ? '' : ` (השכר חלקי ${R.globalDivisor})`}.` : ''));
   } else if (rate != null){
-    const baseLines = L.filter(l => /שכר יסוד/.test(l.name) && l.qty);
     const bq = baseLines.reduce((a, l) => a + l.qty, 0), paidRate = bq ? r2(baseLines.reduce((a, l) => a + (l.amount || 0), 0) / bq) : rate;
     if (expRate == null) add('skip', 'תעריף לשעה', `בתלוש ${fmt(paidRate)} ₪ לשעה. כדי לבדוק אותו, הקלד בשלב 2 את השכר שלך לשעה.`);
     else if (expRate - paidRate > 0.005) add('gap', 'תעריף לשעה', `בתלוש שולמו ${fmt(paidRate)} ₪ לשעה. לפי ${rateHow}.`, r2((expRate - paidRate) * bq));
@@ -655,15 +709,15 @@ function check(slip, shifts, opts = {}){
   // 3א. שעות נוספות ותוספת שבת, מיד מתחת לתעריף: מה מגיע לפי המשמרות מול מה ששולם
   if (rate != null){
     const P = paidHoursByKind(L, rate);
-    const parts = h => [h.h125 && `${fmtH(h.h125)} ב-125%`, h.h150 && `${fmtH(h.h150)} ב-150%`, h.sh150 && `${fmtH(h.sh150)} שעות שבת וחג`, h.sh175 && `${fmtH(h.sh175)} שעה נוספת בשבת (175%)`].filter(Boolean).join(', ') || 'אין';
+    const parts = h => [h.h125 && `${fmtH(h.h125)} ב-125%`, h.h150 && `${fmtH(h.h150)} ב-150%`, h.sh150 && `${fmtH(h.sh150)} שעות שבת וחג`, h.sh175 && `${fmtH(h.sh175)} שעות נוספות בשבת (175%)`, h.sh200 && `${fmtH(h.sh200)} שעות נוספות בשבת (200%)`].filter(Boolean).join(', ') || 'אין';
     if (!hasShifts) add('skip', 'שעות נוספות', `בתלוש שולמו: ${parts(P)}. כדי לבדוק אם זה נכון, הוסף את המשמרות למעלה.`);
     else {
       const E = expectedHours(shifts);
-      const expPrem = r2(rate * (0.25 * E.h125 + 0.5 * E.h150 + 0.5 * E.sh150 + 0.75 * E.sh175));
+      const expPrem = r2(rate * (0.25 * E.h125 + 0.5 * E.h150 + 0.5 * E.sh150 + 0.75 * E.sh175 + 1 * E.sh200));
       const diff = r2(expPrem - P.premium);
-      const short = `לפי המשמרות מגיע לך: ${parts(E)}. בתלוש שולם: ${parts(P)}.`;
+      const short = `לפי המשמרות מגיע לך: ${parts(E)}. בתלוש שולם: ${parts(P)}.` + (E.r ? ` משמרות רמ"ש (${fmtH(E.r)} שעות) משולמות בתעריף אחיד, בלי תוספות.` : '');
       const detail = overtimeDetail(E, P, rate, shifts);
-      const any = E.h125 + E.h150 + E.sh150 + E.sh175;
+      const any = E.h125 + E.h150 + E.sh150 + E.sh175 + E.sh200;
       if (Math.abs(diff) <= 0.5) add('ok', 'שעות נוספות', any ? short + ' זה תואם.' : 'לפי המשמרות שספרת לא מגיעות לך שעות נוספות או תוספת שבת, ובתלוש גם לא שולמו.', 0, any ? detail : null);
       else if (diff > 0) add('gap', 'שעות נוספות', short + ` התוספות ששולמו נמוכות ב-${fmt(diff)} ₪ ממה שמגיע.`, diff, detail);
       else add('info', 'שעות נוספות', short + ` שולם לך ${fmt(-diff)} ₪ יותר ממה שיוצא לפי המשמרות. זה לטובתך, אבל כדאי לוודא שספרת את כל המשמרות נכון.`, 0, detail);
@@ -898,7 +952,7 @@ function buildCounters(){
     box.innerHTML = `<span class="lbl">${esc(t.label)}</span><span class="time">${esc(t.time)}</span>
       <div class="stepper"><button type="button" aria-label="פחות משמרות ${esc(t.label)}" data-d="-1">−</button><output id="n-${t.id}" aria-live="polite">0</output><button type="button" aria-label="עוד משמרת ${esc(t.label)}" data-d="1">+</button></div>`;
     box.querySelectorAll('button').forEach(b => b.addEventListener('click', () => setCount(t.id, counts[t.id] + Number(b.dataset.d))));
-    document.getElementById(t.row === 1 ? 'row1' : 'row2').appendChild(box);
+    document.getElementById('row' + t.row).appendChild(box);
   }
 }
 function setCount(id, n){
@@ -966,7 +1020,7 @@ function renderCalendar(items){
   applyCalendar(items);
 }
 function applyCalendar(items){
-  for (const t of SHIFT_TYPES) setCount(t.id, items.filter(i => i.on && i.type === t.id).length);
+  for (const t of SHIFT_TYPES) if (!t.ramash) setCount(t.id, items.filter(i => i.on && i.type === t.id).length);
 }
 // ימי חג שבהם אסור לעבוד (בלי ערב חג ובלי חול המועד)
 const HOLIDAY_RE = /ראש השנה|יום כיפור|יום הכיפורים|סוכות|שמחת תורה|שמיני עצרת|פסח|שבועות|יום העצמאות|Rosh Hashana|Yom Kippur|Sukkot|Shmini Atzeret|Simchat Torah|Pesach|Passover|Shavuot|Independence/i;
@@ -1076,7 +1130,7 @@ document.getElementById('freeRun').addEventListener('click', () => {
   const msg = document.getElementById('calMsg'); msg.hidden = false;
   document.getElementById('calList').hidden = true;
   const r = parseFreeText(document.getElementById('freeText').value, document.getElementById('calMonth').value);
-  for (const t of SHIFT_TYPES) setCount(t.id, r.counts[t.id]);
+  for (const t of SHIFT_TYPES) if (!t.ramash) setCount(t.id, r.counts[t.id]);
   const total = Object.values(r.counts).reduce((a, b) => a + b, 0);
   msg.innerHTML = (total ? `קראתי ${total} משמרות: ${esc(SHIFT_TYPES.filter(t => r.counts[t.id]).map(t => `${r.counts[t.id]} ${t.label}`).join(', '))}. אפשר לתקן במונים למטה.` : 'לא הצלחתי לקרוא משמרות מהרשימה.')
     + (r.unknown.length ? ` <span class="unknown">לא הבנתי: ${esc(r.unknown.join(' · '))}</span>` : '');
@@ -1095,20 +1149,24 @@ function showCalendarDemo(){
   const msg = document.getElementById('calMsg');
   msg.textContent = 'דוגמה עם יומן מומצא: החיבור לגוגל יעבוד באתר הקבוע של הבודק. ' + msg.textContent;
 }
+// המשמרות כמו שהבדיקה מקבלת אותן: המונים, אורך משמרת רמ"ש, ומשמרות באורך אחר
+function currentShifts(){
+  const ovr = [...document.querySelectorAll('#ovrs .ovr')].map(r => ({type: r.querySelector('.oType').value, n: parseInt(r.querySelector('.oN').value) || 0, hours: parseFloat(r.querySelector('.oH').value) || 0}));
+  return {...counts, _len: Number((document.querySelector('input[name=rLen]:checked') || {}).value) || 12, _ovr: ovr};
+}
 function updateTotals(){
-  const S = summarize(counts);
+  const S = summarize(currentShifts());
   document.getElementById('shiftCount').textContent = S.count;
   document.getElementById('shiftHours').textContent = fmtH(S.hours);
 }
 buildCounters();
 
 /* ===================== דרגה, שכר אישי ותוספות (שלבים 2 ו-4). רק בזיכרון של הדף ===================== */
-let mixN = 0;
 const numVal = id => { const v = parseFloat(document.getElementById(id).value); return v > 0 ? v : 0; };
 function getProfile(){
   const role = document.querySelector('input[name=role]:checked').value;
   return {
-    role, mix: mixN,
+    role,
     payType: document.querySelector('input[name=payType]:checked').value,
     leadRate: numVal('leadRate'), leadGlobal: numVal('leadGlobal'), leadHour: numVal('leadHour'),
     leadLine: document.getElementById('leadLine').value,
@@ -1117,20 +1175,40 @@ function getProfile(){
       qty: parseFloat(r.querySelector('.vQty').value) || 0, line: r.querySelector('.vLine').value})),
   };
 }
-function setMix(n){ mixN = Math.max(0, n); document.getElementById('mixN').textContent = mixN; }
+// הדרגה קובעת אילו מונים למעלה: רמ"ש רואה קודם את משמרות הרמ"ש, ומשמרות כמאבטח מתחת ל"עבדת גם כמאבטח?"
 function syncRole(){
-  const role = document.querySelector('input[name=role]:checked').value;
-  document.getElementById('mixBox').hidden = role === 'lead';
-  document.getElementById('leadBox').hidden = role !== 'lead';
-  document.getElementById('mixLbl').textContent = role === 'guard' ? 'עבדת חלק מהמשמרות כרמ"ש? כמה:' : 'עבדת חלק מהמשמרות כמאבטח? כמה:';
+  const role = document.querySelector('input[name=role]:checked').value, $ = id => document.getElementById(id);
+  $('leadBox').hidden = role !== 'lead';
+  const ram = role === 'ramash';
+  $('primarySlot').appendChild(ram ? $('ramBlock') : $('guardBlock'));
+  $('otherSlot').appendChild(ram ? $('guardBlock') : $('ramBlock'));
+  $('otherSum').textContent = ram ? 'עבדת גם כמאבטח?' : 'עבדת גם כרמ"ש?';
+  $('otherBox').hidden = role === 'lead';
+  $('otherBox').open = SHIFT_TYPES.some(t => !!t.ramash === !ram && counts[t.id] > 0);
   const global = document.querySelector('input[name=payType]:checked').value === 'global';
-  document.getElementById('hourlyBox').hidden = global;
-  document.getElementById('globalBox').hidden = !global;
+  $('hourlyBox').hidden = global;
+  $('globalBox').hidden = !global;
 }
-document.querySelectorAll('input[name=role]').forEach(r => r.addEventListener('change', () => { setMix(0); syncRole(); }));
+document.querySelectorAll('input[name=role]').forEach(r => r.addEventListener('change', syncRole));
 document.querySelectorAll('input[name=payType]').forEach(r => r.addEventListener('change', syncRole));
-document.getElementById('mixMinus').addEventListener('click', () => setMix(mixN - 1));
-document.getElementById('mixPlus').addEventListener('click', () => setMix(mixN + 1));
+document.querySelectorAll('input[name=rLen]').forEach(r => r.addEventListener('change', () => {
+  const len = Number(r.value);
+  document.querySelector('#c-rDay .time').textContent = len === 12 ? '06:00–18:00' : '8 שעות';
+  updateTotals();
+}));
+// משמרות באורך אחר: סוג, כמה משמרות, כמה שעות כל אחת
+let ovrSeq = 0;
+document.getElementById('addOvr').addEventListener('click', () => {
+  const k = ++ovrSeq, row = document.createElement('div'); row.className = 'ovr';
+  row.innerHTML = `<label class="field wide"><span>סוג המשמרת</span><select class="oType" id="oType${k}">${SHIFT_TYPES.map(t => `<option value="${t.id}">${esc(SHIFT_NAME[t.id])}</option>`).join('')}</select></label>
+    <label class="field"><span>כמה משמרות</span><input class="oN" id="oN${k}" type="number" inputmode="numeric" min="1" step="1" value="1"></label>
+    <label class="field"><span>שעות בכל אחת</span><input class="oH" id="oH${k}" type="number" inputmode="decimal" min="1" max="24" step="0.5" placeholder="למשל 10"></label>
+    <button type="button" class="del" aria-label="מחק">✕</button>`;
+  row.querySelector('.del').addEventListener('click', () => { row.remove(); updateTotals(); });
+  row.querySelectorAll('input,select').forEach(el => el.addEventListener('input', updateTotals));
+  document.getElementById('ovrs').appendChild(row);
+  row.querySelector('.oType').focus();
+});
 // רשימת שורות התלוש לבחירה: לשכר הגלובלי ולכל תוספת
 function lineOptions(empty){
   const L = currentSlip ? currentSlip.lines : [];
@@ -1206,9 +1284,9 @@ async function recordStats(slip, res){
 document.getElementById('go').addEventListener('click', () => {
   if (!currentSlip) return;
   showError('');
-  const profile = getProfile();
-  showResult(currentSlip, {...counts}, false, profile);
-  recordStats(currentSlip, check(currentSlip, {...counts}, {profile}));
+  const profile = getProfile(), shifts = currentShifts();
+  showResult(currentSlip, shifts, false, profile);
+  recordStats(currentSlip, check(currentSlip, shifts, {profile}));
   const res = document.getElementById('result');
   res.classList.remove('enter'); void res.offsetWidth; res.classList.add('enter'); // הכרטיסים עולים אחד אחרי השני
   res.scrollIntoView({behavior: 'smooth', block: 'start'});
