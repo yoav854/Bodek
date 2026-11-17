@@ -202,7 +202,7 @@ footer ul{margin:0;padding-inline-start:18px}
       <li><span class="emo" aria-hidden="true">🔍</span><div><b>רואים מה תקין ומה חסר</b><span>ליד כל שורה כתוב למה. "פירוט" מסביר את החישוב.</span></div></li>
       <li><span class="emo" aria-hidden="true">💸</span><div><b>לאן הלך הכסף</b><span>מס, ביטוח לאומי, פנסיה וקרן השתלמות, בפס אחד.</span></div></li>
       <li><span class="emo" aria-hidden="true">✉️</span><div><b>חסר כסף?</b><span>יש הודעה מוכנה למחלקת השכר. מעתיקים ושולחים.</span></div></li>
-      <li><span class="emo" aria-hidden="true">🔒</span><div><b>פרטיות</b><span>התלוש והיומן נקראים רק בטלפון שלך. שום דבר לא נשמר.</span></div></li>
+      <li><span class="emo" aria-hidden="true">🔒</span><div><b>פרטיות</b><span>התלוש והיומן נקראים רק בטלפון שלך. נשמרת רק סטטיסטיקה אנונימית.</span></div></li>
     </ul>
     <div class="demo" id="demo">
       <div class="demo-screen" aria-hidden="true">
@@ -629,9 +629,11 @@ function check(slip, shifts, opts = {}){
   if (!keren){
     const waiting = slip.seniorityMonths != null && slip.seniorityMonths < 2;
     if (waiting) add('info', 'קרן השתלמות', `אין הפקדה עדיין. בחודשיים הראשונים זה תקין, וההפקדה צריכה להגיע אחר כך גם על החודשים האלה (${fmt(kErExp)} ₪ מהמעסיק על החודש הזה).`);
-    else add(kSev, 'קרן השתלמות', `לא הופקדה קרן השתלמות. לפי הצו המעסיק מפקיד 7.5% מהבסיס: ${kHow}. כלומר ${fmt(kErExp)} ₪ על החודש הזה.` + kNote, kSev === 'gap' ? kErExp : 0);
-  } else if (kErExp - keren.employer > 0.5) add(kSev, 'קרן השתלמות', `המעסיק הפקיד ${fmt(keren.employer)} ₪, על בסיס ${fmt(keren.base)} ₪. לפי הצו הבסיס הוא ${kHow}, ומגיע ${fmt(kErExp)} ₪` + (kSev === 'info' ? `, כלומר ${fmt(r2(kErExp - keren.employer))} ₪ יותר.` : '.') + kNote, kSev === 'gap' ? r2(kErExp - keren.employer) : 0);
-  else add('ok', 'קרן השתלמות', `המעסיק הפקיד ${fmt(keren.employer)} ₪ ונוכו ממך ${fmt(keren.employee)} ₪. הבסיס לפי הצו: ${kHow}. בתלוש הבסיס ${fmt(keren.base)} ₪.`);
+    else { add(kSev, 'קרן השתלמות', `לא הופקדה קרן השתלמות. לפי הצו המעסיק מפקיד 7.5% מהבסיס: ${kHow}. כלומר ${fmt(kErExp)} ₪ על החודש הזה.` + kNote, kSev === 'gap' ? kErExp : 0); if (kSev === 'info') out.kerenUnverified = kErExp; }
+  } else if (kErExp - keren.employer > 0.5){
+    add(kSev, 'קרן השתלמות', `המעסיק הפקיד ${fmt(keren.employer)} ₪, על בסיס ${fmt(keren.base)} ₪. לפי הצו הבסיס הוא ${kHow}, ומגיע ${fmt(kErExp)} ₪` + (kSev === 'info' ? `, כלומר ${fmt(r2(kErExp - keren.employer))} ₪ יותר.` : '.') + kNote, kSev === 'gap' ? r2(kErExp - keren.employer) : 0);
+    if (kSev === 'info') out.kerenUnverified = r2(kErExp - keren.employer); // נספר בסטטיסטיקה (החלטה 34) גם כשהכלל לא אומת
+  } else add('ok', 'קרן השתלמות', `המעסיק הפקיד ${fmt(keren.employer)} ₪ ונוכו ממך ${fmt(keren.employee)} ₪. הבסיס לפי הצו: ${kHow}. בתלוש הבסיס ${fmt(keren.base)} ₪.`);
 
   // 8. חשבון הנטו
   const dedTotal = (slip.taxTotal || 0) + (slip.fundTotal || 0) + (slip.otherTotal || 0);
@@ -786,7 +788,7 @@ function renderRules(){
   const R = RULESETS[RULESETS.length - 1];
   document.getElementById('rulesBox').innerHTML = `<h3>לפי מה בודקים</h3><ul>${R.sources.map(s => `<li>${esc(s[0])}. <span>${esc(s[1])}${s[2] ? '' : ' (לא אומת)'}</span></li>`).join('')}</ul>
   <p>זה מידע כללי ולא ייעוץ משפטי. במקרה של ספק, פנה למחלקת השכר או לארגון העובדים.</p>
-  <p>התלוש והיומן נקראים רק במכשיר שלך. שום דבר לא נשלח לשרת ולא נשמר. <a href="https://yoav854.github.io/Bodek/privacy.html" target="_blank" rel="noopener">מדיניות הפרטיות</a></p>`;
+  <p>התלוש והיומן נקראים רק במכשיר שלך, והתלוש לא נשלח לשום מקום. לסטטיסטיקה נשמרים רק חודש התלוש, האם נמצא פער והסכום, בלי שם ובלי פרטים מזהים. <a href="privacy.html" target="_blank" rel="noopener">מדיניות הפרטיות</a></p>`;
 }
 
 /* ===================== מוני המשמרות ===================== */
@@ -1035,10 +1037,26 @@ async function runCheck(buf, shifts){
   if (!slip) throw new Error('unknown');
   return {slip, res: check(slip, shifts)};
 }
+/* סטטיסטיקה אנונימית (החלטות 33-36): שורה אחת לתלוש, בלי שם ובלי התלוש עצמו.
+   נשלחים רק: טביעת אצבע (SHA-256 שנוצר כאן במכשיר), חודש התלוש, האם נמצא פער, והסכום. מס וביטוח לאומי לא נספרים */
+const STATS_URL = 'https://hwzvmmpkhgrtkbjdojir.supabase.co/rest/v1/rpc/record_check';
+const STATS_KEY = 'sb_publishable_RIUtKFbtioKIwhNtPebgmg_QMjfUR17'; // מפתח ציבורי: יכול רק לרשום בדיקה, לא לקרוא
+async function recordStats(slip, res){
+  try {
+    if (!slip.month || !slip.month.ym || !crypto.subtle) return;
+    const src = JSON.stringify([slip.employer, slip.month.ym, slip.gross, slip.net, slip.lines.map(l => [l.name, l.qty, l.rate, l.amount])]);
+    const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(src));
+    const fp = [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2, '0')).join('');
+    const gap = r2(res.gapTotal + (res.kerenUnverified || 0));
+    await fetch(STATS_URL, {method: 'POST', keepalive: true, headers: {apikey: STATS_KEY, 'Content-Type': 'application/json'},
+      body: JSON.stringify({p_fingerprint: fp, p_month: slip.month.ym + '-01', p_has_gap: gap > 0, p_gap: gap})});
+  } catch (e) {} // תקלה בסטטיסטיקה לא פוגעת בבדיקה
+}
 document.getElementById('go').addEventListener('click', () => {
   if (!currentSlip) return;
   showError('');
   showResult(currentSlip, {...counts}, false);
+  recordStats(currentSlip, check(currentSlip, {...counts}));
   const res = document.getElementById('result');
   res.classList.remove('enter'); void res.offsetWidth; res.classList.add('enter'); // הכרטיסים עולים אחד אחרי השני
   res.scrollIntoView({behavior: 'smooth', block: 'start'});
