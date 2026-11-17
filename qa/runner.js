@@ -73,7 +73,37 @@
     await new Promise(r => setTimeout(r, 200));
     window.__xss ? bad('אבטחה', 'XSS', 'קריטי', 'קוד מתוך התלוש רץ בדף', 'לעבור כל טקסט מהתלוש דרך esc()') : ok('אבטחה', 'XSS נחסם');
 
-    // 7. אבטחה: אין סודות בקוד הדף
+    // 7. עיגול התמיכה (החלטה 52): התאמת שאלות, מחיקת פרטים, מה נשלח, ו-XSS בהודעה
+    const sb = window.__supportBot;
+    if (!sb || !document.getElementById('sbOpen')) bad('תמיכה', 'עיגול התמיכה', 'גבוה', 'העיגול לא קיים בדף', 'להחזיר את supportBot()');
+    else {
+      const want = [['האם התלוש שלי נשמר?', 'privacy'], ['כמה הבראה מגיע', 'havraa'], ['אני רמ"ש 12 שעות', 'ramash'], ['למה הכפתור חסום', 'month'], ['איך מחושבות שעות נוספות בשבת', 'overtime']];
+      const miss = want.filter(([q, id]) => (sb.match(q) || {}).id !== id).map(([q, id]) => `"${q}"→${(sb.match(q) || {}).id || 'כלום'} (צפוי ${id})`);
+      miss.length ? bad('תמיכה', 'התאמת שאלות', 'בינוני', miss.join('; '), 'לעדכן מילות מפתח ב-FAQ') : ok('תמיכה', 'התאמת שאלות');
+      const s = sb.scrub('ת"ז 123456789, קיבלתי 4,350.20 ₪, מייל a.b@test.com, 8 שעות');
+      (/\d{5}|4,350|@/.test(s) || !s.includes('8 שעות')) ? bad('תמיכה', 'מחיקת פרטים אישיים', 'קריטי', 'נשאר: ' + s, 'לתקן את scrub()') : ok('תמיכה', 'מחיקת פרטים אישיים לפני שליחה');
+      const R = RULESETS[0], hv = sb.FAQ.find(f => f.id === 'havraa').a;
+      hv.includes(fmt(R.havraaPerHour)) ? ok('תמיכה', 'תשובות מתאימות לכללי הבודק') : bad('תמיכה', 'תשובות', 'גבוה', 'תשובת ההבראה לא תואמת ל-RULESETS', 'לבנות את התשובה מ-RULESETS');
+      const nb = posts.length;
+      document.getElementById('sbOpen').click();
+      document.getElementById('sbBug').click();
+      document.getElementById('sbText').value = '<img src=x onerror="window.__xss=2">הכפתור לא עובד 0501234567';
+      document.getElementById('sbForm').requestSubmit();
+      await new Promise(r => setTimeout(r, 300));
+      const fb = posts.slice(nb).find(x => x.u.includes('submit_feedback'));
+      if (!fb) bad('תמיכה', 'שליחת דיווח', 'גבוה', 'דיווח תקלה לא נשלח', 'לבדוק את send() בעיגול');
+      else {
+        const b = JSON.parse(fb.body), pr = [];
+        if (b.p_kind !== 'bug') pr.push('סוג ' + b.p_kind);
+        if (/0501234567/.test(b.p_text)) pr.push('מספר טלפון נשלח');
+        if (Object.keys(b).sort().join(',') !== 'p_faq,p_kind,p_screen,p_text') pr.push('שדות נוספים');
+        pr.length ? bad('תמיכה', 'שליחת דיווח', 'קריטי', pr.join('; '), 'לתקן את send()') : ok('תמיכה', 'דיווח תקלה נשלח בלי פרטים מזהים');
+      }
+      window.__xss === 2 ? bad('אבטחה', 'XSS בעיגול', 'קריטי', 'קוד מהודעת המשתמש רץ', 'להעביר את ההודעה דרך esc()') : ok('אבטחה', 'XSS בעיגול נחסם');
+      document.getElementById('sbClose').click();
+    }
+
+    // 8. אבטחה: אין סודות בקוד הדף
     const html = document.documentElement.outerHTML;
     // הדפוס בנוי מחלקים, כדי שהבדיקה לא תמצא את עצמה
     new RegExp([['service', 'role'].join('_'), ['sb', 'secret', ''].join('_'), ['GOCSPX', ''].join('-')].join('|')).test(html) ? bad('אבטחה', 'סודות בדף', 'קריטי', 'מפתח סודי מופיע בקוד הדף', 'להסיר מיד ולהחליף את המפתח') : ok('אבטחה', 'אין סודות בדף');

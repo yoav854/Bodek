@@ -217,6 +217,26 @@ footer ul{margin:0;padding-inline-start:18px}
 @media (prefers-reduced-motion:no-preference){.panel{transition:border-color .2s}}
 .drop{position:relative}
 /* בחירת תפקיד בכניסה: שלוש אפשרויות צפות מעל דף הפתיחה המטושטש */
+/* עיגול התמיכה: מתחת לחלון בחירת התפקיד (z-index 50), כך שמופיע רק אחרי הבחירה */
+.sb-bubble{position:fixed;bottom:max(16px,env(safe-area-inset-bottom,0px));inset-inline-end:16px;z-index:40;width:52px;height:52px;border-radius:50%;border:none;background:var(--accent);color:var(--accent-ink);font-size:1.5rem;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.25);cursor:pointer}
+.sb-panel{position:fixed;bottom:80px;inset-inline-end:16px;z-index:41;width:min(360px,calc(100vw - 32px));max-height:min(560px,calc(100vh - 100px));display:flex;flex-direction:column;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);overflow:hidden}
+.sb-panel[hidden]{display:none}
+.sb-head{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--accent);color:var(--accent-ink)}
+.sb-x{background:none;border:none;color:inherit;font-size:1.1rem;cursor:pointer;padding:4px}
+.sb-log{flex:1 1 auto;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;min-height:140px}
+.sb-panel.talked .sb-chips{max-height:76px}
+.sb-msg{padding:8px 11px;border-radius:12px;max-width:88%;line-height:1.5;font-size:.93rem}
+.sb-msg.bot{background:var(--accent-soft);align-self:flex-start}
+.sb-msg.me{background:var(--bg);border:1px solid var(--line);align-self:flex-end}
+.sb-chips{display:flex;flex-wrap:wrap;gap:6px;padding:0 12px 8px;max-height:120px;overflow-y:auto}
+.sb-chip{font-size:.82rem;padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.sb-chip:hover,.sb-chip:focus-visible{border-color:var(--accent);background:var(--accent-soft)}
+.sb-form{border-top:1px solid var(--line);padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.sb-hint{font-size:.78rem;color:var(--muted)}
+.sb-row{display:flex;gap:6px}
+.sb-row textarea{flex:1;resize:none;font:inherit;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.sb-send{padding:8px 14px;font-size:.95rem}
+@media print{.sb-bubble,.sb-panel{display:none}}
 .pick{position:fixed;inset:0;z-index:50;display:grid;grid-template-columns:minmax(0,560px);justify-content:center;align-items:center;box-sizing:border-box;padding:16px max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px));background:color-mix(in srgb,var(--bg) 45%,transparent);-webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px)}
 .pick-card{box-sizing:border-box;width:100%;min-width:0;max-height:100%;overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:14px;box-shadow:0 24px 60px rgba(0,0,0,.28)}
 .pick-card h2{font-size:1.5rem}
@@ -1499,6 +1519,118 @@ window.__runCheck = runCheck;
 })();
 
 renderRules();
+
+/* ===================== עיגול התמיכה (בוט שאלות קבועות + דיווח תקלות, החלטה 52) =====================
+   התשובות נבנות מהכללים ב-RULESETS, כדי שלא יסתרו את הבודק. בלי AI ובלי שליחה לגורם חיצוני.
+   נשמר במסד הנתונים רק: דיווח תקלה, שאלה שאין לה תשובה, ותקציר (אילו שאלות נפתחו). מספרים ארוכים ומיילים נמחקים לפני השליחה.
+   את הדיווחים קורא ומטפל בהם הסוכן site-qa (הסקיל support-bot). */
+const FEEDBACK_URL = 'https://hwzvmmpkhgrtkbjdojir.supabase.co/rest/v1/rpc/submit_feedback';
+const FAQ = (() => {
+  const R = RULESETS[0], p = x => fmt(x * 100) + '%';
+  return [
+    {id: 'what', q: 'מה האתר בודק?', k: ['בודק', 'מה האתר', 'מה זה', 'איך עובד', 'מה עושים'],
+     a: 'משווים את התלוש למשמרות שעבדת: שעות ותעריף, שעות נוספות ושבת, הבראה, נסיעות, פנסיה ופיצויים, קרן השתלמות ותוספות שהוספת. לכל נושא מקבלים תקין או פער, עם הסבר וסכום.'},
+    {id: 'privacy', q: 'התלוש שלי נשמר איפשהו?', k: ['נשמר', 'שומרים', 'פרטיות', 'מידע', 'רואים', 'בטוח', 'מאגר', 'נשלח'],
+     a: 'לא. התלוש והיומן נקראים רק במכשיר שלך ולא נשלחים לשום מקום. לסטטיסטיקה אנונימית נשמרים רק חודש התלוש, האם נמצא פער והסכום. הפירוט המלא נמצא במדיניות הפרטיות.', link: ['privacy.html', 'מדיניות הפרטיות']},
+    {id: 'month', q: 'למה הבדיקה חסומה?', k: ['חסום', 'חסומה', 'לא נותן', 'חודש', 'לא מאפשר', 'לא עובד הכפתור'],
+     a: 'בודקים רק כשחודש התלוש זהה לחודש הדיווח שבחרת בשלב 3. בחר את החודש שמופיע בתלוש, והכפתור ייפתח. גם תאריכים ברשימה החופשית חייבים להיות באותו חודש.'},
+    {id: 'pdf', q: 'התלוש לא נקרא. מה עושים?', k: ['לא נקרא', 'קובץ', 'pdf', 'סרוק', 'תמונה', 'שגיאה', 'לא עולה', 'להעלות'],
+     a: 'האתר קורא תלוש PDF מקורי של רשף ביטחון, כמו שהוא מגיע מהמערכת. צילום או סריקה של תלוש לא נקראים. אם יש לך PDF מקורי והוא עדיין לא נקרא, דווח על תקלה כאן למטה.'},
+    {id: 'overtime', q: 'איך מחושבות שעות נוספות ושבת?', k: ['נוספות', '125', '150', '175', '200', 'שבת', 'חג', 'לילה'],
+     a: 'ביום חול: 8 שעות רגילות (בלילה 7), אחריהן 2 שעות ב-125% והשאר ב-150%. בשבת ובחג: 8 שעות ב-150% (בליל שישי 7), אחריהן 2 שעות ב-175% והשאר ב-200%. לרמ"ש אין שעות נוספות, כי ' + fmt(R.roleRates.ramash) + ' ₪ הוא שכר כולל לכל השעות.'},
+    {id: 'ramash', q: 'אני רמ"ש. מה ההבדל?', k: ['רמש', 'רמ"ש', 'רמ״ש', '12 שעות', '8 שעות', 'שישי'],
+     a: 'רמ"ש מקבל ' + fmt(R.roleRates.ramash) + ' ₪ לשעה, שכר כולל שסוכם מראש. בוחרים אם המשמרות הן של 12 שעות (06:00-18:00) או של 8, ויש סוג נפרד למשמרת שישי (06:00-14:00). אם עבדת גם כמאבטח, פתח "עבדת גם כמאבטח?".'},
+    {id: 'lead', q: 'אני ראש צוות. איך זה עובד?', k: ['ראש צוות', 'גלובלי', 'שעתי', 'השכר שלי'],
+     a: 'ראש צוות מקליד את השכר שלו, שעתי או גלובלי, והבודק מחשב לפיו. מה שמוקלד לא נשמר ולא נשלח לשום מקום. אפשר לסמן גם משמרות של מאבטח או של רמ"ש, ולהוסיף משתנים כמו שיחות טלפון או מוניות.'},
+    {id: 'havraa', q: 'כמה הבראה מגיעה לי?', k: ['הבראה'],
+     a: 'לפי הבודק מגיעים ' + fmt(R.havraaPerHour) + ' ₪ על כל שעת עבודה, עד ' + R.havraaCapHours + ' שעות בחודש.'},
+    {id: 'travel', q: 'איך נבדקות הנסיעות?', k: ['נסיעות', 'נסיעה', 'דמי נסיעה'],
+     a: 'הבודק סופר את הימים שעבדת ומשווה למספר הימים שעליהם שולמו נסיעות. התקרה היא ' + fmt(R.travelDayCap) + ' ₪ ליום. המספר הזה עוד לא אומת מול נוסח הצו.'},
+    {id: 'pension', q: 'כמה פנסיה צריך להפריש?', k: ['פנסיה', 'פיצויים', 'הפרשה', 'תגמולים'],
+     a: 'מהשכר ומההבראה: ' + p(R.pensionEmployee) + ' מנוכים ממך, ' + p(R.pensionEmployer) + ' מפריש המעסיק לפנסיה, ועוד ' + p(R.severance) + ' לפיצויים.'},
+    {id: 'keren', q: 'מה עם קרן השתלמות?', k: ['השתלמות', 'קרן'],
+     a: 'הבודק מחשב קרן השתלמות (' + p(R.kerenEmployer) + ' מהמעסיק ו-' + p(R.kerenEmployee) + ' ממך), אבל הכלל עוד לא אומת מול נוסח הצו. לכן פער בקרן מוצג כמידע ולא כחוב.'},
+    {id: 'gap', q: 'נמצא פער. מה עושים?', k: ['פער', 'חסר', 'חוב', 'מה עושים', 'לפנות', 'תביעה'],
+     a: 'שמור את התלוש ואת רשימת המשמרות, ופנה למחלקת השכר עם הפירוט שהבודק הראה. הבודק הוא כלי עזר ולא ייעוץ משפטי. אם הפער לא נסגר, אפשר לפנות לארגון עובדים או לעורך דין לדיני עבודה.'},
+  ];
+})();
+(function supportBot(){
+  const $s = id => document.getElementById(id);
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `
+<button id="sbOpen" class="sb-bubble" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="sbPanel" aria-label="עזרה ודיווח על תקלה">?</button>
+<section id="sbPanel" class="sb-panel" role="dialog" aria-label="עזרה ודיווח על תקלה" hidden>
+  <header class="sb-head"><strong>עזרה</strong><button id="sbClose" type="button" class="sb-x" aria-label="סגור">✕</button></header>
+  <div id="sbLog" class="sb-log" aria-live="polite"></div>
+  <div class="sb-chips" id="sbChips"></div>
+  <form id="sbForm" class="sb-form">
+    <label for="sbText" class="sb-hint">כתוב שאלה או תקלה. בלי שם, תעודת זהות או סכומים מהתלוש.</label>
+    <div class="sb-row"><textarea id="sbText" rows="2" maxlength="1000" placeholder="למשל: הכפתור בדוק לא נלחץ"></textarea><button type="submit" class="primary sb-send">שלח</button></div>
+    <button type="button" id="sbBug" class="linkish">🐞 דווח על תקלה</button>
+  </form>
+</section>`;
+  document.body.appendChild(wrap);
+  const log = $s('sbLog'), seen = new Set(), unanswered = [];
+  let bugMode = false, summarySent = false;
+  const say = (html, who) => { if (who === 'me') $s('sbPanel').classList.add('talked'); const d = document.createElement('div'); d.className = 'sb-msg ' + (who || 'bot'); d.innerHTML = html; log.appendChild(d); log.scrollTop = log.scrollHeight; return d; };
+  const scrub = t => String(t).replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, '[מייל]').replace(/\d[\d,.\s-]{3,}\d/g, '[מספר]').slice(0, 1000);
+  const role = () => { try { return getProfile().role || ''; } catch (e) { return ''; } };
+  const screen = () => [role(),$s('result') && $s('result').children.length ? 'אחרי-בדיקה' : 'לפני-בדיקה', innerWidth < 600 ? 'טלפון' : 'מחשב'].join(' · ');
+  async function send(kind, text){
+    try {
+      const r = await fetch(FEEDBACK_URL, {method: 'POST', keepalive: true, headers: {apikey: STATS_KEY, 'Content-Type': 'application/json'},
+        body: JSON.stringify({p_kind: kind, p_text: scrub(text), p_screen: screen(), p_faq: [...seen].slice(0, 30)})});
+      return r.ok;
+    } catch (e) { return false; }
+  }
+  function answer(f){
+    seen.add(f.id);
+    say(esc(f.a) + (f.link ? ` <a href="${f.link[0]}" target="_blank" rel="noopener">${esc(f.link[1])}</a>` : ''));
+  }
+  $s('sbChips').innerHTML = FAQ.map(f => `<button type="button" class="sb-chip" data-faq="${f.id}">${esc(f.q)}</button>`).join('');
+  $s('sbChips').addEventListener('click', e => {
+    const b = e.target.closest('[data-faq]'); if (!b) return;
+    const f = FAQ.find(x => x.id === b.dataset.faq); say(esc(f.q), 'me'); answer(f);
+  });
+  function match(t){
+    const s = t.replace(/[״"']/g, '"').toLowerCase();
+    let best = null, score = 0;
+    for (const f of FAQ){ const n = f.k.filter(k => s.includes(k.toLowerCase())).length; if (n > score){ score = n; best = f; } }
+    return best;
+  }
+  $s('sbBug').addEventListener('click', () => { bugMode = true; say('תאר מה קרה: מה לחצת, מה ציפית שיקרה ומה קרה בפועל. בלי פרטים אישיים.'); $s('sbText').focus(); });
+  $s('sbForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const t = $s('sbText').value.trim(); if (!t) return;
+    say(esc(t), 'me'); $s('sbText').value = '';
+    if (bugMode){
+      bugMode = false;
+      say((await send('bug', t)) ? 'תודה! הדיווח נשלח, ונבדוק אותו.' : 'השליחה נכשלה. נסה שוב בעוד רגע.');
+      return;
+    }
+    const f = match(t);
+    if (f){ answer(f); return; }
+    unanswered.push(scrub(t));
+    const m = say('אין לי תשובה מוכנה לזה. ');
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'linkish'; b.textContent = 'לשלוח כדיווח על תקלה?';
+    b.onclick = async () => { b.disabled = true; unanswered.pop(); say((await send('bug', t)) ? 'נשלח. תודה!' : 'השליחה נכשלה. נסה שוב בעוד רגע.'); };
+    m.appendChild(b);
+  });
+  function sendSummary(){ // תקציר השיחה, פעם אחת, רק אם נפתחה שאלה או נשאלה שאלה בלי תשובה
+    if (summarySent || (!seen.size && !unanswered.length)) return;
+    summarySent = true; send('summary', unanswered.join(' | '));
+  }
+  function toggle(open){
+    $s('sbPanel').hidden = !open; $s('sbOpen').setAttribute('aria-expanded', open);
+    if (open){ if (!log.children.length) say('שלום! בחר שאלה, כתוב שאלה משלך, או דווח על תקלה.'); $s('sbText').focus(); }
+    else { sendSummary(); $s('sbOpen').focus(); }
+  }
+  $s('sbOpen').addEventListener('click', () => toggle($s('sbPanel').hidden));
+  $s('sbClose').addEventListener('click', () => toggle(false));
+  $s('sbPanel').addEventListener('keydown', e => { if (e.key === 'Escape') toggle(false); });
+  addEventListener('pagehide', sendSummary);
+  window.__supportBot = {match, scrub, send, FAQ};
+})();
 </script>
 </body>
 </html>
