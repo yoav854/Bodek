@@ -21,7 +21,15 @@ jobs:
         run: ./qa/run-suite.ps1
       - name: המתנה לפרסום ב-Vercel
         if: always() && github.ref == 'refs/heads/main'
-        run: sleep 90
+        # מחכים עד שהאתר החי מגיש בדיוק את index.html מהעדכון (עד 5 דקות), ולא סתם 90 שניות
+        run: |
+          want=$(sha256sum index.html | cut -d' ' -f1)
+          for i in $(seq 1 30); do
+            got=$(curl -s "https://bodek-eight.vercel.app/?v=$i" | sha256sum | cut -d' ' -f1)
+            [ "$got" = "$want" ] && { echo "האתר החי מעודכן (ניסיון $i)"; exit 0; }
+            sleep 10
+          done
+          echo "::warning::האתר החי לא התעדכן תוך 5 דקות. הבדיקה רצה מול הגרסה הקודמת"
       - name: בדיקת האתר החי
         if: always()
         shell: pwsh
