@@ -20,8 +20,8 @@
   --bg:#f1f5f7; --surface:#ffffff; --ink:#1f3038; --muted:#586a72; --line:rgb(31 48 56 / .12);
   --accent:#0d7480; --accent-ink:#ffffff; --accent-soft:#e4f0f2;
   --forest:#1f3038; --forest-2:#2b4450; --mint:#dcebee; --mint-2:#8fd3dc; --glow:#a9dfe6; --acc:#0d7480; --acc-ink:#ffffff;
-  --ok:#1d7a46; --ok-soft:#e3f3e9; --gap:#b4361f; --gap-soft:#fbe9e4; --info:#4a5f69; --info-soft:#e8eef1;
-  --net:#0d7480; --tax:#5b6b75; --fund:#3d63a8; --emp:#8fb4e8; --union:#9db0b8;
+  --ok:#1d7a46; --ok-soft:#e3f3e9; --gap:#b3263f; --gap-soft:#fbe9ec; --info:#4a5f69; --info-soft:#e8eef1;
+  --net:#0d7480; --tax:#5b6b75; --fund:#3d63a8; --emp:#8fb4e8; --union:#7f929b;
   --display:"Assistant",system-ui,sans-serif; --body:"Assistant",system-ui,sans-serif; --serif:"Frank Ruhl Libre",Georgia,serif;
   color-scheme:light;
 }
@@ -203,7 +203,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .rb svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .rb:hover{color:#fff;background:rgb(255 255 255 / .08)}
 .rb.is-on{background:var(--mint-2);color:var(--forest);box-shadow:0 0 0 6px rgb(143 211 220 / .18),0 0 26px rgb(143 211 220 / .55)}
-.rb::after{content:attr(data-label);position:absolute;inset-inline-end:calc(100% + 14px);top:50%;transform:translateY(-50%) translateX(6px);opacity:0;pointer-events:none;white-space:nowrap;background:rgb(14 43 37 / .92);color:#fff;font-size:13px;padding:5px 10px;border-radius:99px;transition:opacity .2s,transform .2s}
+.rb::after{content:attr(data-label);position:absolute;inset-inline-end:calc(100% + 14px);top:50%;transform:translateY(-50%) translateX(6px);opacity:0;pointer-events:none;white-space:nowrap;background:rgb(31 48 56 / .92);color:#fff;font-size:13px;padding:5px 10px;border-radius:99px;transition:opacity .2s,transform .2s}
 .rb:hover::after,.rb:focus-visible::after{opacity:1;transform:translateY(-50%)}
 .rail .foot{color:#6f9a8d;font-size:12px}
 .main{min-width:0;width:100%;max-width:1060px;margin-inline:auto}
@@ -272,7 +272,7 @@ details.others>.slot,details.others>.vars,details.others>.note,details.others>te
 .verdict.ok .big{color:var(--mint-2)}
 .verdict span:not(.big){color:#bcd3cb}
 .checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.check{background:#fff;border:0;border-radius:22px;padding:16px 18px;box-shadow:0 18px 34px -26px rgb(15 50 40 / .5)}
+.check{background:#fff;border:0;border-radius:22px;padding:16px 18px;box-shadow:0 18px 34px -26px rgb(20 45 55 / .4)}
 #result>div:not(.checks):not(.verdict):not(:first-of-type){background:#fff;border-radius:28px;padding:22px;box-shadow:0 18px 34px -24px rgb(20 45 55 / .4)}
 @media (min-width:1000px){#result>div:not(.checks):has(>.bar){grid-column:span 6}#result>div:not(.checks):has(>.tbl-wrap){grid-column:span 6}}
 .bar{border-radius:99px}
