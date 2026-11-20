@@ -153,6 +153,12 @@
     {name: 'ראש צוות, שישי צהריים', slip: slip([line('שכר יסוד', 1, 60), line('שעות שבת 150%', 7, 90), hv(8)]),
       shifts: {L_friNoon: 1}, profile: {role: 'lead', payType: 'hourly', leadRate: 60, vars: []}, expect: [['שעות עבודה', 'ok'], ['שעות נוספות', 'ok']]},
 
+    // ---------- הערות: זמן נוסף לפני תחילת משמרת (pre) ----------
+    {name: 'שישי צהריים שהתחיל ב-14:15: 1.75 רגילות, 6.25 שבת, 0.75 ב-175%', slip: slip([line('שכר יסוד', 1.75, 47), line('שעות שבת 150%', 6.25, 70.5), line('שעות שבת 175%', 0.75, 82.25), hv(8)]),
+      shifts: {friNoon: 1, _ovr: [{type: 'friNoon', n: 1, hours: 8.75, pre: 0.75}]}, profile: guard, expect: [['שעות עבודה', 'ok'], ['שעות נוספות', 'ok']]},
+    {name: 'בוקר + 45 דקות: 8 רגילות ו-0.75 ב-125%', slip: slip([line('שכר יסוד', 8, 47), line('שעות 125%', 0.75, 58.75), hv(8)]),
+      shifts: {morning: 1, _ovr: [{type: 'morning', n: 1, hours: 8.75}]}, profile: guard, expect: [['שעות עבודה', 'ok'], ['שעות נוספות', 'ok']]},
+
     // ---------- תוספות ----------
     {name: 'תוספת שלא שולמה', slip: slip([line('שכר יסוד', 80, 47), hv(80)]), shifts: {morning: 10},
       profile: {role: 'guard', vars: [{name: 'שיחות טלפון', unit: 40, qty: 3, line: ''}]}, expect: [['שיחות טלפון', 'gap', 120]]},

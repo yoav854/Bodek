@@ -71,6 +71,24 @@
     ff.counts.friNoon === 3 ? ok('מסך', 'צהריים של שישי מהרשימה') : bad('מסך', 'צהריים של שישי מהרשימה', 'גבוה', `נקראו ${ff.counts.friNoon} במקום 3`, 'לבדוק את parseFreeText() ו-KIND_RE');
     const fc = classifyEvents([{summary: 'משמרת', start: {dateTime: '2026-07-03T15:00:00+03:00'}, end: {dateTime: '2026-07-03T23:00:00+03:00'}}], '2026-07', new Set())[0];
     (fc && fc.type === 'friNoon') ? ok('מסך', 'צהריים של שישי מהיומן') : bad('מסך', 'צהריים של שישי מהיומן', 'גבוה', `זוהה כ-${fc && fc.type}`, 'לבדוק את classifyEvents()');
+    // 5ג. הערות: זמן נוסף. חובה תאריך ושעה, ומתחבר למשמרת הצמודה לפי היום
+    const ex = [['5/11 15:00-15:45', 'morning', 45, false], ['עבדתי עוד 45 דק ב-12/11 מ-23:00', 'noon', 45, false], ['20/11 14:15-15:00', 'friNoon', 45, true],
+      ['21/11 07:00-08:00', 'friNight', 60, false], ['עוד שעה וחצי עד 07:00 ב-22/11', 'morning', 90, true], ['14/11 23:00-23:30', 'shabbat', 30, false]];
+    const exBad = ex.filter(([t, type, mins, pre]) => { const r = parseExtras(t, '2026-11', 'guard'); const it = r.items[0]; return !it || it.type !== type || it.mins !== mins || it.pre !== pre; })
+      .map(([t]) => { const it = parseExtras(t, '2026-11', 'guard').items[0]; return `"${t}"→${it ? it.type + ' ' + it.mins + (it.pre ? ' לפני' : '') : 'שגיאה'}`; });
+    const exErr = ['עבדתי עוד 45 דק בתאריך 5/11', '5/11 10:00-11:00', '15:00-15:45', '5/10 15:00-15:45'].filter(t => parseExtras(t, '2026-11', 'guard').errs.length !== 1);
+    (!exBad.length && !exErr.length) ? ok('מסך', 'הערות: זמן נוסף נקרא נכון, ושורה בלי שעה נדחית')
+      : bad('מסך', 'הערות: זמן נוסף', 'גבוה', exBad.concat(exErr.map(t => `"${t}" לא נדחה`)).join('; '), 'לבדוק את parseExtras()');
+    const xt = document.getElementById('extraText'), cm0 = cm.value;
+    cm.value = '2026-11'; xt.value = '5/11 15:00-15:45'; xt.dispatchEvent(new Event('input'));
+    const xo = currentShifts()._ovr.find(o => o.type === 'morning');
+    (xo && xo.hours === 8.75 && !document.getElementById('extraMsg').hidden) ? ok('מסך', 'הערות נכנסות לחישוב (בוקר 8.75 שעות)')
+      : bad('מסך', 'הערות לחישוב', 'גבוה', `התקבל ${JSON.stringify(xo)}`, 'לבדוק את extraOvr() ו-currentShifts()');
+    window.__xss = 0; xt.value = '<img src=x onerror="window.__xss=1">5/11'; xt.dispatchEvent(new Event('input'));
+    await new Promise(r => setTimeout(r, 200));
+    window.__xss ? bad('אבטחה', 'XSS בהערות', 'קריטי', 'קוד מתיבת ההערות רץ בדף', 'להעביר כל טקסט דרך esc() ב-renderExtras()') : ok('אבטחה', 'XSS בהערות נחסם');
+    xt.value = ''; xt.dispatchEvent(new Event('input')); cm.value = cm0;
+
     // 5ב. ערב שישי = שישי צהריים. חג = שבת: ערב חג בצהריים 1+7, הלילה שבו החג נכנס 8, ביום החג 8, מוצאי חג 5
     const fe = parseFreeText(['3 ערב שישי', 'ערב חג 1/10', 'מוצאי חג 2/10'].join('\n'), '2026-10');
     (fe.counts.friNoon === 4 && fe.counts.motzash === 1) ? ok('מסך', 'ערב שישי, ערב חג ומוצאי חג מהרשימה')

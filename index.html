@@ -135,6 +135,8 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .linkish{background:none;border:none;padding:2px 0;color:var(--accent);text-decoration:underline;text-align:start;font-weight:600}
 .freebox{display:flex;flex-direction:column;gap:8px}
 .freebox textarea{min-height:0;height:8.5em}
+.extratext{min-height:0;height:5.5em}
+#extraMsg .bad{color:#b45309}
 .unknown{color:var(--info);font-weight:600}
 .callist{display:flex;flex-direction:column;gap:6px}
 .calitem{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 10px;border-radius:10px;background:var(--surface);border:1px solid var(--line);cursor:pointer}
@@ -401,6 +403,11 @@ body.picking{overflow:hidden}
       <div class="vars" id="ovrs"></div>
       <button type="button" id="addOvr" class="linkish">+ שנה שעות למשמרות</button>
     </details>
+    <details class="others" id="extraBox"><summary>הערות: עבדת עוד זמן מעבר למשמרת?</summary>
+      <p class="note">שורה לכל פעם, עם תאריך ושעות. חובה לכתוב באיזו שעה, כדי שהשכר יחושב נכון (שעה נוספת, שבת וכו').</p>
+      <textarea id="extraText" class="extratext" rows="3" aria-label="זמן עבודה נוסף" placeholder="למשל:&#10;5/11 15:00-15:45&#10;עבדתי עוד 45 דק ב-12/11 מ-23:00"></textarea>
+      <p class="note" id="extraMsg" role="status" hidden></p>
+    </details>
     <p class="note">סך הכל: <span class="total-hours num" id="shiftCount">0</span> משמרות · <span class="total-hours num" id="shiftHours">0</span> שעות</p>
   </section>
 
@@ -631,7 +638,7 @@ function shiftGroups(sh){ // כל משמרת עם מספר השעות שלה: [{
     let left = sh[t.id] || 0; if (!left) continue;
     for (const o of ((sh && sh._ovr) || [])){
       if (o.type !== t.id || !(o.n > 0) || !(o.hours > 0)) continue;
-      const n = Math.min(o.n, left); if (n){ out.push({t, n, h: o.hours}); left -= n; }
+      const n = Math.min(o.n, left); if (n){ out.push({t, n, h: o.hours, pre: o.pre || 0}); left -= n; }
     }
     if (left) out.push({t, n: left, h: typeHours(t, sh)});
   }
@@ -639,7 +646,7 @@ function shiftGroups(sh){ // כל משמרת עם מספר השעות שלה: [{
 }
 function summarize(sh){
   let count = 0, hours = 0, shabbat = 0;
-  for (const g of shiftGroups(sh)){ count += g.n; hours += g.n * g.h; shabbat += g.n * splitShift(g.t.base, g.h).shab; }
+  for (const g of shiftGroups(sh)){ count += g.n; hours += g.n * g.h; shabbat += g.n * splitShift(g.t.base, g.h, 8, g.pre).shab; }
   return {count, hours, shabbat};
 }
 
@@ -649,12 +656,13 @@ function summarize(sh){
 const SHIFT_NAME = {morning: 'בוקר', noon: 'צהריים', night: 'לילה', motzash: 'לילה של מוצ"ש או מוצאי חג', friNoon: 'צהריים של שישי או ערב חג', shabbat: 'שבת', friNight: 'לילה של שישי', holiday: 'חג', rDay: 'משמרת רמ"ש', rFri: 'שישי של רמ"ש'};
 // dayLim: שעות רגילות במשמרת יום. 8 בשבוע של 6 ימים, 8.6 בשבוע של 5 ימים (חוק שעות עבודה ומנוחה, צו 42 שעות, 2018).
 // הבודק קובע פער רק לפי 8.6 (הקריאה המקלה עם המעסיק). הפרש בין 8 ל-8.6 מוצג כ"לשים לב"
-function splitShift(id, h, dayLim = 8){
+// pre = שעות שנוספו לפני תחילת המשמרת (מתיבת ההערות). משנה רק משמרות שהשבת מתחילה או נגמרת בתוכן
+function splitShift(id, h, dayLim = 8, pre = 0){
   const S = {h100: 0, h125: 0, h150: 0, sh150: 0, sh175: 0, sh200: 0, r: 0, shab: 0};
   const ot = (lim, rest) => { const o = Math.max(0, rest - lim); S.h125 += Math.min(o, 2); S.h150 += Math.max(0, o - 2); return rest - o; };
   const shabOt = lim => { S.sh150 = Math.min(h, lim); const o = h - S.sh150; S.sh175 = Math.min(o, 2); S.sh200 = Math.max(0, o - 2); S.shab = h; };
   if (id === 'friNoon'){ // 15:00-16:00 רגילה, ומ-16:00 שבת. שעות נוספות בסוף המשמרת, כלומר בשבת: 175% ואז 200%
-    const reg = Math.min(h, 1), shab = h - reg, o = Math.max(0, h - dayLim), oShab = Math.min(o, shab), oWeek = o - oShab;
+    const reg = Math.min(h, 1 + pre), shab = h - reg, o = Math.max(0, h - dayLim), oShab = Math.min(o, shab), oWeek = o - oShab;
     S.h100 = reg - oWeek; S.h125 = Math.min(oWeek, 2); S.h150 = Math.max(0, oWeek - 2);
     S.sh150 = shab - oShab; S.sh175 = Math.min(oShab, 2); S.sh200 = Math.max(0, oShab - 2); S.shab = shab;
     return S;
@@ -662,13 +670,13 @@ function splitShift(id, h, dayLim = 8){
   if (id === 'rDay' || id === 'rFri') S.r = h; // רמ"ש: הכל בתעריף אחיד
   else if (id === 'morning' || id === 'noon') S.h100 = ot(dayLim, h);
   else if (id === 'night') S.h100 = ot(7, h);
-  else if (id === 'motzash'){ const sh = Math.min(h, 5); S.sh150 = sh; S.shab = sh; const o = Math.max(0, h - 7); S.h125 = Math.min(o, 2); S.h150 = Math.max(0, o - 2); S.h100 = Math.max(0, h - sh - o); }
+  else if (id === 'motzash'){ const sh = Math.min(h, 5 + pre); S.sh150 = sh; S.shab = sh; const o = Math.max(0, h - 7); S.h125 = Math.min(o, 2); S.h150 = Math.max(0, o - 2); S.h100 = Math.max(0, h - sh - o); }
   else if (id === 'friNight') shabOt(7);
   else shabOt(8); // שבת וחג
   return S;
 }
-function splitWhy(id, h){
-  const s = splitShift(id, h), p = [];
+function splitWhy(id, h, pre = 0){
+  const s = splitShift(id, h, 8, pre), p = [];
   if (s.r) return `${SHIFT_NAME[id]} (${fmtH(h)} שעות): הכל בתעריף רמ"ש, בלי תוספות`;
   if (s.h100) p.push(`${fmtH(s.h100)} רגילות`); if (s.sh150) p.push(`${fmtH(s.sh150)} שבת או חג (150%)`);
   if (s.h125) p.push(`${fmtH(s.h125)} ב-125%`); if (s.h150) p.push(`${fmtH(s.h150)} ב-150%`);
@@ -677,7 +685,7 @@ function splitWhy(id, h){
 }
 function expectedHours(sh, kind, dayLim = 8){ // kind ריק = כל סוגי העבודה יחד
   const E = {h100: 0, h125: 0, h150: 0, sh150: 0, sh175: 0, sh200: 0, r: 0};
-  for (const g of shiftGroups(sh)){ if (kind && g.t.kind !== kind) continue; const s = splitShift(g.t.base, g.h, dayLim); for (const k in E) E[k] += g.n * s[k]; }
+  for (const g of shiftGroups(sh)){ if (kind && g.t.kind !== kind) continue; const s = splitShift(g.t.base, g.h, dayLim, g.pre); for (const k in E) E[k] += g.n * s[k]; }
   return E;
 }
 // שעות "רגילות" (לא שעות נוספות): בסיס ההבראה וקרן ההשתלמות לפי הקריאה המצמצמת. שעות שבת בתוך המשמרת הרגילה נספרות
@@ -715,7 +723,7 @@ function overtimeDetail(E, P, rate, counts){
     ['שעה נוספת ראשונה ושנייה בשבת', '175%', E.sh175, P.sh175, .75],
     ['שעה נוספת שלישית והלאה בשבת', '200%', E.sh200, P.sh200, 1],
   ].filter(r => r[2] || r[3]);
-  const used = shiftGroups(counts).map(g => `${g.n} × ${g.t.kind === 'guard' ? '' : KIND_NAME[g.t.kind] + ', '}${splitWhy(g.t.base, g.h)}`);
+  const used = shiftGroups(counts).map(g => `${g.n} × ${g.t.kind === 'guard' ? '' : KIND_NAME[g.t.kind] + ', '}${splitWhy(g.t.base, g.h, g.pre)}`);
   return `<div class="ot">
     <p class="note">איך זה חושב: ${used.map(esc).join(' · ')}.</p>
     <div class="tbl-wrap"><table><thead><tr><th>סוג השעה</th><th class="n">מגיע</th><th class="n">שולם</th><th class="n">הפרש בתוספת</th></tr></thead><tbody>
@@ -1356,9 +1364,11 @@ function showCalendarDemo(){
 // המשמרות כמו שהבדיקה מקבלת אותן: המונים, אורך משמרת רמ"ש, ומשמרות באורך אחר
 function currentShifts(){
   const ovr = [...document.querySelectorAll('#ovrs .ovr')].map(r => ({type: r.querySelector('.oType').value, n: parseInt(r.querySelector('.oN').value) || 0, hours: parseFloat(r.querySelector('.oH').value) || 0}));
-  return {...counts, _len: Number((document.querySelector('input[name=rLen]:checked') || {}).value) || 12, _ovr: ovr};
+  const len = Number((document.querySelector('input[name=rLen]:checked') || {}).value) || 12;
+  return {...counts, _len: len, _ovr: ovr.concat(extraOvr(len))};
 }
 function updateTotals(){
+  renderExtras();
   const S = summarize(currentShifts());
   document.getElementById('shiftCount').textContent = S.count;
   document.getElementById('shiftHours').textContent = fmtH(S.hours);
@@ -1420,6 +1430,105 @@ document.getElementById('addOvr').addEventListener('click', () => {
   document.getElementById('ovrs').appendChild(row);
   row.querySelector('.oType').focus();
 });
+/* ===================== הערות: זמן עבודה נוסף ===================== */
+// "5/11 15:00-15:45" או "עוד 45 דק ב-5/11 מ-15:00". חובה תאריך ושעה. הזמן מתחבר למשמרת שהוא צמוד אליה:
+// נגמר ב-07:00/15:00/23:00 = לפני בוקר/צהריים/לילה. מתחיל ב-15:00/23:00/07:00 = אחרי בוקר/צהריים/לילה (של אתמול).
+// סוג המשמרת לפי היום (שישי צהריים, שבת, מוצ"ש), ואז החישוב הרגיל: שעות נוספות, שבת מ-16:00 וכו'
+const fmtMin = m => `${pad(Math.floor(m / 60) % 24)}:${pad(m % 60)}`;
+function parseDur(t){
+  let m;
+  if (/שעה וחצי/.test(t)) return 90;
+  if (/חצי שעה/.test(t)) return 30;
+  if (/רבע שעה/.test(t)) return 15;
+  if (/שעתיים/.test(t)) return 120;
+  if ((m = /(\d+(?:\.\d+)?)\s*(?:דקות|דקה|דק'?|ד'|min)/.exec(t))) return Math.round(parseFloat(m[1]));
+  if ((m = /(\d+(?:\.\d+)?)\s*(?:שעות|שעה|ש')/.exec(t))) return Math.round(parseFloat(m[1]) * 60);
+  if (/(^|[^א-ת])שעה($|[^א-ת])/.test(t)) return 60;
+  return 0;
+}
+function shiftAt(base, d){ // סוג המשמרת לפי היום שבו היא מתחילה
+  const dow = d.getDay();
+  if (base === 'night') return dow === 5 ? 'friNight' : dow === 6 ? 'motzash' : 'night';
+  if (base === 'noon') return dow === 5 ? 'friNoon' : dow === 6 ? 'shabbat' : 'noon';
+  return dow === 6 ? 'shabbat' : 'morning';
+}
+function parseExtras(text, ym, role){
+  const year = Number((ym || '').slice(0, 4)) || new Date().getFullYear();
+  const items = [], errs = [];
+  for (const raw of String(text).split(/\r?\n/)){
+    const line = raw.trim(); if (!line) continue;
+    const dm = /(\d{1,2})[\/.](\d{1,2})(?:[\/.](\d{2,4}))?/.exec(line);
+    if (!dm){ errs.push(`"${line}": חסר תאריך. למשל 5/11 15:00-15:45`); continue; }
+    let y = dm[3] ? Number(dm[3]) : year; if (y < 100) y += 2000;
+    const day = new Date(y, Number(dm[2]) - 1, Number(dm[1]));
+    if (isNaN(day) || day.getDate() !== Number(dm[1])){ errs.push(`"${line}": תאריך לא תקין`); continue; }
+    if (ym && dKey(day).slice(0, 7) !== ym){ errs.push(`"${line}": התאריך לא בחודש הדיווח`); continue; }
+    let rest = line.replace(dm[0], ' ');
+    const times = [...rest.matchAll(/(\d{1,2}):(\d\d)/g)].map(m => Number(m[1]) * 60 + Number(m[2]));
+    const untilTime = /עד\s*(ה?שעה\s*)?\d{1,2}:\d\d/.test(rest);
+    rest = rest.replace(/(\d{1,2}):(\d\d)/g, ' ');
+    let st, en;
+    if (times.length >= 2){ [st, en] = times; }
+    else if (times.length === 1){
+      const dur = parseDur(rest);
+      if (!dur){ errs.push(`"${line}": כמה זמן? כתוב גם שעת סיום, למשל ${fmtMin(times[0])}-${fmtMin(times[0] + 45)}`); continue; }
+      if (untilTime){ en = times[0]; st = en - dur; } else { st = times[0]; en = st + dur; }
+    } else {
+      const r = /(^|[^\d])(\d{1,2})\s*[-–—]\s*(\d{1,2})($|[^\d])/.exec(rest);
+      if (!r){ errs.push(`"${line}": חסרה השעה. כתוב מאיזו שעה עד איזו שעה, למשל ${dm[0]} 15:00-15:45`); continue; }
+      st = Number(r[2]) * 60; en = Number(r[3]) * 60;
+    }
+    if (st < 0) st += 1440;
+    if (en <= st) en += 1440;
+    const mins = en - st;
+    if (!(mins > 0 && mins <= 12 * 60)){ errs.push(`"${line}": משך לא סביר`); continue; }
+    const E = en % 1440, S0 = st % 1440, date = new Date(day);
+    let base = null, pre = false;
+    if (role === 'ramash') base = day.getDay() === 5 ? 'rFri' : 'rDay'; // רמ"ש: כל השעות באותו תעריף
+    else if (E === 420){ base = 'morning'; pre = true; if (en >= 1440) date.setDate(date.getDate() + 1); }
+    else if (E === 900){ base = 'noon'; pre = true; }
+    else if (E === 1380){ base = 'night'; pre = true; }
+    else if (S0 === 900) base = 'morning';
+    else if (S0 === 1380) base = 'noon';
+    else if (S0 === 420){ base = 'night'; date.setDate(date.getDate() - 1); }
+    if (!base){ errs.push(`"${line}": ${fmtMin(st)}–${fmtMin(en)} לא צמוד לתחילה או לסוף של משמרת (07:00, 15:00, 23:00). אם זו משמרת נפרדת, כתוב אותה ברשימת המשמרות למעלה`); continue; }
+    const type = role === 'ramash' ? base : shiftAt(base, date);
+    items.push({line, date, st, en, mins, type, pre, key: dKey(date) + '|' + type});
+  }
+  return {items, errs};
+}
+function extraState(){
+  const el = document.getElementById('extraText'); if (!el || !el.value.trim()) return {items: [], errs: [], groups: []};
+  const role = document.querySelector('input[name=role]:checked').value;
+  const r = parseExtras(el.value, document.getElementById('calMonth').value, role);
+  const prefix = role !== 'ramash' && fillKind() === 'lead' ? 'L_' : '';
+  const by = {};
+  for (const it of r.items){
+    const g = by[it.key] = by[it.key] || {type: prefix + it.type, base: it.type, date: it.date, pre: 0, post: 0, lines: []};
+    g[it.pre ? 'pre' : 'post'] += it.mins; g.lines.push(it);
+  }
+  return {...r, groups: Object.values(by)};
+}
+// כל משמרת שהתארכה נכנסת כמשמרת אחת באורך אחר (כמו "חלק מהמשמרות היו באורך אחר")
+function extraOvr(len){
+  return extraState().groups.map(g => ({type: g.type, n: 1, hours: typeHours(SHIFT_TYPES.find(x => x.id === g.type), {_len: len}) + (g.pre + g.post) / 60, pre: g.pre / 60}));
+}
+function renderExtras(){
+  const box = document.getElementById('extraMsg'); if (!box) return;
+  const st = extraState(), out = [], need = {};
+  const len = Number((document.querySelector('input[name=rLen]:checked') || {}).value) || 12;
+  for (const g of st.groups){
+    need[g.type] = (need[g.type] || 0) + 1;
+    const add = g.pre + g.post, h = typeHours(SHIFT_TYPES.find(x => x.id === g.type), {_len: len}) + add / 60;
+    out.push(esc(`${DAY[g.date.getDay()]} ${g.date.getDate()}/${g.date.getMonth() + 1}: ${g.lines.map(it => `${fmtMin(it.st)}–${fmtMin(it.en)}`).join(', ')}, עוד ${add} דקות על משמרת ${SHIFT_NAME[g.base]} (${fmtH(h)} שעות)`));
+  }
+  for (const [type, n] of Object.entries(need)) if ((counts[type] || 0) < n)
+    out.push(`<span class="bad">${esc(`לא נספרה משמרת ${SHIFT_NAME[SHIFT_TYPES.find(x => x.id === type).base]} לתאריך הזה. הוסף אותה למונים או לרשימה, אחרת הזמן הנוסף לא ייספר.`)}</span>`);
+  for (const e of st.errs) out.push(`<span class="bad">${esc(e)}</span>`);
+  box.innerHTML = out.join('<br>'); box.hidden = !out.length;
+}
+document.getElementById('extraText').addEventListener('input', updateTotals);
+document.getElementById('calMonth').addEventListener('change', updateTotals);
 // רשימת שורות התלוש לבחירה: לשכר הגלובלי ולכל תוספת
 function lineOptions(empty){
   const L = currentSlip ? currentSlip.lines : [];
