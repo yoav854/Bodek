@@ -66,6 +66,12 @@
       counts.morning === 3 ? ok('מסך', 'יומן + רשימה, חפיפה נספרת פעם אחת') : bad('מסך', 'חפיפה יומן/רשימה', 'גבוה', `נספרו ${counts.morning} בקרים במקום 3`, 'לבדוק את applySources()');
     }
 
+    // 5א. צהריים של שישי מהרשימה ומהיומן (שבת מ-16:00 כל השנה)
+    const ff = parseFreeText('20/11 צהריים\n2 צהריים של שישי', '2026-11');
+    ff.counts.friNoon === 3 ? ok('מסך', 'צהריים של שישי מהרשימה') : bad('מסך', 'צהריים של שישי מהרשימה', 'גבוה', `נקראו ${ff.counts.friNoon} במקום 3`, 'לבדוק את parseFreeText() ו-KIND_RE');
+    const fc = classifyEvents([{summary: 'משמרת', start: {dateTime: '2026-07-03T15:00:00+03:00'}, end: {dateTime: '2026-07-03T23:00:00+03:00'}}], '2026-07', new Set())[0];
+    (fc && fc.type === 'friNoon') ? ok('מסך', 'צהריים של שישי מהיומן') : bad('מסך', 'צהריים של שישי מהיומן', 'גבוה', `זוהה כ-${fc && fc.type}`, 'לבדוק את classifyEvents()');
+
     // 6. אבטחה: טקסט זדוני בשורת תלוש לא רץ
     window.__xss = 0;
     const evil = JSON.parse(JSON.stringify(s0)); evil.lines[0].name = '<img src=x onerror="window.__xss=1">שכר יסוד'; evil.employer = '<script>window.__xss=1<\/script>';
