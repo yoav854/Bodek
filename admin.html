@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>עדכונים באתר: בודק התלוש</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* דף ניהול פרטי: מוסיפים עדכון בתנאים או בשכר, והוא מופיע בדף הכניסה */
+  :root { --forest:#0e2b25; --mint:#c9ece0; --orange:#f58a4a; --orange-ink:#2a1306; --ink:#10201c; --muted:#5f7069; --line:rgb(16 32 28 / .12); --gap:#b4361f; --ok:#1d7a46; color-scheme: light; }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; font: 400 16px/1.55 "Assistant", system-ui, sans-serif; color: var(--ink); min-height: 100svh; padding: 20px;
+    background: radial-gradient(60% 70% at 100% 0%, #bfeadb 0%, transparent 62%), radial-gradient(55% 60% at 0% 100%, #f7e2d3 0%, transparent 62%), linear-gradient(135deg, #dcf0e8, #eef2f0 55%, #f3e8de); background-attachment: fixed; }
+  main { max-width: 760px; margin: 0 auto; display: grid; gap: 16px; }
+  :focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+  h1 { margin: 0; font-size: clamp(26px, 3vw, 34px); font-weight: 600; }
+  h2 { margin: 0; font-size: 1.15rem; font-weight: 600; }
+  .sub, .note { margin: 0; color: var(--muted); font-size: .95rem; }
+  .card { background: #fff; border-radius: 28px; padding: 22px; display: grid; gap: 12px; box-shadow: 0 18px 34px -24px rgb(15 50 40 / .45); min-width: 0; }
+  label { font-weight: 600; font-size: .95rem; }
+  input[type=text], input[type=password], select, textarea { font: inherit; width: 100%; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line); background: #f6faf8; color: var(--ink); }
+  input[type=password] { direction: ltr; }
+  textarea { min-height: 6.5em; resize: vertical; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .row > * { flex: 1 1 200px; min-width: 0; }
+  button { font: inherit; font-weight: 600; border-radius: 99px; border: 1px solid var(--line); background: #fff; color: var(--ink); padding: 10px 20px; cursor: pointer; }
+  button.primary { background: var(--orange); border-color: var(--orange); color: var(--orange-ink); font-weight: 700; padding: 12px 22px; }
+  button:disabled { opacity: .55; cursor: not-allowed; }
+  button.link { background: none; border: 0; color: #0b7a63; padding: 0; text-decoration: underline; }
+  .check { display: flex; gap: 10px; align-items: flex-start; font-weight: 400; padding: 12px 14px; border-radius: 16px; background: #fdeee3; }
+  .check input { margin-top: .35em; width: 18px; height: 18px; accent-color: var(--forest); flex: none; }
+  .err { color: var(--gap); margin: 0; font-weight: 600; }
+  .ok { color: var(--ok); margin: 0; font-weight: 600; }
+  .count { text-align: end; font-size: .85rem; color: var(--muted); }
+  ul.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  ul.list li { border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px; display: grid; gap: 4px; }
+  ul.list .t { font-weight: 600; overflow-wrap: anywhere; }
+  ul.list .m { color: var(--muted); font-size: .88rem; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+</style>
+</head>
+<body>
+<main>
+  <div>
+    <h1>עדכונים באתר</h1>
+    <p class="sub">עדכון בתנאים או בשכר מופיע בדף הכניסה בכרטיס "עדכונים", עד שהחבר לוחץ "הבנתי". הוא נעלם לבד אחרי מספר הימים שתבחר.</p>
+  </div>
+
+  <section class="card" id="loginBox" hidden>
+    <h2>כניסה</h2>
+    <form id="loginForm" class="row">
+      <label for="tok" class="note" style="flex-basis:100%">הקוד הסודי (אותו קוד של דף הסטטיסטיקה, נשמר רק במכשיר הזה)</label>
+      <input id="tok" type="password" autocomplete="off" required>
+      <button type="submit" class="primary" style="flex:0 0 auto">היכנס</button>
+    </form>
+    <p class="err" id="loginErr" hidden></p>
+  </section>
+
+  <div id="data" hidden>
+    <form class="card" id="form" novalidate>
+      <h2>עדכון חדש</h2>
+      <label for="body">מה השתנה</label>
+      <textarea id="body" maxlength="400" placeholder="משפט או שניים, בעברית פשוטה. למשל: מ-1.4.2027 שכר המינימום בענף עלה."></textarea>
+      <div class="count"><span id="bodyN">0</span> מתוך 400</div>
+      <label for="source">מקור (חובה)</label>
+      <input id="source" type="text" maxlength="200" placeholder="למשל: צו ההרחבה בענף השמירה 2022, סעיף 9">
+      <div class="row">
+        <div><label for="days">כמה זמן יוצג</label>
+          <select id="days"><option value="7">7 ימים</option><option value="14">14 ימים</option><option value="30" selected>30 יום</option><option value="60">60 יום</option><option value="90">90 ימים</option></select></div>
+      </div>
+      <label class="check" for="verified"><input type="checkbox" id="verified"><span>אימתתי כל מספר וכל תאריך בעדכון מול מקור רשמי, והם נכונים ומעודכנים במלואם.</span></label>
+      <p class="err" id="formErr" hidden></p>
+      <p class="ok" id="formOk" hidden></p>
+      <div><button type="submit" class="primary" id="publish">פרסם עדכון</button></div>
+    </form>
+
+    <section class="card" style="margin-top:16px">
+      <h2>עדכונים שמוצגים עכשיו</h2>
+      <ul class="list" id="list"></ul>
+      <p class="note" id="empty" hidden>אין עדכון פעיל. דף הכניסה לא מציג כרטיס עדכונים.</p>
+      <p class="note"><button class="link" id="refresh" type="button">רענן</button> · <button class="link" id="logout" type="button">התנתק</button></p>
+    </section>
+  </div>
+</main>
+<script>
+const BASE = 'https://hwzvmmpkhgrtkbjdojir.supabase.co/rest/v1/rpc/';
+const KEY = 'sb_publishable_RIUtKFbtioKIwhNtPebgmg_QMjfUR17';
+const $ = id => document.getElementById(id);
+const store = { get(){ try { return localStorage.getItem('bodekStatsToken') || ''; } catch(e){ return ''; } }, set(v){ try { v ? localStorage.setItem('bodekStatsToken', v) : localStorage.removeItem('bodekStatsToken'); } catch(e){} } };
+let token = store.get();
+
+async function rpc(name, args){
+  const r = await fetch(BASE + name, {method: 'POST', headers: {apikey: KEY, 'Content-Type': 'application/json'}, body: JSON.stringify(args)});
+  if (!r.ok){
+    let m = ''; try { m = ((await r.json()) || {}).message || ''; } catch(e){}
+    throw new Error(m === 'forbidden' ? 'bad' : r.status === 404 ? 'missing' : 'net');
+  }
+  const t = await r.text(); return t ? JSON.parse(t) : null;
+}
+const why = e => e.message === 'bad' ? 'הקוד לא נכון.' : e.message === 'missing' ? 'הפונקציות של העדכונים עוד לא נוצרו במסד הנתונים. צריך להריץ את supabase/notices.sql ב-SQL Editor של Supabase.' : 'אין חיבור לשרת. נסה שוב בעוד רגע.';
+
+// plain text only, never HTML
+function renderList(list){
+  const ul = $('list'); ul.textContent = '';
+  (Array.isArray(list) ? list : []).forEach(n => {
+    const li = document.createElement('li'), t = document.createElement('div'), m = document.createElement('div'), meta = document.createElement('span'), rm = document.createElement('button');
+    t.className = 't'; t.textContent = String(n.body || '');
+    m.className = 'm';
+    const d = new Date(n.created_at), e = new Date(n.expires_at);
+    meta.textContent = `מקור: ${String(n.source || '')} · פורסם ${isNaN(d) ? '' : d.toLocaleDateString('he-IL')} · יוסר ${isNaN(e) ? '' : e.toLocaleDateString('he-IL')}`;
+    rm.type = 'button'; rm.className = 'link'; rm.textContent = 'הסר מהאתר';
+    rm.addEventListener('click', async () => { rm.disabled = true; try { await rpc('remove_notice', {p_token: token, p_id: n.id}); await load(); } catch(err){ $('formErr').textContent = why(err); $('formErr').hidden = false; rm.disabled = false; } });
+    m.append(meta, rm); li.append(t, m); ul.append(li);
+  });
+  $('empty').hidden = ul.children.length > 0;
+}
+
+async function load(){
+  $('loginErr').hidden = true;
+  try { renderList(await rpc('list_notices', {p_token: token})); $('loginBox').hidden = true; $('data').hidden = false; }
+  catch(e){
+    $('data').hidden = true; $('loginBox').hidden = false;
+    if (token){ $('loginErr').textContent = why(e); $('loginErr').hidden = false; }
+    if (e.message === 'bad'){ token = ''; store.set(''); }
+  }
+}
+
+// returns the error text, or '' when the form can be sent
+function validate(body, source, verified){
+  body = (body || '').trim(); source = (source || '').trim();
+  if (body.length < 5) return 'כתוב מה השתנה, לפחות כמה מילים.';
+  if (body.length > 400) return 'העדכון ארוך מ-400 תווים.';
+  if (source.length < 3) return 'חובה לכתוב מקור, למשל שם הצו או הדף שממנו לקחת את הנתון.';
+  if (!verified) return 'סמן שאימתת את המספרים והתאריכים מול מקור רשמי.';
+  return '';
+}
+
+$('body').addEventListener('input', () => { $('bodyN').textContent = $('body').value.length; });
+$('form').addEventListener('submit', async e => {
+  e.preventDefault();
+  $('formOk').hidden = true;
+  const msg = validate($('body').value, $('source').value, $('verified').checked);
+  if (msg){ $('formErr').textContent = msg; $('formErr').hidden = false; return; }
+  $('formErr').hidden = true; $('publish').disabled = true;
+  try {
+    await rpc('add_notice', {p_token: token, p_body: $('body').value.trim(), p_source: $('source').value.trim(), p_days: Number($('days').value)});
+    $('body').value = ''; $('source').value = ''; $('verified').checked = false; $('bodyN').textContent = '0';
+    $('formOk').textContent = 'פורסם. הוא יופיע בדף הכניסה תוך רגע.'; $('formOk').hidden = false;
+    await load();
+  } catch(err){ $('formErr').textContent = why(err); $('formErr').hidden = false; }
+  $('publish').disabled = false;
+});
+$('loginForm').addEventListener('submit', e => { e.preventDefault(); token = $('tok').value.trim(); store.set(token); $('tok').value = ''; load(); });
+$('refresh').addEventListener('click', load);
+$('logout').addEventListener('click', () => { token = ''; store.set(''); $('data').hidden = true; $('loginBox').hidden = false; });
+window.__renderNotices = renderList; window.__validate = validate; // for the QA suite
+token ? load() : ($('loginBox').hidden = false);
+</script>
+</body>
+</html>

@@ -5,6 +5,7 @@
     run-suite.ps1                      הקוד המקומי (התיקייה שמעל qa)
     run-suite.ps1 -Target live         האתר החי
     run-suite.ps1 -PageFile index.html     דף הכניסה (qa/landing-runner.js) במקום הכלי
+    run-suite.ps1 -PageFile admin.html     דף ניהול העדכונים (qa/admin-runner.js)
     run-suite.ps1 -ExtraCases <js>     מקרים נוספים (window.QA_CASES.push(...))
     run-suite.ps1 -Repo <תיקייה>       check.html מתיקייה אחרת (למשל עותק עם באג מכוון)
   קוד יציאה: 0 תקין, 1 נמצאו בעיות, 2 ההרצה נכשלה.
@@ -12,7 +13,7 @@
 param(
   [ValidateSet('local', 'live')] [string]$Target = 'local',
   [string]$Repo = '',
-  [ValidateSet('check.html', 'index.html')] [string]$PageFile = 'check.html',
+  [ValidateSet('check.html', 'index.html', 'admin.html')] [string]$PageFile = 'check.html',
   [string]$LiveUrl = '',
   [string]$ExtraCases = ''
 )
@@ -28,6 +29,7 @@ try {
   if ($Target -eq 'live') { $page = (Invoke-WebRequest $LiveUrl -UseBasicParsing).Content }
   else { $page = & $read (Join-Path $Repo $PageFile) }
   if ($PageFile -eq 'index.html') { $inject = '<script>' + (& $read (Join-Path $qa 'landing-runner.js')) + '</script>' }
+  elseif ($PageFile -eq 'admin.html') { $inject = '<script>' + (& $read (Join-Path $qa 'admin-runner.js')) + '</script>' }
   else {
     $inject = '<script>' + (& $read (Join-Path $qa 'cases.js')) + '</script>'
     if ($ExtraCases) { $inject += '<script>' + (& $read $ExtraCases) + '</script>' }
