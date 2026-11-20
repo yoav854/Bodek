@@ -17,7 +17,7 @@ param(
   [string]$ExtraCases = ''
 )
 $ErrorActionPreference = 'Stop'
-if (-not $LiveUrl) { $LiveUrl = 'https://bodek-eight.vercel.app/' + $(if ($PageFile -eq 'index.html') { '' } else { $Page }) }
+if (-not $LiveUrl) { $LiveUrl = 'https://bodek-eight.vercel.app/' + $(if ($PageFile -eq 'index.html') { '' } else { $PageFile }) }
 $qa = Split-Path -Parent $MyInvocation.MyCommand.Path
 if (-not $Repo) { $Repo = Split-Path -Parent $qa }
 $work = Join-Path ([IO.Path]::GetTempPath()) ('bodek-qa-' + [guid]::NewGuid().ToString('N').Substring(0, 8))
