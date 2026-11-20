@@ -404,7 +404,7 @@ body.picking{overflow:hidden}
       <button type="button" id="addOvr" class="linkish">+ שנה שעות למשמרות</button>
     </details>
     <details class="others" id="extraBox"><summary>הערות: עבדת עוד זמן מעבר למשמרת?</summary>
-      <p class="note">שורה לכל פעם, עם תאריך ושעות. חובה לכתוב באיזו שעה, כדי שהשכר יחושב נכון (שעה נוספת, שבת וכו').</p>
+      <p class="note">שורה לכל פעם, עם תאריך ושעות. חובה לכתוב באיזו שעה, כדי שהשכר יחושב נכון (שעה נוספת, שבת וכו'). אם זה היה בחג, כתוב "חג" בשורה. בערב חג: "ערב חג". במוצאי חג: "מוצאי חג".</p>
       <textarea id="extraText" class="extratext" rows="3" aria-label="זמן עבודה נוסף" placeholder="למשל:&#10;5/11 15:00-15:45&#10;עבדתי עוד 45 דק ב-12/11 מ-23:00"></textarea>
       <p class="note" id="extraMsg" role="status" hidden></p>
     </details>
@@ -1446,8 +1446,11 @@ function parseDur(t){
   if (/(^|[^א-ת])שעה($|[^א-ת])/.test(t)) return 60;
   return 0;
 }
-function shiftAt(base, d){ // סוג המשמרת לפי היום שבו היא מתחילה
+function shiftAt(base, d, hol){ // סוג המשמרת לפי היום שבו היא מתחילה. hol: 'hol' (התאריך הוא חג), 'eve' (ערב חג), 'mots' (מוצאי חג). חג = שבת
   const dow = d.getDay();
+  if (hol === 'hol') return base === 'night' ? 'motzash' : 'holiday';
+  if (hol === 'eve' && base !== 'morning') return base === 'night' ? 'holiday' : 'friNoon';
+  if (hol === 'mots' && base === 'night') return 'motzash';
   if (base === 'night') return dow === 5 ? 'friNight' : dow === 6 ? 'motzash' : 'night';
   if (base === 'noon') return dow === 5 ? 'friNoon' : dow === 6 ? 'shabbat' : 'noon';
   return dow === 6 ? 'shabbat' : 'morning';
@@ -1492,7 +1495,8 @@ function parseExtras(text, ym, role){
     else if (S0 === 1380) base = 'noon';
     else if (S0 === 420){ base = 'night'; date.setDate(date.getDate() - 1); }
     if (!base){ errs.push(`"${line}": ${fmtMin(st)}–${fmtMin(en)} לא צמוד לתחילה או לסוף של משמרת (07:00, 15:00, 23:00). אם זו משמרת נפרדת, כתוב אותה ברשימת המשמרות למעלה`); continue; }
-    const type = role === 'ramash' ? base : shiftAt(base, date);
+    const hk = /ערב\s*(ה)?חג/.test(line) ? 'eve' : /מוצאי\s*(ה)?חג|מוצ["״']?ח/.test(line) ? 'mots' : /חג/.test(line) ? 'hol' : '';
+    const type = role === 'ramash' ? base : shiftAt(base, date, hk);
     items.push({line, date, st, en, mins, type, pre, key: dKey(date) + '|' + type});
   }
   return {items, errs};

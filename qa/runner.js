@@ -73,7 +73,8 @@
     (fc && fc.type === 'friNoon') ? ok('מסך', 'צהריים של שישי מהיומן') : bad('מסך', 'צהריים של שישי מהיומן', 'גבוה', `זוהה כ-${fc && fc.type}`, 'לבדוק את classifyEvents()');
     // 5ג. הערות: זמן נוסף. חובה תאריך ושעה, ומתחבר למשמרת הצמודה לפי היום
     const ex = [['5/11 15:00-15:45', 'morning', 45, false], ['עבדתי עוד 45 דק ב-12/11 מ-23:00', 'noon', 45, false], ['20/11 14:15-15:00', 'friNoon', 45, true],
-      ['21/11 07:00-08:00', 'friNight', 60, false], ['עוד שעה וחצי עד 07:00 ב-22/11', 'morning', 90, true], ['14/11 23:00-23:30', 'shabbat', 30, false]];
+      ['21/11 07:00-08:00', 'friNight', 60, false], ['עוד שעה וחצי עד 07:00 ב-22/11', 'morning', 90, true], ['14/11 23:00-23:30', 'shabbat', 30, false],
+      ['12/11 15:00-15:45 חג', 'holiday', 45, false], ['11/11 23:00-23:30 ערב חג', 'friNoon', 30, false], ['13/11 07:00-08:00 מוצאי חג', 'motzash', 60, false], ['12/11 23:00-23:40 ערב החג', 'friNoon', 40, false]];
     const exBad = ex.filter(([t, type, mins, pre]) => { const r = parseExtras(t, '2026-11', 'guard'); const it = r.items[0]; return !it || it.type !== type || it.mins !== mins || it.pre !== pre; })
       .map(([t]) => { const it = parseExtras(t, '2026-11', 'guard').items[0]; return `"${t}"→${it ? it.type + ' ' + it.mins + (it.pre ? ' לפני' : '') : 'שגיאה'}`; });
     const exErr = ['עבדתי עוד 45 דק בתאריך 5/11', '5/11 10:00-11:00', '15:00-15:45', '5/10 15:00-15:45'].filter(t => parseExtras(t, '2026-11', 'guard').errs.length !== 1);

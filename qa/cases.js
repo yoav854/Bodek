@@ -159,6 +159,9 @@
     {name: 'בוקר + 45 דקות: 8 רגילות ו-0.75 ב-125%', slip: slip([line('שכר יסוד', 8, 47), line('שעות 125%', 0.75, 58.75), hv(8)]),
       shifts: {morning: 1, _ovr: [{type: 'morning', n: 1, hours: 8.75}]}, profile: guard, expect: [['שעות עבודה', 'ok'], ['שעות נוספות', 'ok']]},
 
+    {name: 'חג + 45 דקות: 8 שעות חג ו-0.75 ב-175%', slip: slip([line('שעות שבת 150%', 8, 70.5), line('שעות שבת 175%', 0.75, 82.25), hv(8)]),
+      shifts: {holiday: 1, _ovr: [{type: 'holiday', n: 1, hours: 8.75}]}, profile: guard, expect: [['שעות עבודה', 'ok'], ['שעות נוספות', 'ok']]},
+
     // ---------- תוספות ----------
     {name: 'תוספת שלא שולמה', slip: slip([line('שכר יסוד', 80, 47), hv(80)]), shifts: {morning: 10},
       profile: {role: 'guard', vars: [{name: 'שיחות טלפון', unit: 40, qty: 3, line: ''}]}, expect: [['שיחות טלפון', 'gap', 120]]},
