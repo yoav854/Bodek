@@ -27,9 +27,11 @@ button { font: inherit; color: inherit; cursor: pointer; }
 a { color: inherit; }
 :focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
 [hidden] { display: none !important; }
+.skip { position: absolute; inset-inline-start: 12px; top: -64px; z-index: 100; background: var(--forest); color: #fff; padding: 10px 18px; border-radius: 99px; text-decoration: none; font-weight: 600; transition: top .15s; }
+.skip:focus { top: 12px; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-.app { margin: 20px; border-radius: 40px; padding: 16px; display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: var(--gap); min-height: calc(100svh - 40px); position: relative; overflow: hidden;
+.app { margin: 20px; border-radius: 40px; padding: 16px; display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: var(--gap); min-height: calc(100svh - 40px); position: relative;
   background:
     radial-gradient(60% 70% at 100% 0%, #bfeadb 0%, transparent 62%),
     radial-gradient(55% 60% at 0% 100%, #f7e2d3 0%, transparent 62%),
@@ -82,7 +84,7 @@ a { color: inherit; }
 /* the notice card: only there when there is an active update */
 .updates { grid-column: span 4; }
 .upd { display: grid; gap: 12px; }
-.upd p { margin: 0; font-size: 15px; }
+.upd p { margin: 0; font-size: 15px; overflow-wrap: anywhere; white-space: pre-line; }
 .upd .meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .sub { color: var(--muted); font-size: 14px; margin: 6px 0 16px; }
 .btn-dark { border: 0; border-radius: 99px; background: var(--forest); color: #fff; font-weight: 600; font-size: 13px; padding: 7px 16px; transition: background .2s, transform .2s; }
@@ -94,7 +96,7 @@ a { color: inherit; }
 .big small { font-size: .5em; font-weight: 500; color: var(--muted); margin-inline-start: 4px; }
 .seg { display: flex; gap: 4px; height: 10px; }
 .seg i { display: block; border-radius: 99px; background: #0b7a63; width: 0; transition: width 1s cubic-bezier(.2, .7, .2, 1) .5s; }
-.seg i:nth-child(2) { background: #5fd1ae; } .seg i:nth-child(3) { background: var(--orange); }
+.seg i:nth-child(2) { background: var(--orange); }
 .is-in .seg i { width: var(--w); }
 .legend { display: flex; gap: 14px; margin-top: 10px; font-size: 12.5px; color: var(--muted); flex-wrap: wrap; }
 .legend span::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--c); margin-inline-end: 6px; }
@@ -168,19 +170,20 @@ a { color: inherit; }
 </style>
 </head>
 <body>
+<a class="skip" href="#stage">דלג לתוכן</a>
 <div class="app" id="app">
-  <aside class="rail" aria-label="ניווט ראשי">
-    <a class="logo" href="index.html" aria-label="בודק התלוש">ב</a>
-    <nav>
+  <div class="rail">
+    <a class="logo" href="index.html" tabindex="-1" aria-hidden="true">ב</a>
+    <nav aria-label="ניווט ראשי">
       <button class="rb is-on" type="button" data-view="home" data-label="בית" aria-label="בית" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4v-5H9v5H5a1 1 0 0 1-1-1z"/></svg></button>
       <button class="rb" type="button" data-view="how" data-label="איך זה עובד" aria-label="איך זה עובד"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg></button>
       <button class="rb" type="button" data-view="privacy" data-label="פרטיות" aria-label="פרטיות"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.4 2.9 8.3 7 10 4.1-1.7 7-5.6 7-10V6z"/><path d="m9 12 2.2 2.2L15.5 10"/></svg></button>
       <a class="rb" href="check.html" data-label="בדיקת תלוש" aria-label="בדיקת תלוש"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="m9.5 14 2 2 3.5-4"/></svg></a>
     </nav>
     <span class="foot">2026</span>
-  </aside>
+  </div>
 
-  <main class="stage" id="stage">
+  <main class="stage" id="stage" tabindex="-1">
     <!-- HOME -->
     <section class="view is-on" id="v-home" aria-label="בית" tabindex="-1">
       <div class="bento">
@@ -203,9 +206,9 @@ a { color: inherit; }
         <article class="card res" style="--i:2">
           <div class="lbl"><span>תוצאה</span><span class="chip warn">לדוגמה</span></div>
           <div class="big"><span data-count="120">120</span><small>₪</small></div>
-          <p class="sub">חסרים לך, בגלל 3 שעות עבודה שלא שולמו.</p>
-          <div class="seg"><i style="--w:62%"></i><i style="--w:26%"></i><i style="--w:12%"></i></div>
-          <div class="legend"><span style="--c:#0b7a63">תקין</span><span style="--c:#5fd1ae">תואם</span><span style="--c:#f58a4a">חסר</span></div>
+          <p class="sub">חסרים לך, בגלל שעות עבודה שלא שולמו.</p>
+          <div class="seg"><i style="--w:88%"></i><i style="--w:12%"></i></div>
+          <div class="legend"><span style="--c:#0b7a63">תקין</span><span style="--c:#f58a4a">חסר</span></div>
         </article>
 
         <article class="card steps" style="--i:3">
@@ -249,7 +252,7 @@ a { color: inherit; }
         <article class="card" style="--i:2"><span class="n">2</span><h3>מוסיפים את המשמרות</h3><p>מהיומן של גוגל, או שכותבים אותן בעצמך. אפשר להוסיף גם שעות נוספות שעבדת.</p>
           <div class="mini" aria-hidden="true"><div class="row"><b>משמרות</b><span class="chip">יומן גוגל</span></div><div class="row"><span>12 בוקר, 4 צהריים, 3 לילה</span><span>✓</span></div></div></article>
         <article class="card" style="--i:3"><span class="n">3</span><h3>רואים מה חסר</h3><p>הבודק משווה שעות, שבת, הבראה, נסיעות ופנסיה, ומראה את הפער ואת ההודעה למעסיק.</p>
-          <div class="mini" aria-hidden="true"><div class="row"><b>התוצאה</b><span class="chip warn">חסר</span></div><div class="row"><span>חסרות 3 שעות בתלוש</span><span>!</span></div></div></article>
+          <div class="mini" aria-hidden="true"><div class="row"><b>התוצאה</b><span class="chip warn">חסר</span></div><div class="row"><span>חסרות שעות בתלוש</span><span>!</span></div></div></article>
       </div>
       <div class="view-cta"><a class="pill" href="check.html">בדוק את התלוש<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5"/></svg></a></div>
     </section>
@@ -341,8 +344,8 @@ a { color: inherit; }
     card.dataset.id = n.id; card.hidden = false;
   }
   function setNotices(list) {
-    queue = (Array.isArray(list) ? list : []).filter(function (x) { return x && typeof x.id === 'number' && typeof x.body === 'string' && x.body; })
-      .map(function (x) { return { id: x.id, body: x.body.slice(0, 400), source: typeof x.source === 'string' ? x.source.slice(0, 200) : '', created_at: x.created_at }; });
+    queue = (Array.isArray(list) ? list : []).filter(function (x) { return x && typeof x.id === 'number' && typeof x.body === 'string' && x.body.trim(); })
+      .map(function (x) { return { id: x.id, body: x.body.trim().slice(0, 400), source: typeof x.source === 'string' ? x.source.slice(0, 200) : '', created_at: x.created_at }; });
     showNotice();
   }
   document.getElementById('nOk').addEventListener('click', function () { remember(Number(card.dataset.id)); showNotice(); });

@@ -155,6 +155,66 @@
       (document.getElementById('sbPanel').hidden && t2.includes('שלוש') && !t2.includes('שתיים')) ? ok('תמיכה', 'Esc סוגר, ותקציר שני שולח רק את החדש') : bad('תמיכה', 'תקציר שני / Esc', 'בינוני', `נסגר: ${document.getElementById('sbPanel').hidden}, בתקציר: ${t2 || 'לא נשלח'}`, 'לבדוק את sendSummary() ואת Esc');
     }
 
+    // 7ב. תיקוני סבב ה-QA של העיצוב החדש
+    {
+      const sl = ms => new Promise(r => setTimeout(r, ms));
+      const fire = el => { el.checked = true; el.dispatchEvent(new Event('change', {bubbles: true})); };
+      const rl = document.querySelector('input[name=role][value=lead]'), rg = document.querySelector('input[name=role][value=guard]');
+      // עיגול העזרה: הכפתור הכתום הראשי לא מועך את תיבת הכתיבה
+      document.getElementById('sbOpen').click(); await sl(200);
+      const sbT = document.getElementById('sbText'), sbS = document.querySelector('.sb-send');
+      (sbT && sbS && sbT.getBoundingClientRect().width >= 120 && sbS.getBoundingClientRect().width <= 200) ? ok('מסך', 'תיבת הכתיבה בעיגול העזרה בגודל סביר')
+        : bad('מסך', 'תיבת הכתיבה בעיגול העזרה', 'גבוה', `תיבה ${sbT && Math.round(sbT.getBoundingClientRect().width)}px, כפתור שלח ${sbS && Math.round(sbS.getBoundingClientRect().width)}px`, 'לא להחיל את .primary על .sb-send');
+      const sbX = document.getElementById('sbClose'); if (sbX) sbX.click();
+
+      // תוצאה עם פירוט שעות נוספות: רשת הבדיקות לא נעשית כרטיס לבן
+      const otc = window.QA_CASES.find(c => c.name.indexOf('לילה עם שעה נוספת תקינה') >= 0);
+      showResult(otc.slip, otc.shifts, false, otc.profile); await sl(150);
+      const chk = document.querySelector('#result .checks'), cs = getComputedStyle(chk);
+      !chk.querySelector('.tbl-wrap') ? bad('מסך', 'רשת הבדיקות עם פירוט', 'בינוני', 'בתרחיש אין פירוט שעות נוספות, אי אפשר לבדוק', 'לבחור תרחיש עם שעות נוספות')
+        : (cs.backgroundColor === 'rgba(0, 0, 0, 0)' && parseFloat(cs.paddingTop) === 0) ? ok('מסך', 'רשת הבדיקות לא הופכת לכרטיס לבן כשיש פירוט')
+        : bad('מסך', 'רשת הבדיקות עם פירוט', 'גבוה', `רקע ${cs.backgroundColor}, ריפוד ${cs.paddingTop}`, 'לצמצם את כלל הכרטיסים הלבנים ב-#result');
+
+      // פער אחד בלשון יחיד, ושם התפקיד בכותרת התוצאה
+      const g1 = window.QA_CASES.find(c => check(c.slip, c.shifts, {profile: c.profile}).checks.filter(x => x.status === 'gap').length === 1 && c.profile && c.profile.role === 'guard');
+      showResult(g1.slip, g1.shifts, false, g1.profile); await sl(150);
+      const rt = document.getElementById('result').innerText;
+      (rt.includes('נמצא פער אחד') && !rt.includes('נמצאו 1 פערים') && rt.includes('נבדק כמאבטח')) ? ok('מסך', 'פער אחד ביחיד, והתוצאה אומרת לפי איזה תפקיד נבדקה')
+        : bad('מסך', 'ניסוח התוצאה', 'בינוני', 'חסר "נמצא פער אחד" או "נבדק כמאבטח"', 'לבדוק את renderResult()');
+
+      // מונים מוסתרים של ראש צוות לא נספרים כשהתפקיד אחר
+      const cm0 = document.getElementById('calMonth').value;
+      calSel = []; freeRes = null; lastFill = null; fire(rg); applySources();
+      const base0 = summarize(currentShifts()).count;
+      setCount('L_morning', 2);
+      const hid = summarize(currentShifts()).count === base0;
+      fire(rl); const vis = summarize(currentShifts()).count === base0 + 2;
+      fire(rg); setCount('L_morning', 0);
+      (hid && vis) ? ok('מסך', 'מונים מוסתרים של ראש צוות לא נספרים בתפקיד אחר') : bad('מסך', 'מונים מוסתרים', 'גבוה', `מוסתר לא נספר: ${hid}, גלוי נספר: ${vis}`, 'לסנן ב-currentShifts()');
+
+      // החלפת תפקיד אחרי מילוי מרשימה: המשמרות עוברות ולא נספרות פעמיים
+      document.getElementById('calMonth').value = '2026-11';
+      document.getElementById('freeText').value = '1/11 בוקר'; document.getElementById('freeRun').click(); await sl(100);
+      const a1 = counts.morning;
+      fire(rl); await sl(100); const a2 = [counts.morning, counts.L_morning];
+      fire(rg); await sl(100); const a3 = [counts.morning, counts.L_morning];
+      (a1 === 1 && a2[0] === 0 && a2[1] === 1 && a3[0] === 1 && a3[1] === 0) ? ok('מסך', 'החלפת תפקיד מעבירה את משמרות הרשימה ולא סופרת פעמיים')
+        : bad('מסך', 'החלפת תפקיד אחרי מילוי', 'גבוה', `מאבטח ${a1}, ראש צוות ${a2}, חזרה ${a3}`, 'לבדוק את applySources() ו-syncRole()');
+      document.getElementById('freeText').value = ''; document.getElementById('freeRun').click(); await sl(50);
+      document.getElementById('calMonth').value = cm0;
+
+      // "2 ערב שבת" בלי תאריך נקרא כשישי צהריים
+      const fs2 = parseFreeText('2 ערב שבת', '2026-11');
+      fs2.counts.friNoon === 2 ? ok('מסך', '"ערב שבת" ברשימה נקרא כשישי צהריים') : bad('מסך', '"ערב שבת"', 'גבוה', `נקרא ${fs2.counts.friNoon} כשישי צהריים, ${fs2.counts.noon} כצהריים`, 'להוסיף ל-KIND_RE');
+
+      // תשובת הבוט על רמ"ש מפנה לספירה הידנית
+      const fa = sb && sb.match('אני רמ"ש 12 שעות');
+      (fa && /ספירה ידנית/.test(fa.a)) ? ok('תמיכה', 'תשובת הבוט על רמ"ש מפנה לספירה הידנית') : bad('תמיכה', 'תשובת הבוט על רמ"ש', 'בינוני', 'התשובה לא מזכירה את "ספירה ידנית"', 'לעדכן את התשובה ב-FAQ');
+
+      // נגישות: קישור דילוג, ניווט אחד עם שם, בלי landmark מיותר
+      (document.querySelector('a.skip[href="#pageMain"]') && document.querySelector('.rail nav[aria-label]') && !document.querySelector('aside.rail')) ? ok('מסך', 'קישור דילוג וניווט עם שם') : bad('מסך', 'נגישות הסרגל', 'בינוני', 'חסר קישור דילוג או שם לניווט', 'להחזיר skip ו-aria-label');
+    }
+
     // 8. אבטחה: אין סודות בקוד הדף
     const html = document.documentElement.outerHTML;
     // הדפוס בנוי מחלקים, כדי שהבדיקה לא תמצא את עצמה

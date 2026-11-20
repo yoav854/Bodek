@@ -16,8 +16,8 @@
     const priv = [...document.querySelectorAll('a[href*="privacy"]')];
     (priv.length >= 2 && priv.every(a => a.getAttribute('href') === 'privacy.html')) ? ok('מסך', 'קישורי הפרטיות') : bad('מסך', 'קישורי הפרטיות', 'גבוה', `נמצאו ${priv.length}`, 'לכוון ל-privacy.html');
     const known = ['check.html', 'privacy.html', 'index.html'];
-    const dead = [...document.querySelectorAll('a[href]')].filter(a => !known.includes(a.getAttribute('href'))).map(a => a.getAttribute('href'));
-    dead.length ? bad('מסך', 'קישורים בדף הכניסה', 'גבוה', 'קישור לא מוכר: ' + dead.join(', '), 'להשאיר רק check.html, privacy.html ו-index.html') : ok('מסך', 'אין קישור לא מוכר');
+    const dead = [...document.querySelectorAll('a[href]')].filter(a => { const h = a.getAttribute('href'); return !known.includes(h) && !(h.startsWith('#') && document.getElementById(h.slice(1))); }).map(a => a.getAttribute('href'));
+    dead.length ? bad('מסך', 'קישורים בדף הכניסה', 'גבוה', 'קישור לא מוכר: ' + dead.join(', '), 'להשאיר רק check.html, privacy.html, index.html וקישורי דילוג לאלמנט שקיים') : ok('מסך', 'אין קישור לא מוכר');
 
     // 3. מעבר בין מסכים בחשיפה עגולה ובחזרה
     const btn = n => document.querySelector(`.rb[data-view=${n}]`), on = n => document.getElementById('v-' + n).classList.contains('is-on');
@@ -56,6 +56,17 @@
     window.__setNotices([]); await sleep(50);
     const wide = document.querySelector('.hero').getBoundingClientRect().width;
     (wide > bentoW * 0.95) ? ok('מסך', 'בלי עדכון כרטיס הכותרת ברוחב מלא') : bad('מסך', 'רוחב כרטיס הכותרת', 'בינוני', `רוחב ${Math.round(wide)} מתוך ${Math.round(bentoW)}`, 'לבדוק את .bento:has(.updates[hidden])');
+
+    // 5ב. תיקוני סבב ה-QA: סרגל שנדבק, נגישות, וכרטיס עדכונים עם גוף ריק או ארוך
+    const appCs = getComputedStyle(document.querySelector('.app'));
+    appCs.overflow !== 'hidden' ? ok('מסך', 'אין overflow מוסתר על .app, הסרגל יכול להידבק') : bad('מסך', 'סרגל דביק', 'בינוני', 'ל-.app יש overflow: hidden', 'להסיר אותו');
+    (document.querySelector('a.skip[href="#stage"]') && document.querySelector('.rail nav[aria-label]') && !document.querySelector('aside')) ? ok('מסך', 'קישור דילוג וניווט עם שם') : bad('מסך', 'נגישות הסרגל', 'בינוני', 'חסר קישור דילוג או שם לניווט', 'להחזיר skip ו-aria-label');
+    window.__setNotices([{id: 9, body: '     ', source: 'x', created_at: '2026-11-20T10:00:00Z'}]); await sleep(50);
+    document.getElementById('notice').hidden ? ok('מסך', 'עדכון עם גוף של רווחים לא מציג כרטיס') : bad('מסך', 'גוף ריק', 'בינוני', 'כרטיס ריק מוצג', 'לסנן body.trim()');
+    window.__setNotices([{id: 10, body: 'א'.repeat(400), source: 'ב'.repeat(190), created_at: '2026-11-20T10:00:00Z'}]); await sleep(100);
+    const nc = document.getElementById('notice');
+    (!nc.hidden && nc.scrollWidth <= nc.clientWidth + 1) ? ok('מסך', 'גוף ארוך בלי רווחים לא גולש מהכרטיס') : bad('מסך', 'גוף ארוך', 'בינוני', `scrollWidth ${nc.scrollWidth} מול ${nc.clientWidth}`, 'overflow-wrap: anywhere');
+    window.__setNotices([]);
 
     // 6. שגיאות סקריפט (לא כולל משאבים חיצוניים כמו גופנים)
     const errs = (window.__qaErr || []).filter(e => !/^resource failed/.test(e));

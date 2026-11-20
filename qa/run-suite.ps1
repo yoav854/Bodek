@@ -28,6 +28,8 @@ $read = { param($p) [IO.File]::ReadAllText($p, [Text.Encoding]::UTF8) }
 try {
   if ($Target -eq 'live') { $page = (Invoke-WebRequest $LiveUrl -UseBasicParsing).Content }
   else { $page = & $read (Join-Path $Repo $PageFile) }
+  if ($PageFile -eq 'check.html' -and $page -notmatch 'id="go"') { Write-Output '🔴 קריטי | הדף שנטען אינו הכלי (חסר #go) | לבדוק את כתובת הבדיקה או את הקובץ'; exit 2 }
+  if ($PageFile -eq 'index.html' -and $page -notmatch 'id="h1"') { Write-Output '🔴 קריטי | הדף שנטען אינו דף הכניסה (חסר #h1) | לבדוק את כתובת הבדיקה או את הקובץ'; exit 2 }
   if ($PageFile -eq 'index.html') { $inject = '<script>' + (& $read (Join-Path $qa 'landing-runner.js')) + '</script>' }
   elseif ($PageFile -eq 'admin.html') { $inject = '<script>' + (& $read (Join-Path $qa 'admin-runner.js')) + '</script>' }
   else {

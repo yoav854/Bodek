@@ -5,9 +5,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="בודק התלוש: עובדי שמירה ואבטחה בודקים אם התלוש תואם את המשמרות שעבדו. התלוש והיומן נקראים רק במכשיר.">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font-size:14px}img{max-width:100%}[hidden]{display:none!important}</style>
-</head>
-<body>
 <title>בדיקת תלוש: בודק התלוש</title>
+<meta name="theme-color" content="#eef3f1">
+<meta property="og:type" content="website">
+<meta property="og:title" content="בדיקת תלוש: בודק התלוש">
+<meta property="og:description" content="מעלים את התלוש, מוסיפים את המשמרות, ורואים אם שולם לך הכל. הקובץ נקרא על המכשיר שלך ולא עולה לשרת.">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700&family=Frank+Ruhl+Libre:wght@400;500&display=swap">
@@ -30,9 +32,7 @@ h2{font-size:1.2rem;font-weight:700}
 h3{font-size:1rem;font-weight:700}
 p{margin:0}
 .lead{color:var(--muted)}
-.safe{display:inline;background:#c62828;color:#fff;font-weight:800;padding:2px 8px;border-radius:6px;-webkit-box-decoration-break:clone;box-decoration-break:clone;line-height:1.9}
 .num{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px}
 .step{display:flex;gap:10px;align-items:baseline}
 .step b{font-family:var(--display);color:var(--accent);font-size:.85rem;letter-spacing:.06em}
 .note{font-size:.88rem;color:var(--muted)}
@@ -44,7 +44,6 @@ button,.btn{font:inherit;font-weight:700;border-radius:10px;border:1px solid var
 button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-size:1.05rem;padding:12px 18px}
 .primary:disabled{opacity:.5;cursor:not-allowed}
-.wrap>*,.panel>*,.panel>div>*{min-width:0}
 .counters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
 .counters.two{grid-template-columns:repeat(3,minmax(0,1fr))}
 .counter{border:1px solid var(--line);border-radius:12px;padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
@@ -164,7 +163,6 @@ textarea{font:inherit;width:100%;min-height:200px;border:1px solid var(--line);b
 .row input[type=text]{font:inherit;flex:1;min-width:0;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
 footer{font-size:.82rem;color:var(--muted);display:flex;flex-direction:column;gap:6px}
 footer ul{margin:0;padding-inline-start:18px}
-@media (prefers-reduced-motion:no-preference){.panel{transition:border-color .2s}}
 .drop{position:relative}
 /* בחירת תפקיד בכניסה: שלוש אפשרויות צפות מעל דף הפתיחה המטושטש */
 /* עיגול התמיכה: מתחת לחלון בחירת התפקיד (z-index 50), כך שמופיע רק אחרי הבחירה */
@@ -222,7 +220,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .note{font-size:.9rem;color:var(--muted)}
 /* buttons: pills, one orange main action */
 button,.btn{border-radius:99px;border:1px solid var(--line);background:#fff;color:var(--ink);padding:9px 18px;font-weight:600}
-.primary{background:var(--orange);color:var(--orange-ink);border-color:var(--orange);font-size:1.1rem;font-weight:700;padding:14px 26px;width:100%}
+.primary{background:var(--orange);color:var(--orange-ink);border-color:var(--orange);font-size:1.1rem;font-weight:700;padding:14px 26px}
+#go{width:100%}
+.sb-send{width:auto;flex:none;padding:10px 20px;font-size:.95rem}
 .primary:disabled{background:#e6ebe9;color:#8a9892;border-color:#e6ebe9;opacity:1}
 .linkish{border:0;background:none;color:var(--accent);font-weight:600;padding:4px 2px}
 /* fields */
@@ -248,10 +248,10 @@ textarea{min-height:0}
 .total-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;border-radius:99px;background:var(--mint);color:var(--forest);font-weight:600;width:fit-content}
 .total-row .num{font-weight:700}
 details.others{background:#f6faf8;border-radius:20px;padding:4px 14px}
-details.others summary{cursor:pointer;font-weight:600;color:var(--forest);padding:12px 2px;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:8px}
+details.others summary{cursor:pointer;font-weight:600;color:var(--forest);padding:12px 2px;list-style:none;display:flex;justify-content:flex-start;align-items:center;gap:10px}
 details.others summary::-webkit-details-marker{display:none}
-details.others summary::after{content:"+";font-size:1.3rem;line-height:1;color:var(--accent)}
-details.others[open]>summary::after{content:"\2212"}
+details.others summary::before{content:"+";content:"+" / "";font-size:1.3rem;line-height:1;color:var(--accent);flex:none}
+details.others[open]>summary::before{content:"\2212";content:"\2212" / ""}
 details.others details.others{background:#fff;margin-top:8px}
 details.others>.slot,details.others>.vars,details.others>.note,details.others>textarea{margin-bottom:12px}
 .ovr,.var{border-radius:16px;background:#fff}
@@ -272,8 +272,8 @@ details.others>.slot,details.others>.vars,details.others>.note,details.others>te
 .verdict span:not(.big){color:#bcd3cb}
 .checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .check{background:#fff;border:0;border-radius:22px;padding:16px 18px;box-shadow:0 18px 34px -26px rgb(15 50 40 / .5)}
-#result>div:has(.bar),#result>div:has(.tbl-wrap),#result>div:has(#letterText){background:#fff;border-radius:28px;padding:22px;box-shadow:0 18px 34px -24px rgb(15 50 40 / .45)}
-@media (min-width:1000px){#result>div:has(.bar){grid-column:span 6}#result>div:has(.tbl-wrap){grid-column:span 6}}
+#result>div:not(.checks):not(.verdict):not(:first-of-type){background:#fff;border-radius:28px;padding:22px;box-shadow:0 18px 34px -24px rgb(15 50 40 / .45)}
+@media (min-width:1000px){#result>div:not(.checks):has(>.bar){grid-column:span 6}#result>div:not(.checks):has(>.tbl-wrap){grid-column:span 6}}
 .bar{border-radius:99px}
 #rulesBox{padding:22px 8px 8px;color:var(--muted)}
 /* the help bubble in the same colours */
@@ -291,6 +291,9 @@ details.others>.slot,details.others>.vars,details.others>.note,details.others>te
   .primary:hover:not(:disabled){filter:brightness(1.05)}
 }
 @media (max-width:1000px){.c-file,.c-role{grid-column:span 12}.checks{grid-template-columns:1fr}}
+@media (max-width:520px){.counters,.counters.two{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.skip{position:absolute;inset-inline-start:12px;top:-64px;z-index:100;background:var(--forest);color:#fff;padding:10px 18px;border-radius:99px;text-decoration:none;font-weight:600;transition:top .15s}
+.skip:focus{top:12px}
 @media (max-width:700px){
   .app{margin:0;border-radius:0;padding:12px 12px 96px;grid-template-columns:1fr}
   .rail{position:fixed;z-index:40;inset:auto 12px 12px 12px;top:auto;height:64px;min-height:0;flex-direction:row;padding:8px 14px;border-radius:32px;justify-content:space-between}
@@ -301,19 +304,21 @@ details.others>.slot,details.others>.vars,details.others>.note,details.others>te
   body:has(#sbOpen){padding-bottom:0}
 }
 </style>
-
+</head>
+<body>
+<a class="skip" href="#pageMain">דלג לתוכן</a>
 <div class="app" id="app">
-  <aside class="rail" aria-label="ניווט ראשי">
-    <a class="logo" href="index.html" aria-label="בודק התלוש, לדף הבית">ב</a>
-    <nav>
+  <div class="rail">
+    <a class="logo" href="index.html" tabindex="-1" aria-hidden="true">ב</a>
+    <nav aria-label="ניווט ראשי">
       <a class="rb" href="index.html" data-label="בית" aria-label="בית"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4v-5H9v5H5a1 1 0 0 1-1-1z"/></svg></a>
       <a class="rb is-on" href="check.html" data-label="בדיקת תלוש" aria-label="בדיקת תלוש" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="m9.5 14 2 2 3.5-4"/></svg></a>
       <a class="rb" href="privacy.html" data-label="פרטיות" aria-label="פרטיות"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.4 2.9 8.3 7 10 4.1-1.7 7-5.6 7-10V6z"/><path d="m9 12 2.2 2.2L15.5 10"/></svg></a>
     </nav>
     <span class="foot">2026</span>
-  </aside>
+  </div>
 
-  <div class="main" id="pageMain">
+  <div class="main" id="pageMain" tabindex="-1">
     <header class="top">
       <h1>בדיקת <em>תלוש</em></h1>
       <p class="lead">מעלים את התלוש, מוסיפים את המשמרות, ורואים אם שולם לך הכל. הקובץ נקרא על המכשיר שלך ולא עולה לשרת.</p>
@@ -1099,12 +1104,14 @@ function renderResult(slip, res, isExample){
   const el = document.getElementById('result');
   const gaps = res.checks.filter(c => c.status === 'gap');
   const label = {ok: 'תקין', gap: 'חסר', info: 'לשים לב', skip: 'לא נבדק'};
+  const roleName = (lastCtx && !isExample && lastCtx.profile) ? {guard: 'מאבטח', ramash: 'רמ"ש', lead: 'ראש צוות'}[lastCtx.profile.role] : '';
+  const roleNote = roleName ? ' · נבדק כ' + roleName : '';
   el.innerHTML = `
     ${isExample ? '<span class="tag">דוגמה: כך נראית תוצאה. המספרים לא של אדם אמיתי</span>' : ''}
-    <div style="display:flex;flex-direction:column;gap:2px"><h2>תלוש ${esc(slip.month ? slip.month.label : '')}</h2><p class="note">${esc(slip.employer)}${res.rules ? ' · נבדק לפי ' + esc(res.rules.label) : ''}</p></div>
+    <div style="display:flex;flex-direction:column;gap:2px"><h2>תלוש ${esc(slip.month ? slip.month.label : '')}</h2><p class="note">${esc(slip.employer)}${res.rules ? ' · נבדק לפי ' + esc(res.rules.label) : ''}${roleNote}</p></div>
     <div class="verdict ${gaps.length ? 'gap' : 'ok'}">
       <span class="big">${gaps.length ? `נראה שחסרים לך ${fmt(res.gapTotal)} ₪` : 'נראה ששולם לך כל מה שמגיע'}</span>
-      <span>${gaps.length ? `נמצאו ${gaps.length} פערים. הפירוט וההודעה למעסיק למטה.` : 'כל הבדיקות שנעשו יצאו תקינות.'}</span>
+      <span>${gaps.length ? `${gaps.length === 1 ? 'נמצא פער אחד' : 'נמצאו ' + gaps.length + ' פערים'}. הפירוט וההודעה למעסיק למטה.` : 'כל הבדיקות שנעשו יצאו תקינות.'}</span>
     </div>
     <div class="checks">${res.checks.map(c => `<div class="check ${c.status}"><span class="dot">${label[c.status]}</span><div class="body"><h3>${esc(c.title)}</h3><span class="why">${esc(c.why)}</span>${c.status === 'gap' && c.amount ? `<span class="amt">חסר: <span class="num">${fmt(c.amount)}</span> ₪</span>` : ''}${c.extra || ''}${c.detail ? `<details class="more"><summary>פירוט</summary>${c.detail}</details>` : ''}</div></div>`).join('')}</div>
     ${moneyBreakdown(slip)}
@@ -1216,7 +1223,7 @@ function renderCalendar(items){
 }
 function applyCalendar(items){ calSel = items.filter(i => i.on); applySources(); }
 /* היומן והרשימה החופשית נספרים יחד (החלטה 49). משמרת מהרשימה שחופפת בזמן למשמרת מסומנת ביומן נספרת פעם אחת, ומוצגת כחפיפה */
-let calSel = [], freeRes = null;
+let calSel = [], freeRes = null, lastFill = null;
 function applySources(){
   const tally = {}, dups = [];
   const add = (type, n) => { tally[type] = (tally[type] || 0) + n; };
@@ -1233,6 +1240,8 @@ function applySources(){
     for (const [type, n] of Object.entries(freeRes.counts)){ const u = n - (dated[type] || 0); if (u > 0){ add(type, u); undated += u; } }
   }
   const K = fillKind();
+  if (lastFill && lastFill !== K) for (const t of SHIFT_TYPES) if (t.kind === lastFill) setCount(t.id, 0); // החלפת תפקיד: המשמרות עוברות, לא נספרות פעמיים
+  lastFill = K;
   for (const t of SHIFT_TYPES) if (t.kind === K) setCount(t.id, tally[t.base] || 0);
   const box = document.getElementById('mergeMsg');
   const parts = [];
@@ -1303,7 +1312,7 @@ const KIND_RE = [
   ['motzash', /מוצ["״']?ש|מוצאי ?שבת|מוצש|מוצ["״']?ח|מוצאי ?(ה)?חג/],
   ['friNight', /(לילה|ליל) (של )?(יום )?שישי|שישי (ב)?לילה|ליל שבת/],
   ['night', /לילה|לילות/],
-  ['friNoon', /(צהר[יי]?ים|צהריים|אחה["״]?צ|ערב) (של )?(יום )?שישי|שישי (ב)?(צהר|אחה|ערב)|ערב (ה)?חג/],
+  ['friNoon', /(צהר[יי]?ים|צהריים|אחה["״]?צ|ערב) (של )?(יום )?שישי|שישי (ב)?(צהר|אחה|ערב)|ערב (ה)?חג|ערב שבת/],
   ['noon', /צהר[יי]?ים|צהריים|ערב|אחה["״]?צ|אחר הצהריים/],
   ['morning', /בוקר|בקרים/],
   ['holiday', /(^|[^א-ת])חג/],
@@ -1375,7 +1384,9 @@ function showCalendarDemo(){
 function currentShifts(){
   const ovr = [...document.querySelectorAll('#ovrs .ovr')].map(r => ({type: r.querySelector('.oType').value, n: parseInt(r.querySelector('.oN').value) || 0, hours: parseFloat(r.querySelector('.oH').value) || 0}));
   const len = Number((document.querySelector('input[name=rLen]:checked') || {}).value) || 12;
-  return {...counts, _len: len, _ovr: ovr.concat(extraOvr(len))};
+  const c = {...counts};
+  if (document.querySelector('input[name=role]:checked').value !== 'lead') for (const t of SHIFT_TYPES) if (t.kind === 'lead') c[t.id] = 0; // המונים של ראש צוות מוסתרים כשהתפקיד אחר
+  return {...c, _len: len, _ovr: ovr.concat(extraOvr(len))};
 }
 function updateTotals(){
   renderExtras();
@@ -1419,6 +1430,7 @@ function syncRole(){
   const global = document.querySelector('input[name=payType]:checked').value === 'global';
   $('hourlyBox').hidden = global;
   $('globalBox').hidden = !global;
+  if (typeof calSel !== 'undefined' && (calSel.length || freeRes)) applySources(); // הדרגה קובעת לאיזה מונים נכנסות משמרות היומן והרשימה
 }
 document.querySelectorAll('input[name=role]').forEach(r => r.addEventListener('change', syncRole));
 document.querySelectorAll('input[name=payType]').forEach(r => r.addEventListener('change', syncRole));
@@ -1534,10 +1546,10 @@ function renderExtras(){
   for (const g of st.groups){
     need[g.type] = (need[g.type] || 0) + 1;
     const add = g.pre + g.post, h = typeHours(SHIFT_TYPES.find(x => x.id === g.type), {_len: len}) + add / 60;
-    out.push(esc(`${DAY[g.date.getDay()]} ${g.date.getDate()}/${g.date.getMonth() + 1}: ${g.lines.map(it => `${fmtMin(it.st)}–${fmtMin(it.en)}`).join(', ')}, עוד ${add} דקות על משמרת ${SHIFT_NAME[g.base]} (${fmtH(h)} שעות)`));
+    out.push(esc(`${DAY[g.date.getDay()]} ${g.date.getDate()}/${g.date.getMonth() + 1}: ${g.lines.map(it => `${fmtMin(it.st)}–${fmtMin(it.en)}`).join(', ')}, עוד ${add} דקות על משמרת ${SHIFT_NAME[g.base].replace(/^משמרת /, '')} (${fmtH(h)} שעות)`));
   }
   for (const [type, n] of Object.entries(need)) if ((counts[type] || 0) < n)
-    out.push(`<span class="bad">${esc(`לא נספרה משמרת ${SHIFT_NAME[SHIFT_TYPES.find(x => x.id === type).base]} לתאריך הזה. הוסף אותה למונים או לרשימה, אחרת הזמן הנוסף לא ייספר.`)}</span>`);
+    out.push(`<span class="bad">${esc(`לא נספרה משמרת ${SHIFT_NAME[SHIFT_TYPES.find(x => x.id === type).base].replace(/^משמרת /, '')} לתאריך הזה. הוסף אותה למונים או לרשימה, אחרת הזמן הנוסף לא ייספר.`)}</span>`);
   for (const e of st.errs) out.push(`<span class="bad">${esc(e)}</span>`);
   box.innerHTML = out.join('<br>'); box.hidden = !out.length;
 }
@@ -1701,7 +1713,7 @@ const FAQ = (() => {
      a: 'בענף השמירה מותרות עד 4 שעות נוספות ביום (5 ביום שלפני המנוחה השבועית), ועד 37 שעות נוספות בשבוע. בדרך כלל זה עד 12 שעות ביום. בין משמרות מגיעה מנוחה של 8 שעות לפחות. גם כשמותר לעבוד יותר, כל שעה נוספת משולמת בתוספת.',
      src: 'היתר העבודה בשעות נוספות בענף השמירה, חוק שעות עבודה ומנוחה, כל זכות'},
     {id: 'ramash', q: 'אני רמ"ש. מה ההבדל?', k: ['רמש', 'רמ"ש', 'רמ״ש', '12 שעות', '8 שעות', 'שישי'],
-     a: 'רמ"ש מקבל ' + fmt(R.roleRates.ramash) + ' ₪ לשעה, שכר כולל שסוכם מראש. בוחרים אם המשמרות הן של 12 שעות (06:00-18:00) או של 8, ויש סוג נפרד למשמרת שישי (06:00-14:00). אם עבדת גם כמאבטח, פתח "עבדת גם כמאבטח?".'},
+     a: 'רמ"ש מקבל ' + fmt(R.roleRates.ramash) + ' ₪ לשעה, שכר כולל שסוכם מראש. בוחרים אם המשמרות הן של 12 שעות (06:00-18:00) או של 8, ויש סוג נפרד למשמרת שישי (06:00-14:00). אם עבדת גם כמאבטח, פתח "ספירה ידנית של משמרות" ואז "עבדת גם כמאבטח?".'},
     {id: 'lead', q: 'אני ראש צוות. איך זה עובד?', k: ['ראש צוות', 'גלובלי', 'שעתי', 'השכר שלי'],
      a: 'ראש צוות מקליד את השכר שלו, שעתי או גלובלי, והבודק מחשב לפיו. מה שמוקלד לא נשמר ולא נשלח לשום מקום. אפשר לסמן גם משמרות של מאבטח או של רמ"ש, ולהוסיף משתנים כמו שיחות טלפון או מוניות.'},
     {id: 'havraa', q: 'כמה הבראה מגיעה לי?', k: ['הבראה'],
