@@ -158,6 +158,11 @@
     // 7ב. תיקוני סבב ה-QA של העיצוב החדש
     {
       const sl = ms => new Promise(r => setTimeout(r, ms));
+      const frameOf = (w, h) => new Promise(res => { // עותק של הדף בחלון בגודל נתון, בלי חבילת הבדיקות, כדי למדוד כמו מכשיר אמיתי
+        const html = '<!doctype html>' + document.documentElement.outerHTML.replace(/<script>(?:(?!<\/script>)[^])*?(?:qa-out|__qaErr)(?:(?!<\/script>)[^])*<\/script>/g, '');
+        const f = document.createElement('iframe'); f.style.cssText = `position:fixed;left:-9999px;top:0;width:${w}px;height:${h}px;border:0`;
+        f.srcdoc = html; f.onload = () => setTimeout(() => res(f), 700); document.body.appendChild(f);
+      });
       const fire = el => { el.checked = true; el.dispatchEvent(new Event('change', {bubbles: true})); };
       const rl = document.querySelector('input[name=role][value=lead]'), rg = document.querySelector('input[name=role][value=guard]');
       // עיגול העזרה: הכפתור הכתום הראשי לא מועך את תיבת הכתיבה
@@ -192,6 +197,11 @@
       fire(rg); setCount('L_morning', 0);
       (hid && vis) ? ok('מסך', 'מונים מוסתרים של ראש צוות לא נספרים בתפקיד אחר') : bad('מסך', 'מונים מוסתרים', 'גבוה', `מוסתר לא נספר: ${hid}, גלוי נספר: ${vis}`, 'לסנן ב-currentShifts()');
 
+      // "סך הכל" על המסך: מונה מוסתר לא נשאר בסיכום אחרי החלפת תפקיד
+      setCount('L_morning', 2); fire(rl); const shown1 = Number(document.getElementById('shiftCount').textContent);
+      fire(rg); const shown2 = Number(document.getElementById('shiftCount').textContent); setCount('L_morning', 0);
+      (shown1 === base0 + 2 && shown2 === base0) ? ok('מסך', '"סך הכל" מתעדכן בהחלפת תפקיד') : bad('מסך', '"סך הכל" אחרי החלפת תפקיד', 'בינוני', `בראש צוות ${shown1} (צפוי ${base0 + 2}), במאבטח ${shown2} (צפוי ${base0})`, 'לקרוא ל-updateTotals() ב-syncRole()');
+
       // החלפת תפקיד אחרי מילוי מרשימה: המשמרות עוברות ולא נספרות פעמיים
       document.getElementById('calMonth').value = '2026-11';
       document.getElementById('freeText').value = '1/11 בוקר'; document.getElementById('freeRun').click(); await sl(100);
@@ -211,8 +221,23 @@
       const fa = sb && sb.match('אני רמ"ש 12 שעות');
       (fa && /ספירה ידנית/.test(fa.a)) ? ok('תמיכה', 'תשובת הבוט על רמ"ש מפנה לספירה הידנית') : bad('תמיכה', 'תשובת הבוט על רמ"ש', 'בינוני', 'התשובה לא מזכירה את "ספירה ידנית"', 'לעדכן את התשובה ב-FAQ');
 
+      // "ראש משמרת" מגיע לתשובת רמ"ש, ו"ערבי שבת / ערבי שישי" ברבים נקראים כשישי צהריים
+      const fb = sb && sb.match('אני ראש משמרת');
+      (fb && fb.id === 'ramash') ? ok('תמיכה', '"אני ראש משמרת" מגיע לתשובת רמ"ש') : bad('תמיכה', '"ראש משמרת"', 'בינוני', `התשובה: ${fb ? fb.id : 'כלום'}`, 'להוסיף "ראש משמרת" למילות המפתח של ramash');
+      const pl = ['2 ערבי שבת', '2 ערבי שישי'].map(t => parseFreeText(t, '2026-11').counts.friNoon);
+      (pl[0] === 2 && pl[1] === 2) ? ok('מסך', 'ערבי שבת וערבי שישי ברבים נקראים כשישי צהריים') : bad('מסך', 'ערבי שבת ברבים', 'בינוני', `נקראו ${pl}`, 'להרחיב את KIND_RE ל-ערבי?');
+
       // נגישות: קישור דילוג, ניווט אחד עם שם, בלי landmark מיותר
       (document.querySelector('a.skip[href="#pageMain"]') && document.querySelector('.rail nav[aria-label]') && !document.querySelector('aside.rail')) ? ok('מסך', 'קישור דילוג וניווט עם שם') : bad('מסך', 'נגישות הסרגל', 'בינוני', 'חסר קישור דילוג או שם לניווט', 'להחזיר skip ו-aria-label');
+
+      // מבנה: אזור main אחד, וסמל אתר
+      (document.querySelector('main#pageMain') && document.querySelector('a.skip[href="#pageMain"]') && document.querySelector('link[rel=icon]')) ? ok('מסך', 'אזור main וסמל אתר') : bad('מסך', 'אזור main וסמל אתר', 'בינוני', 'חסר main#pageMain או סמל האתר', 'להחזיר אותם');
+      // בלי גלישה אופקית בטלפון, והסרגל לא נחתך בסוף העמוד במסך 1440x900
+      const f375 = await frameOf(375, 800), ow = f375.contentDocument.documentElement.scrollWidth; f375.remove();
+      ow <= 376 ? ok('מסך', 'אין גלישה אופקית ב-375 (הכלי)') : bad('מסך', 'גלישה אופקית בטלפון', 'גבוה', `רוחב התוכן ${ow} בחלון של 375`, 'למצוא את האלמנט שרחב מדי');
+      const f14 = await frameOf(1440, 900); f14.contentWindow.scrollTo(0, 1e7); await sl(300);
+      const rr = f14.contentDocument.querySelector('.rail').getBoundingClientRect(), lg = f14.contentDocument.querySelector('.logo').getBoundingClientRect(); f14.remove();
+      (rr.top >= 0 && lg.top >= 0) ? ok('מסך', 'הסרגל והלוגו לא נחתכים בסוף העמוד') : bad('מסך', 'הסרגל בסוף העמוד', 'בינוני', `ראש הסרגל ${Math.round(rr.top)}, הלוגו ${Math.round(lg.top)}`, 'להוריד ריפוד תחתון מהגוף');
     }
 
     // 8. אבטחה: אין סודות בקוד הדף

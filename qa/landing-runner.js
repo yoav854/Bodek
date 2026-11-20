@@ -68,6 +68,19 @@
     (!nc.hidden && nc.scrollWidth <= nc.clientWidth + 1) ? ok('מסך', 'גוף ארוך בלי רווחים לא גולש מהכרטיס') : bad('מסך', 'גוף ארוך', 'בינוני', `scrollWidth ${nc.scrollWidth} מול ${nc.clientWidth}`, 'overflow-wrap: anywhere');
     window.__setNotices([]);
 
+const frameOf = (w, h) => new Promise(res => { // עותק של הדף בחלון בגודל נתון, בלי חבילת הבדיקות, כדי למדוד כמו מכשיר אמיתי
+    const html = '<!doctype html>' + document.documentElement.outerHTML.replace(/<script>(?:(?!<\/script>)[^])*?(?:qa-out|__qaErr)(?:(?!<\/script>)[^])*<\/script>/g, '');
+    const f = document.createElement('iframe'); f.style.cssText = `position:fixed;left:-9999px;top:0;width:${w}px;height:${h}px;border:0`;
+    f.srcdoc = html; f.onload = () => setTimeout(() => res(f), 700); document.body.appendChild(f);
+      });
+    const fL = await frameOf(375, 800); fL.contentWindow.__setNotices([{id: 11, body: 'א'.repeat(400), source: 'https://example.com/' + 'ב'.repeat(300), created_at: '2026-11-20T10:00:00Z'}]); await sleep(200);
+    const owL = fL.contentDocument.documentElement.scrollWidth; fL.remove();
+    owL <= 376 ? ok('מסך', 'אין גלישה אופקית ב-375 (גם עם עדכון ארוך)') : bad('מסך', 'גלישה אופקית בטלפון', 'גבוה', `רוחב התוכן ${owL}`, 'overflow-wrap בכרטיס העדכונים');
+    const fR = await frameOf(1440, 500); fR.contentWindow.scrollTo(0, 400); await sleep(250);
+    const railTop = fR.contentDocument.querySelector('.rail').getBoundingClientRect().top; fR.remove();
+    railTop >= 0 ? ok('מסך', 'הסרגל נדבק גם בחלון נמוך (500px)') : bad('מסך', 'סרגל בחלון נמוך', 'בינוני', `ראש הסרגל ${Math.round(railTop)} אחרי גלילה`, 'להקטין את min-height של הסרגל');
+    document.querySelector('link[rel=icon]') ? ok('מסך', 'סמל אתר') : bad('מסך', 'סמל אתר', 'בינוני', 'חסר link rel=icon', 'להוסיף favicon');
+
     // 6. שגיאות סקריפט (לא כולל משאבים חיצוניים כמו גופנים)
     const errs = (window.__qaErr || []).filter(e => !/^resource failed/.test(e));
     errs.length ? bad('חישוב', 'שגיאות סקריפט', 'קריטי', errs.slice(0, 3).join(' | '), 'לתקן את השגיאה בדף') : ok('חישוב', 'אין שגיאות סקריפט בדף הכניסה');

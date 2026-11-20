@@ -7,6 +7,7 @@
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font-size:14px}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>בדיקת תלוש: בודק התלוש</title>
 <meta name="theme-color" content="#eef3f1">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <meta property="og:type" content="website">
 <meta property="og:title" content="בדיקת תלוש: בודק התלוש">
 <meta property="og:description" content="מעלים את התלוש, מוסיפים את המשמרות, ורואים אם שולם לך הכל. הקובץ נקרא על המכשיר שלך ולא עולה לשרת.">
@@ -275,7 +276,8 @@ details.others>.slot,details.others>.vars,details.others>.note,details.others>te
 #result>div:not(.checks):not(.verdict):not(:first-of-type){background:#fff;border-radius:28px;padding:22px;box-shadow:0 18px 34px -24px rgb(15 50 40 / .45)}
 @media (min-width:1000px){#result>div:not(.checks):has(>.bar){grid-column:span 6}#result>div:not(.checks):has(>.tbl-wrap){grid-column:span 6}}
 .bar{border-radius:99px}
-#rulesBox{padding:22px 8px 8px;color:var(--muted)}
+#rulesBox{padding:22px 8px 72px;color:var(--muted)}
+body:has(#sbOpen){padding-bottom:0}
 /* the help bubble in the same colours */
 .sb-bubble{background:var(--forest);color:#fff}
 .sb-panel{border-radius:24px}
@@ -318,7 +320,7 @@ details.others>.slot,details.others>.vars,details.others>.note,details.others>te
     <span class="foot">2026</span>
   </div>
 
-  <div class="main" id="pageMain" tabindex="-1">
+  <main class="main" id="pageMain" tabindex="-1">
     <header class="top">
       <h1>בדיקת <em>תלוש</em></h1>
       <p class="lead">מעלים את התלוש, מוסיפים את המשמרות, ורואים אם שולם לך הכל. הקובץ נקרא על המכשיר שלך ולא עולה לשרת.</p>
@@ -439,7 +441,7 @@ details.others>.slot,details.others>.vars,details.others>.note,details.others>te
     </div>
 
     <footer id="rulesBox"></footer>
-  </div>
+  </main>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -1312,7 +1314,7 @@ const KIND_RE = [
   ['motzash', /מוצ["״']?ש|מוצאי ?שבת|מוצש|מוצ["״']?ח|מוצאי ?(ה)?חג/],
   ['friNight', /(לילה|ליל) (של )?(יום )?שישי|שישי (ב)?לילה|ליל שבת/],
   ['night', /לילה|לילות/],
-  ['friNoon', /(צהר[יי]?ים|צהריים|אחה["״]?צ|ערב) (של )?(יום )?שישי|שישי (ב)?(צהר|אחה|ערב)|ערב (ה)?חג|ערב שבת/],
+  ['friNoon', /(צהר[יי]?ים|צהריים|אחה["״]?צ|ערבי?) (של )?(יום )?שישי|שישי (ב)?(צהר|אחה|ערב)|ערבי? (ה)?חג|ערבי? שבת/],
   ['noon', /צהר[יי]?ים|צהריים|ערב|אחה["״]?צ|אחר הצהריים/],
   ['morning', /בוקר|בקרים/],
   ['holiday', /(^|[^א-ת])חג/],
@@ -1430,7 +1432,8 @@ function syncRole(){
   const global = document.querySelector('input[name=payType]:checked').value === 'global';
   $('hourlyBox').hidden = global;
   $('globalBox').hidden = !global;
-  if (typeof calSel !== 'undefined' && (calSel.length || freeRes)) applySources(); // הדרגה קובעת לאיזה מונים נכנסות משמרות היומן והרשימה
+  if (typeof calSel !== 'undefined' && (calSel.length || freeRes)) applySources();
+  if (typeof updateTotals === 'function') updateTotals(); // הדרגה קובעת לאיזה מונים נכנסות משמרות היומן והרשימה
 }
 document.querySelectorAll('input[name=role]').forEach(r => r.addEventListener('change', syncRole));
 document.querySelectorAll('input[name=payType]').forEach(r => r.addEventListener('change', syncRole));
@@ -1712,7 +1715,7 @@ const FAQ = (() => {
     {id: 'hours', q: 'כמה שעות מותר להעסיק אותי?', chip: false, k: ['כמה שעות מותר', 'מותר לעבוד', '12 שעות ביום', 'מקסימום שעות', 'מנוחה בין משמרות', 'כפולה', 'רצוף'],
      a: 'בענף השמירה מותרות עד 4 שעות נוספות ביום (5 ביום שלפני המנוחה השבועית), ועד 37 שעות נוספות בשבוע. בדרך כלל זה עד 12 שעות ביום. בין משמרות מגיעה מנוחה של 8 שעות לפחות. גם כשמותר לעבוד יותר, כל שעה נוספת משולמת בתוספת.',
      src: 'היתר העבודה בשעות נוספות בענף השמירה, חוק שעות עבודה ומנוחה, כל זכות'},
-    {id: 'ramash', q: 'אני רמ"ש. מה ההבדל?', k: ['רמש', 'רמ"ש', 'רמ״ש', '12 שעות', '8 שעות', 'שישי'],
+    {id: 'ramash', q: 'אני רמ"ש. מה ההבדל?', k: ['רמש', 'רמ"ש', 'רמ״ש', '12 שעות', '8 שעות', 'שישי', 'ראש משמרת'],
      a: 'רמ"ש מקבל ' + fmt(R.roleRates.ramash) + ' ₪ לשעה, שכר כולל שסוכם מראש. בוחרים אם המשמרות הן של 12 שעות (06:00-18:00) או של 8, ויש סוג נפרד למשמרת שישי (06:00-14:00). אם עבדת גם כמאבטח, פתח "ספירה ידנית של משמרות" ואז "עבדת גם כמאבטח?".'},
     {id: 'lead', q: 'אני ראש צוות. איך זה עובד?', k: ['ראש צוות', 'גלובלי', 'שעתי', 'השכר שלי'],
      a: 'ראש צוות מקליד את השכר שלו, שעתי או גלובלי, והבודק מחשב לפיו. מה שמוקלד לא נשמר ולא נשלח לשום מקום. אפשר לסמן גם משמרות של מאבטח או של רמ"ש, ולהוסיף משתנים כמו שיחות טלפון או מוניות.'},
