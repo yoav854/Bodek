@@ -1,0 +1,1833 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="בודק התלוש: עובדי שמירה ואבטחה בודקים אם התלוש תואם את המשמרות שעבדו. התלוש והיומן נקראים רק במכשיר.">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font-size:14px}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>בדיקת תלוש: בודק התלוש</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700&family=Frank+Ruhl+Libre:wght@400;500&display=swap">
+<style>
+/* Layout v2: a bento shell (rail + cards), one light theme. The v2 block at the end of this style wins over the base rules. */
+:root{
+  --bg:#eef3f1; --surface:#ffffff; --ink:#10201c; --muted:#5f7069; --line:rgb(16 32 28 / .12);
+  --accent:#0b7a63; --accent-ink:#ffffff; --accent-soft:#e4f5ee;
+  --forest:#0e2b25; --forest-2:#17403a; --mint:#c9ece0; --mint-2:#8fe3c4; --peach:#fbd9c4; --orange:#f58a4a; --orange-ink:#2a1306;
+  --ok:#1d7a46; --ok-soft:#e3f3e9; --gap:#b4361f; --gap-soft:#fbe9e4; --info:#8a6a12; --info-soft:#f8f0d9;
+  --net:#0b7a63; --tax:#c4572f; --fund:#3d63a8; --emp:#8fb4e8; --union:#9a8a5c;
+  --display:"Assistant",system-ui,sans-serif; --body:"Assistant",system-ui,sans-serif; --serif:"Frank Ruhl Libre",Georgia,serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;direction:rtl;margin:0}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
+h1{font-size:1.9rem;font-weight:800;letter-spacing:-.01em}
+h2{font-size:1.2rem;font-weight:700}
+h3{font-size:1rem;font-weight:700}
+p{margin:0}
+.lead{color:var(--muted)}
+.safe{display:inline;background:#c62828;color:#fff;font-weight:800;padding:2px 8px;border-radius:6px;-webkit-box-decoration-break:clone;box-decoration-break:clone;line-height:1.9}
+.num{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.step{display:flex;gap:10px;align-items:baseline}
+.step b{font-family:var(--display);color:var(--accent);font-size:.85rem;letter-spacing:.06em}
+.note{font-size:.88rem;color:var(--muted)}
+.drop{border:2px dashed var(--line);border-radius:12px;padding:18px;text-align:center;display:flex;flex-direction:column;gap:6px;align-items:center;cursor:pointer}
+.drop:focus-within,.drop:hover{border-color:var(--accent)}
+.drop input{position:absolute;opacity:0;width:1px;height:1px}
+.filename{font-weight:700}
+button,.btn{font:inherit;font-weight:700;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:9px 14px;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-size:1.05rem;padding:12px 18px}
+.primary:disabled{opacity:.5;cursor:not-allowed}
+.wrap>*,.panel>*,.panel>div>*{min-width:0}
+.counters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.counters.two{grid-template-columns:repeat(3,minmax(0,1fr))}
+.counter{border:1px solid var(--line);border-radius:12px;padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.counter.on{border-color:var(--accent);background:var(--accent-soft)}
+.counter .lbl{font-family:var(--display);font-weight:700;font-size:.95rem;line-height:1.2}
+.counter .time{font-size:.82rem;color:var(--muted);direction:ltr;unicode-bidi:isolate;font-variant-numeric:tabular-nums}
+.stepper{display:flex;align-items:center;gap:6px}
+.stepper button{width:34px;height:34px;padding:0;border-radius:50%;font-size:1.15rem;line-height:1}
+.stepper output{min-width:1.6em;font-family:var(--display);font-weight:800;font-size:1.25rem;font-variant-numeric:tabular-nums}
+.cal{display:flex;flex-direction:column;gap:10px;padding:12px;border-radius:12px;background:var(--accent-soft)}
+#calMonth,.cal input[type=month]{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
+.gcal{display:inline-flex;align-items:center;gap:8px;background:var(--surface);color:var(--ink);border-color:var(--line);direction:ltr;font-family:"Heebo",Arial,sans-serif}
+.gcal svg{flex:none}
+/* הנפשות עדינות: רק כשהמשתמש לא ביקש להפחית תנועה */
+@media (prefers-reduced-motion:no-preference){
+  button{transition:transform .15s ease,box-shadow .15s ease,background-color .15s ease,border-color .15s ease}
+  button:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 3px 10px rgba(0,0,0,.12)}
+  button:active:not(:disabled){transform:translateY(0) scale(.97);box-shadow:none}
+  .gcal svg{transition:transform .25s ease}
+  .gcal:hover svg{transform:rotate(-8deg) scale(1.08)}
+  .stepper button:hover:not(:disabled){transform:scale(1.1)}
+  .stepper button:active:not(:disabled){transform:scale(.88)}
+  .stepper output.pop{animation:pop .28s ease}
+  .counter{transition:background-color .2s ease,border-color .2s ease}
+  .primary.busy{animation:pulse 1.1s ease-in-out infinite}
+  .calitem{transition:opacity .2s ease,transform .15s ease}
+  .calitem:hover{transform:translateX(-2px)}
+  #result.enter .verdict,#result.enter .check{animation:rise .35s ease both}
+  #result.enter .check:nth-child(2){animation-delay:.04s} #result.enter .check:nth-child(3){animation-delay:.08s}
+  #result.enter .check:nth-child(4){animation-delay:.12s} #result.enter .check:nth-child(n+5){animation-delay:.16s}
+  .linkish:hover:not(:disabled){transform:none;box-shadow:none;opacity:.8}
+}
+@keyframes pop{0%{transform:scale(1)}45%{transform:scale(1.35)}100%{transform:scale(1)}}
+@keyframes pulse{50%{opacity:.65}}
+@keyframes rise{from{opacity:.001;transform:translateY(6px)}to{opacity:1;transform:none}}
+.linkish{background:none;border:none;padding:2px 0;color:var(--accent);text-decoration:underline;text-align:start;font-weight:600}
+.freebox{display:flex;flex-direction:column;gap:8px}
+.freebox textarea{min-height:0;height:8.5em}
+.extratext{min-height:0;height:5.5em}
+#extraMsg .bad{color:#b45309}
+.unknown{color:var(--info);font-weight:600}
+.callist{display:flex;flex-direction:column;gap:6px}
+.calitem{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 10px;border-radius:10px;background:var(--surface);border:1px solid var(--line);cursor:pointer}
+.calitem input{width:18px;height:18px;accent-color:var(--accent)}
+.calitem .t{display:flex;flex-direction:column;min-width:0}
+.calitem .t span:last-child{font-size:.82rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.calitem .kind{font-size:.78rem;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
+.calitem.off{opacity:.55}
+.others{display:flex;flex-direction:column;gap:6px}
+.others summary{cursor:pointer;font-weight:600;color:var(--accent);padding:6px 2px}
+.others .callist{margin-top:6px}
+.sub{font-size:.85rem;color:var(--muted);font-weight:600;letter-spacing:.03em}
+/* דרגה ושכר אישי */
+.roles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.role{position:relative;border:1px solid var(--line);border-radius:12px;padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;cursor:pointer}
+.role input{position:absolute;opacity:0;width:1px;height:1px}
+.role b{font-family:var(--display);font-size:.95rem;line-height:1.2}
+.role:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.role:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;align-self:flex-start}
+.seg label{padding:7px 14px;cursor:pointer;font-weight:600;position:relative}
+.seg input{position:absolute;opacity:0;width:1px;height:1px}
+.seg label:has(input:checked){background:var(--accent);color:var(--accent-ink)}
+.seg label:focus-within{outline:3px solid var(--accent);outline-offset:-3px}
+.fields{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:4px;flex:1 1 150px;min-width:0}
+.field>span{font-size:.85rem;color:var(--muted);font-weight:600}
+.field input,.field select{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);width:100%;min-width:0}
+.field select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.mix{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.slot{display:flex;flex-direction:column;gap:10px}
+.others .slot{margin-top:8px}
+.ovr{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) auto;gap:8px;align-items:end;padding:10px;border:1px solid var(--line);border-radius:12px}
+@media (max-width:520px){.ovr{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.ovr .wide{grid-column:1/-1}}
+.vars{display:flex;flex-direction:column;gap:10px}
+.var{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) minmax(0,2fr) auto;gap:8px;align-items:end;padding:10px;border:1px solid var(--line);border-radius:12px}
+.var .del{padding:8px 10px}
+@media (max-width:520px){.roles{grid-template-columns:1fr}.var{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.var .wide{grid-column:1/-1}}
+.total-hours{font-weight:700}
+@media (max-width:520px){.counters{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.err{background:var(--gap-soft);color:var(--gap);border-radius:10px;padding:12px;font-weight:600}
+.verdict{border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:6px}
+.verdict.ok{background:var(--ok-soft)} .verdict.gap{background:var(--gap-soft)}
+.verdict .big{font-family:var(--display);font-size:1.6rem;font-weight:800}
+.verdict.ok .big{color:var(--ok)} .verdict.gap .big{color:var(--gap)}
+.tag{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.05em;padding:2px 8px;border-radius:999px;background:var(--info-soft);color:var(--info)}
+.checks{display:flex;flex-direction:column;gap:10px}
+.check{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;padding:12px;border-radius:12px;border:1px solid var(--line)}
+.dot{font-size:.75rem;font-weight:800;padding:3px 8px;border-radius:999px;white-space:nowrap}
+.check.ok .dot{background:var(--ok-soft);color:var(--ok)}
+.check.gap .dot{background:var(--gap-soft);color:var(--gap)}
+.check.info .dot,.check.skip .dot{background:var(--info-soft);color:var(--info)}
+.check .body{display:flex;flex-direction:column;gap:3px;min-width:0}
+.check .why{font-size:.9rem;color:var(--muted)}
+.check .job{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:6px;font-size:.9rem}
+.check .jobIn{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.check .jobIn[hidden]{display:none}
+.check .jobIn input{font:inherit;width:9em;max-width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+.check .amt{font-weight:700;color:var(--gap)}
+.more summary{cursor:pointer;font-weight:600;color:var(--accent);padding-top:4px}
+.ot{display:flex;flex-direction:column;gap:8px;padding-top:8px}
+.ot table{font-size:.88rem}
+.bar{display:flex;height:28px;border-radius:8px;overflow:hidden;background:var(--line)}
+.bar span{display:block;height:100%}
+.legend{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:.95rem}
+.legend .k{display:flex;gap:8px;align-items:center}
+.sw{width:12px;height:12px;border-radius:3px;flex:none}
+.legend .sum{border-top:1px solid var(--line);padding-top:6px;font-weight:700}
+.tbl-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:right}
+th{color:var(--muted);font-weight:600;font-size:.8rem;letter-spacing:.03em}
+td.n{font-variant-numeric:tabular-nums;direction:ltr;text-align:left}
+th.n{text-align:left}
+textarea{font:inherit;width:100%;min-height:200px;border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--bg);color:var(--ink);resize:vertical}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row input[type=text]{font:inherit;flex:1;min-width:0;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+footer{font-size:.82rem;color:var(--muted);display:flex;flex-direction:column;gap:6px}
+footer ul{margin:0;padding-inline-start:18px}
+@media (prefers-reduced-motion:no-preference){.panel{transition:border-color .2s}}
+.drop{position:relative}
+/* בחירת תפקיד בכניסה: שלוש אפשרויות צפות מעל דף הפתיחה המטושטש */
+/* עיגול התמיכה: מתחת לחלון בחירת התפקיד (z-index 50), כך שמופיע רק אחרי הבחירה */
+.sb-bubble{position:fixed;bottom:max(16px,env(safe-area-inset-bottom,0px));inset-inline-end:16px;z-index:40;width:52px;height:52px;border-radius:50%;border:none;background:var(--accent);color:var(--accent-ink);font-size:1.5rem;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.25);cursor:pointer}
+body:has(#sbOpen){padding-bottom:84px} /* שהעיגול לא יסתיר את סוף הדף */
+.sb-panel{position:fixed;bottom:80px;inset-inline-end:16px;z-index:41;width:min(360px,calc(100vw - 32px));max-height:min(560px,calc(100vh - 100px));max-height:min(560px,calc(100dvh - 100px));display:flex;flex-direction:column;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);overflow:hidden}
+.sb-panel[hidden]{display:none}
+.sb-head{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--accent);color:var(--accent-ink)}
+.sb-x{background:none;border:none;color:inherit;font-size:1.1rem;cursor:pointer;min-width:44px;min-height:44px;margin:-10px 0;border-radius:8px}
+.sb-log{flex:1 1 auto;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;min-height:140px}
+.sb-panel.talked .sb-chips{max-height:76px}
+.sb-msg{padding:8px 11px;border-radius:12px;max-width:88%;line-height:1.5;font-size:.93rem}
+.sb-msg.bot{background:var(--accent-soft);align-self:flex-start}
+.sb-msg.me{background:var(--bg);border:1px solid var(--line);align-self:flex-end}
+.sb-chips{display:flex;flex-wrap:wrap;gap:6px;padding:0 12px 8px;max-height:120px;overflow-y:auto}
+.sb-chip{font-size:.82rem;padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.sb-chip:hover,.sb-chip:focus-visible{border-color:var(--accent);background:var(--accent-soft)}
+.sb-form{border-top:1px solid var(--line);padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.sb-hint{font-size:.78rem;color:var(--muted)}
+.sb-row{display:flex;gap:6px}
+.sb-row{align-items:flex-end}
+.sb-row textarea{flex:1;min-width:0;min-height:0;height:3.4em;resize:none;font:inherit;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.sb-send{padding:8px 14px;font-size:.95rem}
+.sb-src{margin-top:6px;font-size:.78rem;color:var(--muted)}
+.sb-more{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+@media print{.sb-bubble,.sb-panel{display:none}}
+/* ===== v2: bento shell (same language as the landing page). Loaded after the base rules, so it wins. ===== */
+body{background:#f3f5f4;font-family:var(--body);font-size:16px;line-height:1.55;color:var(--ink)}
+:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+.app{margin:20px;border-radius:40px;padding:16px;display:grid;grid-template-columns:88px minmax(0,1fr);gap:16px;min-height:calc(100svh - 40px);position:relative;
+  background:radial-gradient(60% 70% at 100% 0%,#bfeadb 0%,transparent 62%),radial-gradient(55% 60% at 0% 100%,#f7e2d3 0%,transparent 62%),linear-gradient(135deg,#dcf0e8,#eef2f0 55%,#f3e8de)}
+.rail{position:sticky;top:16px;align-self:start;height:calc(100svh - 72px);min-height:420px;border-radius:44px;background:var(--forest);color:#d6efe6;display:flex;flex-direction:column;align-items:center;padding:18px 0;gap:8px;box-shadow:0 20px 40px -24px rgb(8 30 25 / .7)}
+.rail .logo{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font:600 22px/1 var(--serif);color:var(--peach);margin-bottom:14px;text-decoration:none}
+.rail nav{display:flex;flex-direction:column;gap:10px;flex:1}
+.rb{position:relative;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;color:#9fc2b6;text-decoration:none;transition:background .25s,color .25s}
+.rb svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.rb:hover{color:#fff;background:rgb(255 255 255 / .08)}
+.rb.is-on{background:var(--mint-2);color:var(--forest);box-shadow:0 0 0 6px rgb(143 227 196 / .18),0 0 26px rgb(143 227 196 / .55)}
+.rb::after{content:attr(data-label);position:absolute;inset-inline-end:calc(100% + 14px);top:50%;transform:translateY(-50%) translateX(6px);opacity:0;pointer-events:none;white-space:nowrap;background:rgb(14 43 37 / .92);color:#fff;font-size:13px;padding:5px 10px;border-radius:99px;transition:opacity .2s,transform .2s}
+.rb:hover::after,.rb:focus-visible::after{opacity:1;transform:translateY(-50%)}
+.rail .foot{color:#6f9a8d;font-size:12px}
+.main{min-width:0;width:100%;max-width:1060px;margin-inline:auto}
+.top{padding:6px 8px 18px;display:grid;gap:6px}
+.top h1{margin:0;font:600 clamp(30px,3.4vw,44px)/1.1 var(--display);letter-spacing:-.01em}
+.top h1 em{font:400 1.04em/1 var(--serif);font-style:normal;color:#b4642f}
+.top .lead{max-width:60ch;font-size:17px}
+.bento{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px}
+.card{background:#fff;border-radius:28px;padding:22px;display:flex;flex-direction:column;gap:14px;min-width:0;box-shadow:0 1px 0 rgb(255 255 255 / .8) inset,0 18px 34px -24px rgb(15 50 40 / .45)}
+.c-file{grid-column:span 7}.c-role{grid-column:span 5}.c-shifts{grid-column:span 12}.c-go{grid-column:span 12}
+.card>*,.card>div>*{min-width:0}
+.step{display:flex;align-items:center;gap:12px}
+.step b{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--mint);color:var(--forest);font:700 15px/1 var(--display);letter-spacing:0}
+.step h2{font-size:1.25rem;font-weight:600}
+.note{font-size:.9rem;color:var(--muted)}
+/* buttons: pills, one orange main action */
+button,.btn{border-radius:99px;border:1px solid var(--line);background:#fff;color:var(--ink);padding:9px 18px;font-weight:600}
+.primary{background:var(--orange);color:var(--orange-ink);border-color:var(--orange);font-size:1.1rem;font-weight:700;padding:14px 26px;width:100%}
+.primary:disabled{background:#e6ebe9;color:#8a9892;border-color:#e6ebe9;opacity:1}
+.linkish{border:0;background:none;color:var(--accent);font-weight:600;padding:4px 2px}
+/* fields */
+.field input,.field select,#calMonth,.cal input[type=month],textarea,.row input[type=text],.check .jobIn input{border-radius:14px;border:1px solid var(--line);background:#f6faf8;padding:10px 12px}
+textarea{min-height:0}
+.drop{border:2px dashed #9fd9c4;background:#f3faf7;border-radius:22px;padding:30px 18px;transition:background .2s,border-color .2s}
+.drop:hover,.drop:focus-within{border-color:var(--accent);background:#e9f6f1}
+.filename{font:600 1.15rem/1.3 var(--display)}
+/* role cards and counters */
+.roles{grid-template-columns:1fr}
+.role,.counter{border:1px solid var(--line);border-radius:18px;background:#fff}
+.role{flex-direction:row;justify-content:flex-start;gap:10px;padding:12px 14px;text-align:start}
+.role:has(input:checked),.counter.on{border-color:var(--forest);background:var(--mint)}
+.seg{border-radius:99px;background:#f6faf8}
+.seg label{padding:8px 18px}
+.seg label:has(input:checked){background:var(--forest);color:#fff}
+.stepper button{background:#fff}
+/* the calendar block and lists */
+.cal{background:#eef7f3;border-radius:22px;padding:16px;gap:12px}
+.gcal{border-radius:99px;padding:10px 18px}
+.calitem{border-radius:16px;background:#fff}
+.calitem .kind{background:var(--mint);color:var(--forest)}
+.total-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;border-radius:99px;background:var(--mint);color:var(--forest);font-weight:600;width:fit-content}
+.total-row .num{font-weight:700}
+details.others{background:#f6faf8;border-radius:20px;padding:4px 14px}
+details.others summary{cursor:pointer;font-weight:600;color:var(--forest);padding:12px 2px;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:8px}
+details.others summary::-webkit-details-marker{display:none}
+details.others summary::after{content:"+";font-size:1.3rem;line-height:1;color:var(--accent)}
+details.others[open]>summary::after{content:"\2212"}
+details.others details.others{background:#fff;margin-top:8px}
+details.others>.slot,details.others>.vars,details.others>.note,details.others>textarea{margin-bottom:12px}
+.ovr,.var{border-radius:16px;background:#fff}
+.tag{background:#fdeadb;color:#a4521b}
+/* action */
+.c-go{display:grid;gap:10px}
+.err{border-radius:18px}
+/* result: the verdict is a dark hero card, checks are small cards, the rest are white cards */
+#result{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px;background:none;border:0;padding:0;box-shadow:none;grid-column:span 12}
+#result:empty{display:none}
+#result>*{grid-column:1/-1;min-width:0}
+#result>.tag{justify-self:start}
+#result>div:first-of-type{padding:6px 8px 0}
+#result>div:first-of-type h2{font:600 clamp(24px,2.6vw,32px)/1.15 var(--display)}
+.verdict,.verdict.ok,.verdict.gap{border-radius:28px;padding:28px 30px;background:var(--forest);color:#fff;gap:8px}
+.verdict .big,.verdict.gap .big{font:600 clamp(28px,3.8vw,46px)/1.1 var(--display);color:var(--peach);letter-spacing:-.01em}
+.verdict.ok .big{color:var(--mint-2)}
+.verdict span:not(.big){color:#bcd3cb}
+.checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.check{background:#fff;border:0;border-radius:22px;padding:16px 18px;box-shadow:0 18px 34px -26px rgb(15 50 40 / .5)}
+#result>div:has(.bar),#result>div:has(.tbl-wrap),#result>div:has(#letterText){background:#fff;border-radius:28px;padding:22px;box-shadow:0 18px 34px -24px rgb(15 50 40 / .45)}
+@media (min-width:1000px){#result>div:has(.bar){grid-column:span 6}#result>div:has(.tbl-wrap){grid-column:span 6}}
+.bar{border-radius:99px}
+#rulesBox{padding:22px 8px 8px;color:var(--muted)}
+/* the help bubble in the same colours */
+.sb-bubble{background:var(--forest);color:#fff}
+.sb-panel{border-radius:24px}
+.sb-head{background:var(--forest);color:#fff}
+.sb-msg.bot{background:var(--mint)}
+/* entrance: cards rise one after another (not when the user asked for less motion) */
+@media (prefers-reduced-motion:no-preference){
+  @keyframes cardrise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  .top,.bento>.card,.c-go{animation:cardrise .6s cubic-bezier(.2,.7,.2,1) both}
+  .bento>.card:nth-child(1){animation-delay:.08s}.bento>.card:nth-child(2){animation-delay:.16s}.bento>.card:nth-child(3){animation-delay:.24s}.c-go{animation-delay:.32s}
+  .rail{animation:cardrise .7s cubic-bezier(.2,.7,.2,1) both}
+  .card{transition:box-shadow .3s}
+  .primary:hover:not(:disabled){filter:brightness(1.05)}
+}
+@media (max-width:1000px){.c-file,.c-role{grid-column:span 12}.checks{grid-template-columns:1fr}}
+@media (max-width:700px){
+  .app{margin:0;border-radius:0;padding:12px 12px 96px;grid-template-columns:1fr}
+  .rail{position:fixed;z-index:40;inset:auto 12px 12px 12px;top:auto;height:64px;min-height:0;flex-direction:row;padding:8px 14px;border-radius:32px;justify-content:space-between}
+  .rail nav{flex-direction:row;flex:1;justify-content:space-around;gap:4px}
+  .rail .logo,.rail .foot,.rb::after{display:none}
+  .card{padding:20px;border-radius:24px}
+  .sb-bubble{bottom:92px}
+  body:has(#sbOpen){padding-bottom:0}
+}
+</style>
+
+<div class="app" id="app">
+  <aside class="rail" aria-label="ניווט ראשי">
+    <a class="logo" href="index.html" aria-label="בודק התלוש, לדף הבית">ב</a>
+    <nav>
+      <a class="rb" href="index.html" data-label="בית" aria-label="בית"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4v-5H9v5H5a1 1 0 0 1-1-1z"/></svg></a>
+      <a class="rb is-on" href="check.html" data-label="בדיקת תלוש" aria-label="בדיקת תלוש" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="m9.5 14 2 2 3.5-4"/></svg></a>
+      <a class="rb" href="privacy.html" data-label="פרטיות" aria-label="פרטיות"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.4 2.9 8.3 7 10 4.1-1.7 7-5.6 7-10V6z"/><path d="m9 12 2.2 2.2L15.5 10"/></svg></a>
+    </nav>
+    <span class="foot">2026</span>
+  </aside>
+
+  <div class="main" id="pageMain">
+    <header class="top">
+      <h1>בדיקת <em>תלוש</em></h1>
+      <p class="lead">מעלים את התלוש, מוסיפים את המשמרות, ורואים אם שולם לך הכל. הקובץ נקרא על המכשיר שלך ולא עולה לשרת.</p>
+    </header>
+
+    <div class="bento">
+      <section class="card c-file" aria-labelledby="s1">
+        <div class="step"><b>1</b><h2 id="s1">התלוש</h2></div>
+        <label class="drop" for="pdf">
+          <input type="file" id="pdf" accept="application/pdf,.pdf">
+          <span class="filename" id="fname">בחר את קובץ ה-PDF של התלוש</span>
+          <span class="note">הקובץ המקורי שקיבלת ממערכת השכר, לא צילום. הוא נקרא רק במכשיר שלך ולא נשלח לשום מקום. תעודת זהות וחשבון בנק לא נקראים.</span>
+        </label>
+      </section>
+
+      <section class="card c-role" aria-labelledby="sRole">
+        <div class="step"><b>2</b><h2 id="sRole">התפקיד שלך</h2></div>
+        <div class="roles" role="radiogroup" aria-labelledby="sRole">
+          <label class="role"><input type="radio" name="role" value="guard" checked><b>מאבטח</b><span class="note">47 ₪ לשעה</span></label>
+          <label class="role"><input type="radio" name="role" value="ramash"><b>ראש משמרת (רמ"ש)</b><span class="note">52 ₪ לשעה</span></label>
+          <label class="role"><input type="radio" name="role" value="lead"><b>ראש צוות</b></label>
+        </div>
+        <div id="leadBox" hidden style="display:flex;flex-direction:column;gap:10px">
+          <div class="seg" role="radiogroup" aria-label="סוג השכר">
+            <label><input type="radio" name="payType" value="hourly" checked>שעתי</label>
+            <label><input type="radio" name="payType" value="global">גלובלי</label>
+          </div>
+          <div class="fields" id="hourlyBox">
+            <label class="field"><span>השכר שלך לשעה (₪)</span><input type="number" id="leadRate" inputmode="decimal" min="0" step="0.01" placeholder="למשל 55"></label>
+          </div>
+          <div class="fields" id="globalBox" hidden>
+            <label class="field"><span>שכר גלובלי לחודש (₪)</span><input type="number" id="leadGlobal" inputmode="decimal" min="0" step="1" placeholder="למשל 9000"></label>
+            <label class="field"><span>איפה הוא בתלוש</span><select id="leadLine"><option value="">קודם העלה את התלוש</option></select></label>
+            <label class="field"><span>ערך שעה לשעות נוספות (₪)</span><input type="number" id="leadHour" inputmode="decimal" min="0" step="0.01" placeholder="אם ריק: חלקי 182"></label>
+          </div>
+        </div>
+        <p class="note">מה שתקליד כאן נשאר רק במכשיר שלך, ונמחק כשסוגרים את הדף.</p>
+      </section>
+
+      <section class="card c-shifts" aria-labelledby="s2">
+        <div class="step"><b>3</b><h2 id="s2">המשמרות של החודש</h2></div>
+        <div class="mix">
+          <label for="calMonth"><b>על איזה חודש הדיווח?</b></label><input type="month" id="calMonth" required>
+          <span class="note">חייב להיות החודש של התלוש.</span>
+        </div>
+        <p class="err" id="monthWarn" hidden></p>
+        <div class="cal">
+          <div class="row">
+            <button type="button" id="calBtn" class="gcal" aria-label="מלא משמרות מ-Google Calendar"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="3" fill="#fff"/><path d="M5.5 2.5h13a3 3 0 0 1 3 3V7h-19V5.5a3 3 0 0 1 3-3z" fill="#4285F4"/><path d="M21.5 7v11.5a3 3 0 0 1-3 3H17V7z" fill="#FBBC04"/><path d="M2.5 18.5V17H17v4.5H5.5a3 3 0 0 1-3-3z" fill="#34A853"/><path d="M2.5 7H7v10H2.5z" fill="#EA4335"/><text x="12" y="15.6" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="7.5" fill="#4285F4">31</text></svg><span>מלא מ-Google Calendar</span></button>
+          </div>
+          <label for="freeText" class="sub">או: כתוב את המשמרות בעצמך, איך שנוח לך (אפשר גם יחד עם היומן)</label>
+          <div id="freeBox" class="freebox">
+            <textarea id="freeText" rows="5" placeholder="למשל:&#10;1/11 בוקר&#10;2/11 לילה&#10;בוקר: 4/11, 5/11, 8/11&#10;3 צהריים&#10;מוצ&quot;ש 14/11&#10;20/11 7-15"></textarea>
+            <button type="button" id="freeRun">קרא את הרשימה</button>
+          </div>
+          <p class="note" id="calMsg" role="status" hidden></p>
+          <div id="calList" class="callist" hidden></div>
+          <p class="note unknown" id="mergeMsg" role="status" hidden></p>
+        </div>
+        <p class="total-row">סך הכל: <span class="total-hours num" id="shiftCount">0</span> משמרות · <span class="total-hours num" id="shiftHours">0</span> שעות</p>
+
+        <details class="others" id="manual"><summary>ספירה ידנית של משמרות (+ ו-−)</summary>
+          <div id="primarySlot" class="slot"></div>
+          <details class="others" id="ox-guard"><summary>עבדת גם כמאבטח?</summary><div class="slot"></div></details>
+          <details class="others" id="ox-ramash"><summary>עבדת גם כרמ"ש?</summary><div class="slot"></div></details>
+        </details>
+        <div hidden id="parking">
+          <div id="leadBlock" class="slot">
+            <span class="sub">המשמרות שלך כראש צוות</span>
+            <div class="counters" id="row4"></div>
+            <span class="sub">משמרות בשבת ובחג. שישי צהריים וערב חג: שעה ראשונה 100% ו-7 שעות 150%</span>
+            <div class="counters two" id="row5"></div>
+          </div>
+          <div id="guardBlock" class="slot">
+            <label class="field leadOnly" hidden><span>התעריף שלך למשמרות מאבטח (₪ לשעה)</span><input type="number" id="leadGuardRate" inputmode="decimal" min="0" step="0.01" placeholder="למשל 47"></label>
+            <div class="counters" id="row1"></div>
+            <span class="sub">משמרות בשבת ובחג. שישי צהריים וערב חג: שעה ראשונה 100% ו-7 שעות 150%</span>
+            <div class="counters two" id="row2"></div>
+          </div>
+          <div id="ramBlock" class="slot">
+            <label class="field leadOnly" hidden><span>התעריף שלך למשמרות רמ"ש (₪ לשעה)</span><input type="number" id="leadRamashRate" inputmode="decimal" min="0" step="0.01" placeholder="למשל 52"></label>
+            <div class="mix">
+              <span>משמרת רמ"ש אצלך היא:</span>
+              <div class="seg" role="radiogroup" aria-label="אורך משמרת רמ&quot;ש">
+                <label><input type="radio" name="rLen" value="12" checked>12 שעות</label>
+                <label><input type="radio" name="rLen" value="8">8 שעות</label>
+              </div>
+            </div>
+            <span class="sub">משמרות כראש משמרת (רמ"ש), 52 ₪ לכל שעה. אין רמ"ש בשבת ובחג</span>
+            <div class="counters two" id="row3"></div>
+          </div>
+        </div>
+
+        <details class="others" id="more"><summary>עוד אפשרויות: שעות אחרות, זמן נוסף, תוספות</summary>
+          <details class="others" id="ovrBox"><summary>חלק מהמשמרות היו באורך אחר?</summary>
+            <div class="vars" id="ovrs"></div>
+            <button type="button" id="addOvr" class="linkish">+ שנה שעות למשמרות</button>
+          </details>
+          <details class="others" id="extraBox"><summary>עבדת עוד זמן מעבר למשמרת?</summary>
+            <p class="note">שורה לכל פעם, עם תאריך ושעות. חובה לכתוב באיזו שעה, כדי שהשכר יחושב נכון (שעה נוספת, שבת וכו'). אם זה היה בחג, כתוב "חג" בשורה. בערב חג: "ערב חג". במוצאי חג: "מוצאי חג".</p>
+            <textarea id="extraText" class="extratext" rows="3" aria-label="זמן עבודה נוסף" placeholder="למשל:&#10;5/11 15:00-15:45&#10;עבדתי עוד 45 דק ב-12/11 מ-23:00"></textarea>
+            <p class="note" id="extraMsg" role="status" hidden></p>
+          </details>
+          <details class="others" id="varsBox"><summary>תוספות שמגיעות לך (לא חובה)</summary>
+            <p class="note">למשל שיחות טלפון או נסיעות במונית: שם, סכום ליחידה וכמות. אם התוספת מופיעה בתלוש, בחר את השורה שלה, והבודק ישווה.</p>
+            <div id="vars" class="vars"></div>
+            <button type="button" id="addVar" class="linkish">+ הוסף משתנה</button>
+          </details>
+        </details>
+      </section>
+
+      <div class="c-go">
+        <button class="primary" id="go" type="button" disabled>בדוק את התלוש</button>
+        <div id="error" class="err" hidden></div>
+      </div>
+
+      <section id="result" aria-live="polite"></section>
+    </div>
+
+    <footer id="rulesBox"></footer>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+/* ===================== כללים (עם תאריך תחילת תוקף ומקור) ===================== */
+const RULESETS = [{
+  from: '2026-04-01',
+  label: 'כללי ענף השמירה מ-1.4.2026',
+  sectorMinHour: 39.11, generalMinHour: 35.40,
+  roleRates: {guard: 47, ramash: 52}, // תעריפי רשף ביטחון לפי דרגה (מיואב, 17.11.2026). ראש צוות מקליד את השכר שלו
+  globalDivisor: 182, // ערך שעה לשעות נוספות בשכר גלובלי, כשלא הוקלד
+  havraaPerHour: 1.64, havraaCapHours: 182,
+  pensionEmployee: 0.07, pensionEmployer: 0.075, severance: 0.0833, severanceExtras: 0.06, pensionTravel: 0.05,
+  kerenEmployer: 0.075, kerenEmployee: 0.025, kerenCapHours: 182, travelDayCap: 22.60,
+  kerenFromDayOne: true, // ברשף מפקידים קרן השתלמות מהיום הראשון (מיואב, 17.11.2026). לפי הצו מותר לחכות חודשיים ולהפקיד רטרואקטיבית
+  // מס הכנסה 2026: מדרגות חודשיות (שנתיות חלקי 12), נקודת זיכוי, זיכוי 35% על הפרשת פנסיה של העובד
+  taxBrackets: [[7010, .10], [10060, .14], [19000, .20], [25100, .31], [46690, .35], [60130, .47], [Infinity, .50]],
+  creditPoint: 242, basePoints: 2.25, pensionCreditRate: .35, pensionCreditPct: .07, pensionCreditSalaryCap: 9700, secondJobTax: .47,
+  // ביטוח לאומי + בריאות, חלק העובד
+  blThreshold: 7703, blMax: 51910, blLow: .0427, blHigh: .1217,
+  tolerance: 10, // פער מתחת לזה במס ובביטוח לאומי נחשב תקין
+  // כלל שלא אומת: פער שנובע ממנו מסומן "לשים לב" ולא נכנס להודעה למעסיק
+  verified: {keren: true, travel: true}, // קרן: אומת 17.11.2026 מול צו 2014 סעיף 10 (נוסח רשמי), צו 2022 סעיף 7, וכל זכות, ונבדק מול תלוש של רשף
+  sources: [
+    ['שכר מינימום בענף, עובד רגיל: 39.11 ₪ לשעה', 'כל זכות, עודכן 19.4.2026', true],
+    ['תעריף ברשף ביטחון: מאבטח 47 ₪, ראש משמרת (רמ"ש) 52 ₪ לשעה. ראש צוות לפי השכר שהוא מקליד', 'מהעובדים ברשף, 17.11.2026', true],
+    ['שכר מינימום כללי: 35.40 ₪ לשעה', 'כל זכות, עודכן 17.8.2026', true],
+    ['הבראה: 7 ימים בשנה (ותק עד 3 שנים), 511.60 ₪ ליום, חלקי 182 שעות: 1.64 ₪ לכל שעת עבודה. פער נקבע רק על שעות רגילות. בשכר חודשי מותר לשלם פעם בשנה, ביוני עד ספטמבר', 'כל זכות, ערך היום עודכן ביוני 2026', true],
+    ['פנסיה: עובד 7%, מעסיק 7.5%. פיצויים 8.33%, ועל שעות נוספות ושבת 6%. על הנסיעות 5% מהעובד ו-5% מהמעסיק. מתחילה אחרי חודש, רטרואקטיבית', 'צו ההרחבה בענף השמירה 2014, סעיף 9 (נוסח רשמי). השיעורים עודכנו ב-1.7.2015 לפי שירות המדינה (כל זכות, עודכן 21.12.2025)', true],
+    ['קרן השתלמות: מעסיק 7.5%, עובד 2.5%, על שכר המינימום הכללי ועל ההבראה, עד 182 שעות. לפי הצו, זכאות אחרי חודשיים ורטרואקטיבית מהיום הראשון. ברשף מפקידים מהיום הראשון', 'צו ההרחבה בענף השמירה 2014, סעיף 10 (נוסח רשמי), וצו 2022, סעיף 7. כל זכות, לשכת המסחר. נבדק מול תלוש של רשף. ההפקדה מהיום הראשון מהעובדים ברשף, 17.11.2026', true],
+    ['נסיעות: עד 22.60 ₪ לכל יום עבודה (לא לכל משמרת). לא מגיעות ביום שבו המעסיק הסיע', 'צו ההרחבה בדבר השתתפות המעסיק בהוצאות נסיעה (11.8.2016), וצו השמירה 2014, סעיף 18. כל זכות, עודכן 12.1.2026', true],
+    ['שעות נוספות: ביום חול אחרי 8 שעות בשבוע של 6 ימים, ואחרי 8.6 בשבוע של 5 ימים. פער נקבע רק לפי 8.6. במשמרת לילה אחרי 7. 125% לשעתיים הראשונות ו-150% אחריהן. שבת וחג 150%, ושעה נוספת בהם 175% ואז 200%. השבת בענף: משישי 16:00 עד ראשון 04:00, שעות קבועות כל השנה, ולכן בצהריים של שישי שעה רגילה ו-7 שבת. חג כמו שבת: מ-16:00 בערב החג עד 04:00 במוצאי החג. תוספת כוללת של 9% במקום שעות נוספות בחול מותרת רק בהסכם בכתב', 'חוק שעות עבודה ומנוחה, צו 42 שעות (2018), צו השמירה 2014, סעיף 8. חלון השבת: צו השמירה 2022, סעיף 9 (כל זכות, עודכן 25.12.2025). כל זכות, עודכן 23.3.2026', true],
+    ['מס הכנסה 2026: 10% עד 7,010 ₪ בחודש, 14% עד 10,060, 20% עד 19,000, 31% עד 25,100, ומעל. נקודת זיכוי 242 ₪', 'כל זכות, מדרגות מס הכנסה 2026', true],
+    ['ביטוח לאומי ובריאות: 4.27% עד 7,703 ₪, ו-12.17% מעל זה', 'ביטוח לאומי, סף 2026', true],
+  ]
+}];
+function rulesFor(ym){ // ym = 'YYYY-MM'
+  const d = ym + '-01';
+  let r = null; for (const s of RULESETS) if (s.from <= d) r = s; return r;
+}
+
+/* ===================== עזרים ===================== */
+const r2 = x => Math.round((x + Number.EPSILON) * 100) / 100;
+const fmt = n => (n == null || isNaN(n)) ? '—' : n.toLocaleString('he-IL', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const fmtH = n => (Math.round(n * 100) / 100).toLocaleString('he-IL', {maximumFractionDigits: 2});
+const HEB = /[֐-׿]/;
+const isNum = s => /^-?[\d,]*\.?\d+%?$/.test(s.trim());
+const toNum = s => parseFloat(s.replace(/,/g, '').replace('%', ''));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const MONTHS = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+
+/* ===================== קריאת ה-PDF ===================== */
+// מנוע הקריאה הכבד נטען רק כשמעלים תלוש, ולא בפתיחת הדף
+const PDFJS_WORKER = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+async function readPdfItems(buf){
+  if (!window.pdfjsWorker) await loadScript(PDFJS_WORKER);
+  return readPdfItemsOnce(buf.slice());
+}
+async function readPdfItemsOnce(buf){
+  const pdf = await pdfjsLib.getDocument({data: buf, disableFontFace: true, isEvalSupported: false}).promise;
+  const pages = [];
+  for (let p = 1; p <= pdf.numPages; p++){
+    const page = await pdf.getPage(p);
+    const tc = await page.getTextContent();
+    pages.push(tc.items.filter(i => i.str && i.str.trim()).map(i => ({s: i.str.trim(), x: i.transform[4], y: i.transform[5]})));
+  }
+  return pages;
+}
+// תלושים שבהם העברית שמורה בקידוד ישן: מתרגמים את התווים לעברית
+function fixEncoding(s){
+  if (HEB.test(s)) return s;
+  const codes = [...s].map(c => c.charCodeAt(0));
+  if (!codes.some(c => c >= 0xC0 && c <= 0xFF)) return s;
+  if (codes.some(c => c > 255)) return s;
+  try { return new TextDecoder('windows-1255').decode(new Uint8Array(codes)); } catch(e){ return s; }
+}
+// עברית ששמורה מימין לשמאל הפוך: הופכים את הטקסט, ומחזירים מספרים וסימנים לסדר הנכון
+function unreverse(s){
+  if (!HEB.test(s)) return s;
+  let r = [...s].reverse().join('');
+  r = r.replace(/[^֐-׿\s]+/g, m => [...m].reverse().join(''));
+  return r.replace(/[()]/g, c => c === '(' ? ')' : '(');
+}
+function normalize(pages){
+  pages = pages.map(items => items.map(i => ({...i, s: fixEncoding(i.s)})));
+  const all = pages.flat().map(i => i.s).join(' ');
+  const reversed = /שולת|וטנ /.test(all) && !/תלוש/.test(all);
+  if (reversed) pages = pages.map(items => items.map(i => ({...i, s: unreverse(i.s)})));
+  return pages;
+}
+function toRows(items){
+  const sorted = [...items].sort((a, b) => b.y - a.y);
+  const rows = [];
+  for (const it of sorted){
+    const last = rows[rows.length - 1];
+    if (last && Math.abs(last.y - it.y) < 2) last.items.push(it); else rows.push({y: it.y, items: [it]});
+  }
+  rows.forEach(r => { r.items.sort((a, b) => b.x - a.x); r.text = r.items.map(i => i.s).join(' '); });
+  return rows;
+}
+
+/* ===================== מבנה תלוש: רשף ביטחון ===================== */
+function parseReshef(pages){
+  const p1 = toRows(pages[0]);
+  const p2 = pages[1] ? toRows(pages[1]) : [];
+  const leftVal = (re) => { // תווית בעמודה השמאלית, והמספר משמאלה
+    for (const r of p1){
+      const lab = r.items.find(i => i.x < 200 && re.test(i.s));
+      if (!lab) continue;
+      const v = r.items.filter(i => i.x < lab.x && isNum(i.s)).sort((a, b) => b.x - a.x)[0];
+      if (v) return toNum(v.s);
+    }
+    return null;
+  };
+  const yOf = (re) => { const r = p1.find(r => re.test(r.text)); return r ? r.y : null; };
+
+  // חודש
+  let month = null;
+  const mRow = p1.find(r => /תלוש שכר לחודש/.test(r.text));
+  if (mRow){
+    const mi = MONTHS.findIndex(m => mRow.text.includes(m));
+    const yr = (mRow.text.match(/20\d\d/) || [])[0];
+    if (mi >= 0 && yr) month = {ym: `${yr}-${String(mi + 1).padStart(2, '0')}`, label: `${MONTHS[mi]} ${yr}`};
+  }
+  // שורות התשלומים
+  const yPay = yOf(/פרוט התשלומים/), yDed = yOf(/ניכויי חובה - מסים/);
+  const lines = [];
+  for (const r of p1){
+    if (yPay == null || yDed == null || r.y >= yPay || r.y <= yDed) continue;
+    const it = r.items.filter(i => i.x > 170);
+    const code = it.filter(i => i.x > 545).map(i => i.s).join('');
+    if (!/\d/.test(code)) continue;
+    let name = it.filter(i => i.x > 360 && i.x <= 545 && !(/^\d+(\.\d+)?$/.test(i.s))).map(i => i.s).join(' ').replace(/\*/g, '').trim();
+    if (/הבראה/.test(name)) name = 'הבראה';
+    const nums = it.filter(i => i.x <= 360 && isNum(i.s));
+    const pick = (lo, hi) => { const n = nums.find(i => i.x >= lo && i.x < hi); return n ? toNum(n.s) : null; };
+    lines.push({code, name, rate: pick(290, 360), qty: pick(235, 290), amount: pick(165, 235)});
+  }
+  // ניכויי חובה
+  const deductions = {};
+  const hRow = p1.find(r => /מס הכנסה/.test(r.text) && /ביטוח לאומי/.test(r.text) && r.items.some(i => i.x > 400));
+  if (hRow){
+    const heads = hRow.items.filter(i => i.x > 200);
+    const vRow = p1.find(r => r.y < hRow.y && r.y > hRow.y - 25 && r.items.some(i => i.x > 200 && isNum(i.s)));
+    if (vRow) for (const v of vRow.items.filter(i => i.x > 200 && isNum(i.s))){
+      const h = heads.reduce((a, b) => Math.abs(b.x - v.x) < Math.abs(a.x - v.x) ? b : a);
+      deductions[h.s] = toNum(v.s);
+    }
+  }
+  // קופות גמל וקרן השתלמות
+  const yFundTop = yOf(/קופות גמל\/ביטוחים/), yFundEnd = yOf(/סה"כ ניכויים והפרשות לקופות/);
+  const funds = [];
+  for (const r of p1){
+    if (yFundTop == null || yFundEnd == null || r.y >= yFundTop || r.y <= yFundEnd) continue;
+    const it = r.items.filter(i => i.x > 160);
+    if (!it.some(i => i.x > 545 && /^\d+$/.test(i.s))) continue;
+    const type = it.filter(i => i.x > 330 && i.x < 500 && HEB.test(i.s)).map(i => i.s).join(' ');
+    const fundName = it.filter(i => i.x >= 500 && i.x < 548 && HEB.test(i.s)).map(i => i.s).join(' ');
+    const nums = it.filter(i => i.x < 330 && isNum(i.s));
+    const pick = (lo, hi) => { const n = nums.find(i => i.x >= lo && i.x < hi); return n ? toNum(n.s) : null; };
+    funds.push({type, fundName, base: pick(265, 330), employer: pick(215, 265) || 0, employee: pick(160, 215) || 0});
+  }
+  // עמוד 2
+  let kerenBase = null, minHour = null, seniorityMonths = null;
+  for (const r of p2){
+    if (/לקרן השתלמות/.test(r.text)){ const n = r.items.find(i => isNum(i.s)); if (n) kerenBase = toNum(n.s); }
+    if (/מינימום/.test(r.text)){ const i = r.items.findIndex(i => /לשעה/.test(i.s)); if (i >= 0 && r.items[i + 1] && isNum(r.items[i + 1].s)) minHour = toNum(r.items[i + 1].s); }
+    if (/ותק אצל המעסיק/.test(r.text)){ const ns = r.items.filter(i => /^\d+$/.test(i.s)).map(i => +i.s); if (ns.length >= 2) seniorityMonths = ns[0] * 12 + ns[1]; }
+  }
+  const startRow = p1.find(r => /תחילת עבודה/.test(r.text));
+  const startDate = startRow ? (startRow.text.match(/\d\d\/\d\d\/\d{4}/) || [null])[0] : null;
+  const credit = (() => { for (const r of p1){ const lab = r.items.find(i => i.s === 'נקודות זיכוי'); if (lab){ const v = r.items.find(i => i.x < lab.x && isNum(i.s)); if (v) return toNum(v.s); } } return null; })();
+
+  return {
+    employer: 'רשף ביטחון', month, lines, deductions, funds, kerenBase, minHour, seniorityMonths, startDate, creditPoints: credit,
+    gross: leftVal(/^סך-כל התשלומים$/), net: leftVal(/^נטו לתשלום$/),
+    taxTotal: leftVal(/^ניכויי חובה-מסים$/), fundTotal: leftVal(/^ניכוי קופות גמל$/), otherTotal: leftVal(/^ניכויים שונים$/) || 0,
+  };
+}
+function parsePayslip(pages){
+  pages = normalize(pages);
+  const all = pages.flat().map(i => i.s).join(' ');
+  if (/רשף/.test(all)) return parseReshef(pages);
+  return null;
+}
+
+/* ===================== משמרות ===================== */
+// shabbat = שעות המשמרת שנופלות בזמן שבת או חג. שבת: שישי 16:00 עד ראשון 04:00, שעות קבועות כל השנה (צו ההרחבה בענף השמירה 2022, סעיף 9)
+const SHIFT_TYPES = [
+  {id: 'morning', label: 'בוקר', time: '07:00–15:00', hours: 8, shabbat: 0, row: 1},
+  {id: 'noon', label: 'צהריים', time: '15:00–23:00', hours: 8, shabbat: 0, row: 1},
+  {id: 'night', label: 'לילה', time: '23:00–07:00', hours: 8, shabbat: 0, row: 1},
+  {id: 'motzash', label: 'מוצ"ש או מוצאי חג', time: '23:00–07:00', hours: 8, shabbat: 5, row: 1},
+  {id: 'friNoon', label: 'שישי צהריים או ערב חג', time: '15:00–23:00', hours: 8, shabbat: 7, row: 2},
+  {id: 'shabbat', label: 'שבת', time: '8 שעות', hours: 8, shabbat: 8, row: 2},
+  {id: 'friNight', label: 'לילה של שישי', time: '23:00–07:00', hours: 8, shabbat: 8, row: 2},
+  {id: 'holiday', label: 'חג', time: '8 שעות', hours: 8, shabbat: 8, row: 2},
+  // ראש משמרת (רמ"ש): תעריף אחיד (שכר כולל) לכל השעות, בלי שעות נוספות ובלי שבת וחג (החלטות 43-46)
+  {id: 'rDay', label: 'משמרת רמ"ש', time: '06:00–18:00', hours: 12, shabbat: 0, row: 3, ramash: true},
+  {id: 'rFri', label: 'שישי', time: '06:00–14:00', hours: 8, shabbat: 0, row: 3, ramash: true},
+];
+// כל משמרת שייכת לסוג עבודה: מאבטח, רמ"ש, או ראש צוות (אותם סוגי משמרות כמו מאבטח, בתעריף של ראש הצוות)
+for (const t of SHIFT_TYPES){ t.kind = t.ramash ? 'ramash' : 'guard'; t.base = t.id; }
+SHIFT_TYPES.push(...SHIFT_TYPES.filter(t => t.kind === 'guard').map(t => ({...t, id: 'L_' + t.id, kind: 'lead', base: t.id, row: t.row === 1 ? 4 : 5})));
+const KIND_NAME = {guard: 'מאבטח', ramash: 'רמ"ש', lead: 'ראש צוות'};
+// shifts = מונים לפי סוג, ועוד _len (אורך משמרת רמ"ש: 8 או 12) ו-_ovr (משמרות עם שעות אחרות: [{type, n, hours}])
+const typeHours = (t, sh) => t.id === 'rDay' ? ((sh && sh._len) || 12) : t.hours;
+function shiftGroups(sh){ // כל משמרת עם מספר השעות שלה: [{t, n, h}]
+  const out = [];
+  for (const t of SHIFT_TYPES){
+    let left = sh[t.id] || 0; if (!left) continue;
+    for (const o of ((sh && sh._ovr) || [])){
+      if (o.type !== t.id || !(o.n > 0) || !(o.hours > 0)) continue;
+      const n = Math.min(o.n, left); if (n){ out.push({t, n, h: o.hours, pre: o.pre || 0}); left -= n; }
+    }
+    if (left) out.push({t, n: left, h: typeHours(t, sh)});
+  }
+  return out;
+}
+function summarize(sh){
+  let count = 0, hours = 0, shabbat = 0;
+  for (const g of shiftGroups(sh)){ count += g.n; hours += g.n * g.h; shabbat += g.n * splitShift(g.t.base, g.h, 8, g.pre).shab; }
+  return {count, hours, shabbat};
+}
+
+/* ===================== שעות נוספות (כלל הענף: יום חול 8 שעות רגילות, לילה 7) ===================== */
+// משמרת של h שעות: כמה רגילות, כמה נוספות וכמה בשבת או בחג. ב-8 שעות זה בדיוק כלל הענף.
+// מעבר לזה לפי חוק שעות עבודה: שתיים ב-125% והשאר 150%. בשבת: שתיים ב-175% והשאר 200%
+const SHIFT_NAME = {morning: 'בוקר', noon: 'צהריים', night: 'לילה', motzash: 'לילה של מוצ"ש או מוצאי חג', friNoon: 'צהריים של שישי או ערב חג', shabbat: 'שבת', friNight: 'לילה של שישי', holiday: 'חג', rDay: 'משמרת רמ"ש', rFri: 'שישי של רמ"ש'};
+// dayLim: שעות רגילות במשמרת יום. 8 בשבוע של 6 ימים, 8.6 בשבוע של 5 ימים (חוק שעות עבודה ומנוחה, צו 42 שעות, 2018).
+// הבודק קובע פער רק לפי 8.6 (הקריאה המקלה עם המעסיק). הפרש בין 8 ל-8.6 מוצג כ"לשים לב"
+// pre = שעות שנוספו לפני תחילת המשמרת (מתיבת ההערות). משנה רק משמרות שהשבת מתחילה או נגמרת בתוכן
+function splitShift(id, h, dayLim = 8, pre = 0){
+  const S = {h100: 0, h125: 0, h150: 0, sh150: 0, sh175: 0, sh200: 0, r: 0, shab: 0};
+  const ot = (lim, rest) => { const o = Math.max(0, rest - lim); S.h125 += Math.min(o, 2); S.h150 += Math.max(0, o - 2); return rest - o; };
+  const shabOt = lim => { S.sh150 = Math.min(h, lim); const o = h - S.sh150; S.sh175 = Math.min(o, 2); S.sh200 = Math.max(0, o - 2); S.shab = h; };
+  if (id === 'friNoon'){ // 15:00-16:00 רגילה, ומ-16:00 שבת. שעות נוספות בסוף המשמרת, כלומר בשבת: 175% ואז 200%
+    const reg = Math.min(h, 1 + pre), shab = h - reg, o = Math.max(0, h - dayLim), oShab = Math.min(o, shab), oWeek = o - oShab;
+    S.h100 = reg - oWeek; S.h125 = Math.min(oWeek, 2); S.h150 = Math.max(0, oWeek - 2);
+    S.sh150 = shab - oShab; S.sh175 = Math.min(oShab, 2); S.sh200 = Math.max(0, oShab - 2); S.shab = shab;
+    return S;
+  }
+  if (id === 'rDay' || id === 'rFri') S.r = h; // רמ"ש: הכל בתעריף אחיד
+  else if (id === 'morning' || id === 'noon') S.h100 = ot(dayLim, h);
+  else if (id === 'night') S.h100 = ot(7, h);
+  else if (id === 'motzash'){ const sh = Math.min(h, 5 + pre); S.sh150 = sh; S.shab = sh; const o = Math.max(0, h - 7); S.h125 = Math.min(o, 2); S.h150 = Math.max(0, o - 2); S.h100 = Math.max(0, h - sh - o); }
+  else if (id === 'friNight') shabOt(7);
+  else shabOt(8); // שבת וחג
+  return S;
+}
+function splitWhy(id, h, pre = 0){
+  const s = splitShift(id, h, 8, pre), p = [];
+  if (s.r) return `${SHIFT_NAME[id]} (${fmtH(h)} שעות): הכל בתעריף רמ"ש, בלי תוספות`;
+  if (s.h100) p.push(`${fmtH(s.h100)} רגילות`); if (s.sh150) p.push(`${fmtH(s.sh150)} שבת או חג (150%)`);
+  if (s.h125) p.push(`${fmtH(s.h125)} ב-125%`); if (s.h150) p.push(`${fmtH(s.h150)} ב-150%`);
+  if (s.sh175) p.push(`${fmtH(s.sh175)} ב-175%`); if (s.sh200) p.push(`${fmtH(s.sh200)} ב-200%`);
+  return `${SHIFT_NAME[id]} (${fmtH(h)} שעות): ${p.join(', ')}`;
+}
+function expectedHours(sh, kind, dayLim = 8){ // kind ריק = כל סוגי העבודה יחד
+  const E = {h100: 0, h125: 0, h150: 0, sh150: 0, sh175: 0, sh200: 0, r: 0};
+  for (const g of shiftGroups(sh)){ if (kind && g.t.kind !== kind) continue; const s = splitShift(g.t.base, g.h, dayLim, g.pre); for (const k in E) E[k] += g.n * s[k]; }
+  return E;
+}
+// שעות "רגילות" (לא שעות נוספות): בסיס ההבראה וקרן ההשתלמות לפי הקריאה המצמצמת. שעות שבת בתוך המשמרת הרגילה נספרות
+const regularHours = E => E.h100 + E.r + E.sh150;
+const premUnits = E => 0.25 * E.h125 + 0.5 * E.h150 + 0.5 * E.sh150 + 0.75 * E.sh175 + 1 * E.sh200;
+// מה שולם בתלוש לפי סוג: מהשם של כל שורת שעות (125%, 150%, שבת, חג)
+// שורת "תוספת כוללת 9%" במקום גמול שעות נוספות בימי חול (צו 2014, סעיף 8(ב)(2)): חוקית רק בהסכמה בכתב
+const isNineLine = l => /(^|[^\d.])9\s*%/.test(l.name) && /כולל|גלובל|נוספות/.test(l.name) && !/ותק|הכשרה|תפקיד/.test(l.name);
+// שורה שמשלמת רק את התוספת (למשל "תוספת שבת 50%" ב-23.50 ₪), ולא את השעה כולה: התעריף בה נמוך בהרבה מתעריף השעה
+const isPremOnly = (l, baseRate) => (/תוספת/.test(l.name) && !/שעות/.test(l.name)) || (baseRate > 0 && l.rate != null && l.rate < baseRate * 0.6);
+function paidHoursByKind(L, rate, baseRate){
+  const P = {h100: 0, h125: 0, h150: 0, sh150: 0, sh175: 0, sh200: 0, premium: 0};
+  for (const l of L){
+    if (l.qty == null || l.rate == null || /הבראה|ימי עבודה/.test(l.name) || isNineLine(l)) continue;
+    const pct = (l.name.match(/(\d{3})%/) || [])[1];
+    if (pct === '175') P.sh175 += l.qty;
+    else if (pct === '200') P.sh200 += l.qty;
+    else if (/שבת|חג|מנוחה/.test(l.name)) P.sh150 += l.qty;
+    else if (pct === '125') P.h125 += l.qty;
+    else if (pct === '150') P.h150 += l.qty;
+    else if (/שכר יסוד/.test(l.name)) P.h100 += l.qty;
+    else continue;
+    // "התוספת" = מה ששולם על השעה פחות התעריף שמגיע. כך גם תעריף נמוך מדי על שעה נוספת נתפס כפער
+    if (!/שכר יסוד/.test(l.name)) P.premium += isPremOnly(l, baseRate) ? (l.amount || 0) : (l.amount || 0) - l.qty * rate;
+  }
+  P.premium = r2(P.premium);
+  return P;
+}
+function overtimeDetail(E, P, rate, counts){
+  const rows = [
+    ['שעות רגילות', '100%', E.h100, P.h100, 0],
+    ['שעה נוספת ראשונה ושנייה במשמרת', '125%', E.h125, P.h125, .25],
+    ['שעה נוספת שלישית והלאה', '150%', E.h150, P.h150, .5],
+    ['שעות בשבת ובחג', '150%', E.sh150, P.sh150, .5],
+    ['שעה נוספת ראשונה ושנייה בשבת', '175%', E.sh175, P.sh175, .75],
+    ['שעה נוספת שלישית והלאה בשבת', '200%', E.sh200, P.sh200, 1],
+  ].filter(r => r[2] || r[3]);
+  const used = shiftGroups(counts).map(g => `${g.n} × ${g.t.kind === 'guard' ? '' : KIND_NAME[g.t.kind] + ', '}${splitWhy(g.t.base, g.h, g.pre)}`);
+  return `<div class="ot">
+    <p class="note">איך זה חושב: ${used.map(esc).join(' · ')}.</p>
+    <div class="tbl-wrap"><table><thead><tr><th>סוג השעה</th><th class="n">מגיע</th><th class="n">שולם</th><th class="n">הפרש בתוספת</th></tr></thead><tbody>
+    ${rows.map(r => { const d = r2((r[2] - r[3]) * rate * r[4]); return `<tr><td>${esc(r[0])} <span class="note">(${r[1]})</span></td><td class="n">${fmtH(r[2])}</td><td class="n">${fmtH(r[3])}</td><td class="n">${r[4] ? (d > 0 ? 'חסר ' : d < 0 ? 'עודף ' : '') + fmt(Math.abs(d)) + ' ₪' : '—'}</td></tr>`; }).join('')}
+    </tbody></table></div>
+    <p class="note">"הפרש בתוספת" הוא רק החלק הנוסף על השכר הרגיל (25% או 50% מ-${fmt(rate)} ₪). שעות חסרות לגמרי נבדקות בשורה "שעות עבודה".</p>
+  </div>`;
+}
+
+/* ===================== הבדיקה ===================== */
+/* מס הכנסה וביטוח לאומי: חישוב חודשי */
+function bracketTax(inc, R){ let t = 0, lo = 0; for (const [hi, rate] of R.taxBrackets){ if (inc > lo) t += (Math.min(inc, hi) - lo) * rate; lo = hi; } return t; }
+function expectedTax(inc, points, pensEe, R){
+  const credit = R.pensionCreditRate * Math.min(pensEe, R.pensionCreditPct * Math.min(inc, R.pensionCreditSalaryCap));
+  return Math.max(0, bracketTax(inc, R) - points * R.creditPoint - credit);
+}
+function blCalc(inc, R){ const low = Math.min(inc, R.blThreshold), high = Math.max(0, Math.min(inc, R.blMax) - R.blThreshold); return low * R.blLow + high * R.blHigh; }
+const round10 = x => Math.round(x / 10) * 10;
+const fmt0 = n => Math.round(n).toLocaleString('he-IL');
+
+function check(slip, shifts, opts = {}){
+  const R = rulesFor(slip.month ? slip.month.ym : '1900-01');
+  const out = {checks: [], gapTotal: 0, rules: R};
+  const add = (status, title, why, amount, detail, extra) => { out.checks.push({status, title, why, amount, detail, extra}); if (status === 'gap' && amount > 0) out.gapTotal = r2(out.gapTotal + amount); };
+  const UNVERIFIED = ' הכלל הזה עוד לא אומת מול נוסח הצו, ולכן הפער לא נכנס להודעה למעסיק.';
+  if (!R){ add('skip', 'אין כללים לחודש הזה', 'הבדיקה מכירה את הכללים רק מאפריל 2026.'); return out; }
+
+  const L = slip.lines;
+  // הדרגה והשכר האישי (שלב 2). שום דבר מזה לא נשמר ולא נשלח
+  const PR = opts.profile || {role: 'guard', vars: []};
+  const isGlobal = PR.role === 'lead' && PR.payType === 'global';
+  const S = summarize(shifts);
+  // בשכר גלובלי, משמרות ראש הצוות עצמן כלולות בסכום הגלובלי, ולא נספרות מול שעות בתלוש
+  const leadH = isGlobal ? summarize(Object.fromEntries(Object.entries(shifts).filter(([k]) => k.startsWith('L_') || k.startsWith('_')))).hours : 0;
+  const worked = S.hours - leadH, hasShifts = S.count > 0;
+  const globalLine = isGlobal && PR.leadLine !== '' && PR.leadLine != null ? L[+PR.leadLine] : null;
+  const base = isGlobal ? globalLine : L.find(l => /שכר יסוד/.test(l.name));
+  // תעריף השעה הרגיל בתלוש, כדי לזהות שורות שמשלמות רק את התוספת (בלי השעה עצמה)
+  const gHour = isGlobal ? (PR.leadHour > 0 ? PR.leadHour : (PR.leadGlobal > 0 ? PR.leadGlobal / R.globalDivisor : null)) : null;
+  const baseRateSlip = (() => { const rs = L.filter(l => /שכר יסוד/.test(l.name)).map(l => l.rate > 0 ? l.rate : (l.qty > 0 && l.amount > 0 ? l.amount / l.qty : null)).filter(x => x > 0); return rs.length ? Math.min(...rs) : gHour; })();
+  const nines = L.filter(isNineLine), nine = nines[0], nineSum = r2(nines.reduce((a, l) => a + (l.amount || 0), 0));
+  // שעות ששולמו בתוספת. לא נספרות: שורת 9% ושורות של תוספת בלבד, כי השעות שלהן כבר בשכר היסוד
+  const extra = L.filter(l => (/%/.test(l.name) || /שבת|חג|מנוחה/.test(l.name)) && !/הבראה|נסיעות|שכר יסוד/.test(l.name) && l.qty != null && !isNineLine(l) && !isPremOnly(l, baseRateSlip));
+  const havraa = L.find(l => /הבראה/.test(l.name));
+  const travel = L.find(l => /נסיעות/.test(l.name));
+  const days = L.find(l => /ימי עבודה/.test(l.name));
+  const paidHours = L.filter(l => /שכר יסוד/.test(l.name) && l.qty && l !== globalLine).reduce((a, l) => a + l.qty, 0) + extra.reduce((a, l) => a + l.qty, 0);
+  const hourValue = isGlobal ? (PR.leadHour > 0 ? PR.leadHour : (PR.leadGlobal > 0 ? r2(PR.leadGlobal / R.globalDivisor) : null)) : null;
+  // שורות "שכר יסוד" (יכולות להיות כמה, למשל מאבטח ורמ"ש). בשכר גלובלי השורה הגלובלית לא ביניהן
+  const baseLines = L.filter(l => /שכר יסוד/.test(l.name) && l.qty && l !== globalLine);
+  // התעריף של כל סוג עבודה: מאבטח 47, רמ"ש 52. ראש צוות מקליד תעריף לכל סוג עבודה שבחר (החלטה 47)
+  const isLead = PR.role === 'lead';
+  const kindRate = {
+    guard: isLead ? (PR.leadGuardRate > 0 ? PR.leadGuardRate : null) : R.roleRates.guard,
+    ramash: isLead ? (PR.leadRamashRate > 0 ? PR.leadRamashRate : null) : R.roleRates.ramash,
+    lead: isLead ? (isGlobal ? hourValue : (PR.leadRate > 0 ? PR.leadRate : null)) : null,
+  };
+  const EK = {guard: expectedHours(shifts, 'guard'), ramash: expectedHours(shifts, 'ramash'), lead: expectedHours(shifts, 'lead')};
+  // שעות שנכנסות לשורות "שכר יסוד": רגילות של מאבטח וראש צוות שעתי, וכל שעות הרמ"ש
+  const baseH = {guard: EK.guard.h100, ramash: EK.ramash.r, lead: isGlobal ? 0 : EK.lead.h100};
+  const missingRate = Object.keys(baseH).filter(k => (baseH[k] || premUnits(EK[k])) && kindRate[k] == null);
+  let expRate = null, rateHow = '';
+  if (!missingRate.length){
+    const tot = baseH.guard + baseH.ramash + baseH.lead;
+    if (!tot){ const own = isLead ? (isGlobal ? null : 'lead') : PR.role; if (own && kindRate[own] != null){ expRate = kindRate[own]; rateHow = `${KIND_NAME[own]}: ${fmt(expRate)} ₪ לשעה`; } }
+    else {
+      expRate = r2(Object.keys(baseH).reduce((a, k) => a + baseH[k] * (kindRate[k] || 0), 0) / tot);
+      const used = Object.keys(baseH).filter(k => baseH[k]);
+      rateHow = used.length > 1 ? used.map(k => `${fmtH(baseH[k])} שעות כ${KIND_NAME[k]} (${fmt(kindRate[k])} ₪)`).join(' ו-') + `: בממוצע ${fmt(expRate)} ₪ לשעה`
+        : `${KIND_NAME[used[0]]}: ${fmt(expRate)} ₪ לשעה`;
+    }
+  }
+  // תעריף לחישוב התוספת על שעות נוספות: ממוצע לפי סוגי העבודה שיש בהם שעות נוספות
+  const pu = {guard: premUnits(EK.guard), lead: premUnits(EK.lead)};
+  const expPremAll = r2((kindRate.guard || 0) * pu.guard + (kindRate.lead || 0) * pu.lead);
+  // אותו חישוב לפי שבוע של 5 ימים (8.6 שעות רגילות במשמרת יום): הסכום הנמוך יותר. פער נקבע רק מעליו
+  const EK5 = {guard: expectedHours(shifts, 'guard', 8.6), lead: expectedHours(shifts, 'lead', 8.6)};
+  const expPremLow = r2((kindRate.guard || 0) * premUnits(EK5.guard) + (kindRate.lead || 0) * premUnits(EK5.lead));
+  const rate = pu.guard + pu.lead ? r2(expPremAll / (pu.guard + pu.lead))
+    : (isGlobal ? hourValue : (baseLines.length ? Math.min(...baseLines.map(l => l.rate).filter(x => x != null)) : (base ? base.rate : null)));
+
+  // 1. שעות (בשכר גלובלי השעות לא משנות את הבסיס)
+  if (isGlobal && !worked && !paidHours) add('skip', 'שעות עבודה', 'בשכר גלובלי הבסיס לא תלוי במספר השעות, ולכן בודקים את הסכום הגלובלי במקום.');
+  else if (!hasShifts) add('skip', 'שעות עבודה', `בתלוש שולמו ${fmtH(paidHours)} שעות. לא הוזנו משמרות, ולכן אין למה להשוות.`);
+  else if (!isGlobal && !baseLines.length && !extra.length) add('skip', 'שעות עבודה', 'לא מצאתי בתלוש שורת "שכר יסוד" עם מספר שעות, ולכן אי אפשר לספור כמה שעות שולמו. אם השכר מופיע בשם אחר, דווח לנו בעיגול העזרה.');
+  else if (worked - paidHours > 0.01){
+    const miss = worked - paidHours, hr = expRate || rate;
+    add('gap', 'חסרות שעות', `עבדת ${fmtH(worked)} שעות לפי המשמרות, ושולמו ${fmtH(paidHours)}. חסרות ${fmtH(miss)} שעות, לפי ${fmt(hr)} ₪ לשעה.`, r2(miss * hr));
+  } else if (paidHours - worked > 0.01){
+    add('info', 'שעות עבודה', `ספרת ${fmtH(worked)} שעות, ובתלוש שולמו ${fmtH(paidHours)}, כלומר ${fmtH(paidHours - worked)} שעות יותר. כנראה חסרה משמרת ברשימה. בדוק את המשמרות למעלה ותקן, ואז בדוק שוב.`);
+  } else add('ok', 'שעות עבודה', `עבדת ${fmtH(worked)} שעות, ושולמו ${fmtH(paidHours)}` + (extra.length ? ` (מתוכן ${fmtH(extra.reduce((a, l) => a + l.qty, 0))} בתוספת: ${extra.map(l => l.name.replace(/שעות\s*/, '')).join(', ')}).` : '.'));
+
+  // 2. תעריף, או שכר גלובלי
+  if (isGlobal){
+    if (!(PR.leadGlobal > 0)) add('skip', 'שכר גלובלי', 'לא הקלדת את השכר הגלובלי, ולכן אין למה להשוות.');
+    else if (!globalLine) add('skip', 'שכר גלובלי', 'בחר בשלב 2 באיזו שורה בתלוש מופיע השכר הגלובלי.');
+    else if (PR.leadGlobal - globalLine.amount > 0.5) add('gap', 'שכר גלובלי', `השכר הגלובלי שלך ${fmt(PR.leadGlobal)} ₪, ובשורה "${globalLine.name}" שולמו ${fmt(globalLine.amount)} ₪.`, r2(PR.leadGlobal - globalLine.amount));
+    else add('ok', 'שכר גלובלי', `בשורה "${globalLine.name}" שולמו ${fmt(globalLine.amount)} ₪, כמו השכר הגלובלי שהקלדת.` + (hourValue ? ` שעות נוספות נבדקות לפי ${fmt(hourValue)} ₪ לשעה${PR.leadHour > 0 ? '' : ` (השכר חלקי ${R.globalDivisor})`}.` : ''));
+  }
+  if (baseLines.length){
+    const bq = baseLines.reduce((a, l) => a + l.qty, 0), paidRate = r2(baseLines.reduce((a, l) => a + (l.amount || 0), 0) / bq);
+    if (expRate == null) add('skip', 'תעריף לשעה', `בתלוש ${fmt(paidRate)} ₪ לשעה. כדי לבדוק אותו, הקלד בשלב 2 את התעריף שלך` + (missingRate.length ? ` למשמרות ${missingRate.map(k => KIND_NAME[k]).join(' ול')}.` : '.'));
+    else if (expRate - paidRate > 0.005) add('gap', 'תעריף לשעה', `בתלוש שולמו ${fmt(paidRate)} ₪ לשעה. לפי ${rateHow}.`, r2((expRate - paidRate) * bq));
+    else add('ok', 'תעריף לשעה', `${fmt(paidRate)} ₪ לשעה, כמו שמגיע (${rateHow}).`);
+    if (expRate != null && expRate + 0.001 < R.sectorMinHour) add('info', 'שכר מינימום בענף', `השכר שהקלדת (${fmt(expRate)} ₪) נמוך משכר המינימום בענף (${fmt(R.sectorMinHour)} ₪ לשעה). כדאי לבדוק.`);
+  }
+
+  // 3א. שעות נוספות ותוספת שבת, מיד מתחת לתעריף: מה מגיע לפי המשמרות מול מה ששולם
+  if (rate != null){
+    const P = paidHoursByKind(L, rate, baseRateSlip);
+    const parts = h => [h.h125 && `${fmtH(h.h125)} ב-125%`, h.h150 && `${fmtH(h.h150)} ב-150%`, h.sh150 && `${fmtH(h.sh150)} שעות שבת וחג`, h.sh175 && `${fmtH(h.sh175)} שעות נוספות בשבת (175%)`, h.sh200 && `${fmtH(h.sh200)} שעות נוספות בשבת (200%)`].filter(Boolean).join(', ') || 'אין';
+    if (!hasShifts) add('skip', 'שעות נוספות', `בתלוש שולמו: ${parts(P)}. כדי לבדוק אם זה נכון, הוסף את המשמרות למעלה.`);
+    else if (missingRate.some(k => k !== 'ramash')) add('skip', 'שעות נוספות', `בתלוש שולמו: ${parts(P)}. כדי לבדוק, הקלד בשלב 2 את התעריף שלך למשמרות ${missingRate.map(k => KIND_NAME[k]).join(' ול')}.`);
+    else {
+      const E = expectedHours(shifts);
+      let expPrem = expPremAll, expLow = expPremLow, nineNote = '';
+      if (nine){
+        // הסכם 9%: במקום תוספת על שעות נוספות בימי חול, 9% על כל שעות החול. בשבת ובחג ההסכם לא חל
+        const wk = h => h.h100 + h.h125 + h.h150, shabU = h => 0.5 * h.sh150 + 0.75 * h.sh175 + 1 * h.sh200;
+        const expNine = r2(0.09 * rate * (wk(EK.guard) + wk(EK.lead)));
+        const shabPrem = r2((kindRate.guard || 0) * shabU(EK.guard) + (kindRate.lead || 0) * shabU(EK.lead));
+        const fullOt = expPremAll;
+        // פער רק מתחת לשתי הקריאות: עם הסכם (9%) ובלי הסכם (גמול מלא לפי 8.6)
+        expLow = Math.min(r2(shabPrem + expNine), expPremLow); expPrem = Math.max(r2(shabPrem + expNine), expPremLow);
+        P.premium = r2(P.premium + nineSum);
+        nineNote = ` בתלוש יש "${nine.name}" (${fmt(nineSum)} ₪): תוספת כוללת של 9% על כל שעות החול, במקום תשלום על כל שעה נוספת. זה חוקי רק אם חתמת על הסכם בכתב, ואפשר לבטל אותו בהודעה של 30 יום (צו ההרחבה בענף השמירה 2014, סעיף 8(ב)). אם לא חתמת, מגיע לך תשלום מלא על השעות הנוספות: ${fmt(fullOt)} ₪ בתוספות במקום ${fmt(expPrem)} ₪.`;
+      }
+      const diff = r2(expPrem - P.premium), diffLow = r2(expLow - P.premium);
+      const short = `לפי המשמרות מגיע לך: ${parts(E)}. בתלוש שולם: ${parts(P)}.` + (E.r ? ` משמרות רמ"ש (${fmtH(E.r)} שעות) משולמות בתעריף אחיד, בלי תוספות.` : '') + nineNote;
+      const detail = overtimeDetail(E, P, rate, shifts);
+      const any = E.h125 + E.h150 + E.sh150 + E.sh175 + E.sh200;
+      const week = ` הבודק מחשב משמרת יום לפי 8 שעות רגילות (שבוע של 6 ימים). בשבוע של 5 ימים היום הרגיל הוא 8.6 שעות, ואז מגיע ${fmt(expLow)} ₪ בתוספות.`;
+      if (Math.abs(diff) <= 0.5) add('ok', 'שעות נוספות', any ? short + ' זה תואם.' : 'לפי המשמרות שספרת לא מגיעות לך שעות נוספות או תוספת שבת, ובתלוש גם לא שולמו.', 0, any ? detail : null);
+      else if (diffLow > 0.5) add('gap', 'שעות נוספות', short + ` התוספות ששולמו נמוכות ב-${fmt(diffLow)} ₪ ממה שמגיע.` + (diff - diffLow > 0.5 ? ` אם אתה עובד 6 ימים בשבוע, חסרים עוד ${fmt(r2(diff - diffLow))} ₪.` : ''), diffLow, detail);
+      else if (diff > 0.5) add('info', 'שעות נוספות', short + ` התוספות ששולמו נמוכות ב-${fmt(diff)} ₪ מהחישוב לפי שבוע של 6 ימים.` + week + ' לכן זה פער רק אם אתה עובד 6 ימים בשבוע.', 0, detail);
+      else add('info', 'שעות נוספות', short + ` שולם לך ${fmt(-diff)} ₪ יותר ממה שיוצא לפי המשמרות. זה לטובתך, אבל כדאי לוודא שספרת את כל המשמרות נכון.`, 0, detail);
+    }
+  }
+
+  // 4. הבראה
+  // שתי קריאות: (א) רק שעות רגילות, כמו שרשף מחשבת בפועל (הקריאה המצמצמת), (ב) כל השעות כולל שעות נוספות.
+  // פער נקבע רק לפי (א). שעות רגילות = הנמוך מבין מה שיוצא מהמשמרות לבין מה ששולם כשעות רגילות בתלוש
+  const paidRegular = baseLines.reduce((a, l) => a + l.qty, 0) + extra.filter(l => /שבת|חג|מנוחה/.test(l.name) && !/175|200/.test(l.name)).reduce((a, l) => a + l.qty, 0);
+  const regH = hasShifts ? Math.min(regularHours(expectedHours(shifts, '', 8.6)), paidRegular || Infinity) : paidRegular;
+  const allH = hasShifts ? S.hours : paidHours;
+  const hReg = Math.min(regH, R.havraaCapHours), hAll = Math.min(allH, R.havraaCapHours);
+  const expHReg = r2(hReg * R.havraaPerHour), expHAll = r2(hAll * R.havraaPerHour), paidHv = havraa ? havraa.amount : 0;
+  if (isGlobal && havraa && expHReg - paidHv > 0.5) add('info', 'הבראה', `שולמו ${fmt(paidHv)} ₪ הבראה. בשכר חודשי ההבראה יכולה להיות משולמת פעם בשנה (צו 2014, סעיף 11(ה)), ולכן הבודק לא משווה אותה לשעות. כדאי לוודא שבשנה כולה קיבלת 7 ימי הבראה לפחות.`);
+  else if (isGlobal && !havraa) add('info', 'הבראה', 'אין שורת הבראה בתלוש. לעובד בשכר חודשי מותר לשלם את ההבראה פעם בשנה, במשכורות יוני עד ספטמבר (צו ההרחבה 2014, סעיף 11(ה)). אם עברו החודשים האלה ולא קיבלת, זה פער.');
+  else if (expHReg - paidHv > 0.5) add('gap', 'הבראה', `מגיע ${fmt(R.havraaPerHour)} ₪ על כל שעת עבודה רגילה: ${fmtH(hReg)} שעות הן ${fmt(expHReg)} ₪. שולמו ${fmt(paidHv)} ₪` + (havraa && havraa.qty ? `, על ${fmtH(havraa.qty)} שעות בלבד.` : '.'), r2(expHReg - paidHv));
+  else if (expHAll - paidHv > 0.5) add('info', 'הבראה', `שולמו ${fmt(paidHv)} ₪, על השעות הרגילות (${fmtH(hReg)} שעות). על השעות הנוספות (${fmtH(hAll - hReg)}) לא שולמה הבראה. לא ברור אם מגיעה עליהן הבראה, ולכן זה לא נספר כפער.`);
+  else add('ok', 'הבראה', `שולמו ${fmt(paidHv)} ₪, כמו שמגיע על ${fmtH(hAll)} שעות.`);
+
+  // 5. ימי עבודה ונסיעות
+  if (travel){
+    const dCount = days ? days.qty : null;
+    const nShiftDays = S.count;
+    const perDay = dCount ? r2(travel.amount / dCount) : null;
+    // נסיעות משולמות לפי יום עבודה ולא לפי משמרת, ולא על ימים שבהם המעסיק הסיע (כל זכות, החזר הוצאות נסיעה).
+    // הבודק סופר משמרות ולא ימים, ולכן שתי משמרות באותו יום או הסעה נראות כמו יום חסר. מוצג כ"לשים לב", לא כפער
+    if (hasShifts && dCount != null && nShiftDays > dCount){
+      add('info', 'נסיעות', `ספרת ${nShiftDays} משמרות, והנסיעות שולמו על ${dCount} ימים (${fmt(perDay)} ₪ ליום). אם כל משמרת הייתה ביום אחר והגעת בעצמך, חסרים ${fmt(r2((nShiftDays - dCount) * perDay))} ₪. אבל נסיעות משולמות לפי יום ולא לפי משמרת: שתי משמרות באותו יום הן יום נסיעה אחד, וביום שבו המעסיק הסיע אותך לא מגיעות נסיעות.`);
+    } else add('ok', 'נסיעות', `${fmt(travel.amount)} ₪` + (dCount ? ` על ${fmtH(dCount)} ימי עבודה, ${fmt(perDay)} ₪ ליום.` : '.'));
+  }
+
+  // 6. פנסיה ופיצויים
+  const pens = slip.funds.filter(f => /קצבה|פנסי|תגמולים|פיצויים/.test(f.type));
+  // בסיס של שעות נוספות ושבת (פיצויים 6%): שורה אחת, או כל שורות התוספת יחד (כולל 9% ושורות של תוספת בלבד)
+  const extraAll = L.filter(l => (/%/.test(l.name) || /שבת|חג|מנוחה/.test(l.name)) && l.amount && !/הבראה|נסיעות/.test(l.name));
+  const extraSum = r2(extraAll.reduce((a, l) => a + l.amount, 0));
+  const isExtraBase = f => extraAll.some(l => Math.abs(l.amount - f.base) < 0.02) || (extraAll.length > 1 && Math.abs(extraSum - f.base) < 0.02);
+  const isTravelBase = f => travel && f.base > 0 && (Math.abs(travel.amount - f.base) < 0.02 || (f.base <= travel.amount + 0.5 && f.base >= travel.amount * 0.5 && Math.abs(f.employer - f.base * R.pensionTravel) < 0.1));
+  let pensionGap = 0; const pensionNotes = [];
+  for (const f of pens){
+    if (!(f.base > 0)){ pensionNotes.push(`בשורת "${f.type}" לא הצלחתי לקרוא את הבסיס, ולכן היא לא נבדקה`); continue; }
+    if (isTravelBase(f)) continue;
+    const sev = /פיצויים/.test(f.type);
+    const expEr = r2(f.base * (sev ? (isExtraBase(f) ? R.severanceExtras : R.severance) : R.pensionEmployer));
+    const expEe = sev ? 0 : r2(f.base * R.pensionEmployee);
+    if (expEr - f.employer > 0.1){ pensionGap += expEr - f.employer; pensionNotes.push(`${sev ? 'פיצויים' : 'פנסיה'} על ${fmt(f.base)} ₪: הופקדו ${fmt(f.employer)} ₪ במקום ${fmt(expEr)} ₪`); }
+    if (!sev && Math.abs(expEe - f.employee) > 0.1) pensionNotes.push(`ניכוי עובד על ${fmt(f.base)} ₪: ${fmt(f.employee)} ₪, הצפוי ${fmt(expEe)} ₪`);
+  }
+  const mainP = pens.find(f => f.base > 0 && !/פיצויים/.test(f.type) && !isExtraBase(f) && !isTravelBase(f));
+  // בסיס הפנסיה: כל שורות שכר היסוד (מאבטח ורמ"ש) והשכר הגלובלי, ועוד ההבראה
+  const pensBaseExp = r2(baseLines.reduce((a, l) => a + (l.amount || 0), 0) + (globalLine ? globalLine.amount || 0 : 0) + paidHv);
+  if (mainP && pensBaseExp - mainP.base > 0.5){ pensionGap += (pensBaseExp - mainP.base) * (R.pensionEmployer + R.severance); pensionNotes.push(`הפנסיה חושבה על ${fmt(mainP.base)} ₪, ושכר היסוד וההבראה הם ${fmt(pensBaseExp)} ₪`); }
+  // פנסיה על הנסיעות: 5% מהמעסיק ו-5% מהעובד (צו ההרחבה בענף השמירה 2014, סעיף 9(ב)(3); כל זכות, עודכן 21.12.2025)
+  if (pens.length && travel && travel.amount > 0){
+    const tf = pens.filter(isTravelBase), tErExp = r2(travel.amount * R.pensionTravel);
+    const tEr = tf.reduce((a, f) => a + f.employer, 0), tEe = tf.reduce((a, f) => a + f.employee, 0);
+    if (!tf.length){
+      // אולי הנסיעות כלולות בבסיס של שורת הפנסיה הראשית: אז לא מדווחים פער, רק מסבירים
+      const inMain = mainP && mainP.base - pensBaseExp > travel.amount - 0.5;
+      if (inMain) pensionNotes.push(`הנסיעות (${fmt(travel.amount)} ₪) כנראה כלולות בבסיס הפנסיה הראשי`);
+      else { pensionGap += tErExp; pensionNotes.push(`לא הופקדה פנסיה על הנסיעות (${fmt(travel.amount)} ₪). המעסיק מפקיד עליהן 5%: ${fmt(tErExp)} ₪`); }
+    } else if (tErExp - tEr > 0.5){ pensionGap += tErExp - tEr; pensionNotes.push(`פנסיה על הנסיעות (${fmt(travel.amount)} ₪): הופקדו ${fmt(tEr)} ₪ במקום ${fmt(tErExp)} ₪ (5%)`); }
+    if (tf.length && tEe - r2(travel.amount * R.pensionTravel) > 0.1) pensionNotes.push(`על הנסיעות נוכו ממך ${fmt(tEe)} ₪, יותר מ-5% (${fmt(tErExp)} ₪)`);
+  }
+  if (!pens.length) add('info', 'פנסיה', 'אין הפרשה לפנסיה בתלוש הזה. לפי הצו הפנסיה מתחילה אחרי חודש עבודה, רטרואקטיבית מהיום הראשון. אם עבדת יותר מחודש, כדאי לברר.');
+  else if (pensionGap > 0.1) add('gap', 'פנסיה ופיצויים', pensionNotes.join('. ') + '.', r2(pensionGap));
+  else add('ok', 'פנסיה ופיצויים', `המעסיק הפריש ${fmt(pens.reduce((a, f) => a + f.employer, 0))} ₪ ונוכו ממך ${fmt(pens.reduce((a, f) => a + f.employee, 0))} ₪, לפי האחוזים בצו.` + (pensionNotes.length ? ' ' + pensionNotes.join('. ') + '.' : ''));
+
+  // 7. קרן השתלמות
+  const keren = slip.funds.find(f => /השתלמות/.test(f.type));
+  // כמו בהבראה: פער רק לפי השעות הרגילות (כך רשף מחשבת, וכך "שעות העבודה הרגילות" אצל סבג). על שעות נוספות: "לשים לב"
+  const kH = Math.min(regH, R.kerenCapHours), kHAll = Math.min(allH, R.kerenCapHours);
+  const kBaseExp = r2(kH * R.generalMinHour + paidHv), kErExp = r2(kBaseExp * R.kerenEmployer);
+  const kErAll = r2((kHAll * R.generalMinHour + paidHv) * R.kerenEmployer);
+  // בשכר גלובלי אין מקור לבסיס של עובד חודשי, ולכן רק "לשים לב"
+  const kSev = R.verified.keren && !isGlobal ? 'gap' : 'info', kNote = !R.verified.keren ? UNVERIFIED : (isGlobal ? ' בשכר חודשי (גלובלי) הצו לא אומר במפורש איך מחשבים את הבסיס, ולכן זה לא נספר כפער.' : '');
+  const kHow = `${fmtH(kH)} שעות כפול שכר המינימום (${fmt(R.generalMinHour)} ₪), ועוד ההבראה (${fmt(paidHv)} ₪), הם ${fmt(kBaseExp)} ₪`;
+  if (!keren){
+    const early = slip.seniorityMonths != null && slip.seniorityMonths < 2;
+    if (early && !R.kerenFromDayOne) add('info', 'קרן השתלמות', `אין הפקדה עדיין. בחודשיים הראשונים זה תקין, וההפקדה צריכה להגיע אחר כך גם על החודשים האלה (${fmt(kErExp)} ₪ מהמעסיק על החודש הזה).`);
+    else {
+      const dayOne = early ? ' ברשף מפקידים קרן השתלמות מהיום הראשון. לפי הצו מותר לחכות חודשיים ולהפקיד אחר כך גם על החודשים האלה, ולכן אם ההפקדה תגיע בחודש השלישי, היא תכסה גם את החודש הזה.' : '';
+      add(kSev, 'קרן השתלמות', `לא הופקדה קרן השתלמות. לפי הצו המעסיק מפקיד 7.5% מהבסיס: ${kHow}. כלומר ${fmt(kErExp)} ₪ על החודש הזה.` + dayOne + kNote, kSev === 'gap' ? kErExp : 0);
+      if (kSev === 'info') out.kerenUnverified = kErExp;
+    }
+  } else {
+    // הפקדה גבוהה מהצפוי (למשל הפקדה רטרואקטיבית על חודשים קודמים) היא לא פער
+    if (kErExp - keren.employer > 0.5){
+      add(kSev, 'קרן השתלמות', `המעסיק הפקיד ${fmt(keren.employer)} ₪, על בסיס ${fmt(keren.base)} ₪. לפי הצו הבסיס הוא ${kHow}, ומגיע ${fmt(kErExp)} ₪, כלומר ${fmt(r2(kErExp - keren.employer))} ₪ יותר.` + kNote, kSev === 'gap' ? r2(kErExp - keren.employer) : 0);
+      if (kSev === 'info') out.kerenUnverified = r2(kErExp - keren.employer); // נספר בסטטיסטיקה (החלטה 34) גם כשהכלל לא אומת
+    } else if (kErAll - keren.employer > 0.5) add('info', 'קרן השתלמות', `המעסיק הפקיד ${fmt(keren.employer)} ₪, על השעות הרגילות (${kHow}). על ${fmtH(kHAll - kH)} השעות הנוספות לא הופקד (עוד ${fmt(r2(kErAll - keren.employer))} ₪). לא ברור אם שעות נוספות נכנסות לבסיס, ולכן זה לא נספר כפער.`);
+    else add('ok', 'קרן השתלמות', `המעסיק הפקיד ${fmt(keren.employer)} ₪ ונוכו ממך ${fmt(keren.employee)} ₪. הבסיס לפי הצו: ${kHow}. בתלוש הבסיס ${fmt(keren.base)} ₪.`);
+    // ניכוי עודף: נוכה מהעובד יותר מ-2.5% מהבסיס שמופיע בתלוש עצמו
+    const exE = r2((keren.base || 0) * R.kerenEmployee), over = r2(keren.employee - exE);
+    if (keren.base > 0 && over > 0.5) add('gap', 'קרן השתלמות - ניכוי ממך', `נוכו ממך ${fmt(keren.employee)} ₪ לקרן ההשתלמות, אבל חלק העובד הוא 2.5% מהבסיס שבתלוש (${fmt(keren.base)} ₪), כלומר ${fmt(exE)} ₪. נוכו ממך ${fmt(over)} ₪ יותר מדי.`, over);
+  }
+
+  // 7א. תוספות אישיות (שלב 4): סכום ליחידה כפול כמות, מול השורה שהעובד בחר
+  for (const v of (PR.vars || [])){
+    const exp = r2((v.unit || 0) * (v.qty || 0));
+    if (!(exp > 0)) continue;
+    const title = v.name || 'תוספת';
+    const line = v.line !== '' && v.line != null ? L[+v.line] : null;
+    const paid = line ? (line.amount || 0) : 0;
+    const how = `${fmtH(v.qty)} × ${fmt(v.unit)} ₪ = ${fmt(exp)} ₪`;
+    if (exp - paid > 0.5) add('gap', title, line ? `מגיע ${how}. בשורה "${line.name}" שולמו ${fmt(paid)} ₪.` : `מגיע ${how}, ולא בחרת שורה בתלוש, כלומר לא שולם.`, r2(exp - paid));
+    else add('ok', title, `מגיע ${how}. בשורה "${line.name}" שולמו ${fmt(paid)} ₪.`);
+  }
+
+  // 8. חשבון הנטו
+  const dedTotal = (slip.taxTotal || 0) + (slip.fundTotal || 0) + (slip.otherTotal || 0);
+  const netExp = r2((slip.gross || 0) - dedTotal);
+  if (slip.net != null && Math.abs(netExp - slip.net) > 0.05) add('gap', 'חשבון הנטו', `ברוטו ${fmt(slip.gross)} פחות ניכויים ${fmt(dedTotal)} הם ${fmt(netExp)} ₪, ובתלוש כתוב נטו ${fmt(slip.net)} ₪.`, r2(netExp - slip.net));
+  else add('ok', 'חשבון הנטו', `ברוטו ${fmt(slip.gross)} ₪ פחות ניכויים ${fmt(dedTotal)} ₪ שווה בדיוק לנטו ${fmt(slip.net)} ₪.`);
+
+  // 9. מס הכנסה (פער כאן אף פעם לא "חסר": מס שנוכה ביתר חוזר מרשות המסים, לא מהמעסיק)
+  const d = slip.deductions || {}, gross = slip.gross || 0, og = opts.otherGross > 0 ? opts.otherGross : 0;
+  const taxPaid = d['מס הכנסה'] || 0;
+  const pensEe = slip.funds.filter(f => !/השתלמות|פיצויים/.test(f.type)).reduce((a, f) => a + f.employee, 0);
+  const pts = slip.creditPoints;
+  const jobForm = og
+    ? `<div class="job"><span>עבודה נוספת: ${fmt(og)} ₪ ברוטו בחודש.</span> <button type="button" class="linkish" id="jobClear">הסר</button></div>`
+    : `<div class="job"><button type="button" class="linkish" id="jobOpen">יש לי עבודה נוספת</button><span class="jobIn" hidden><label for="jobGross">ברוטו שם בחודש הזה</label><input type="number" id="jobGross" inputmode="decimal" min="0" step="1" placeholder="למשל 1500"><button type="button" id="jobRun">חשב</button></span></div>`;
+  if (pts == null) add('skip', 'מס הכנסה', `נוכו ${fmt(taxPaid)} ₪. לא מצאתי בתלוש את נקודות הזיכוי, ולכן אי אפשר לבדוק את החישוב.`);
+  else {
+    const secondary = pts === 0;
+    const exp = r2(expectedTax(gross, pts, pensEe, R)), diff = r2(taxPaid - exp);
+    const how = `לפי ברוטו ${fmt(gross)} ₪ ו-${fmtH(pts)} נקודות זיכוי (${fmt(r2(pts * R.creditPoint))} ₪ בחודש), המס הצפוי הוא ${fmt(exp)} ₪, ונוכו ${fmt(taxPaid)} ₪.`;
+    const back = ' מס שנוכה ביתר לא חוזר מהמעסיק: עושים תיאום מס או מעדכנים טופס 101, ואחרי סוף השנה מגישים בקשה להחזר מס (עד 6 שנים אחורה).';
+    let status, why;
+    if (secondary && taxPaid >= 0.4 * gross && gross > 0){ status = 'info'; why = `בתלוש אין נקודות זיכוי, ונוכה מס גבוה (${fmt(taxPaid)} ₪ מתוך ${fmt(gross)} ₪). כך מנכים בעבודה שנייה כשאין תיאום מס. תיאום מס מקוון באתר רשות המסים מוריד את הניכוי, ואפשר לעשות אותו רק עד 31.12.` + back; }
+    else if (Math.abs(diff) <= R.tolerance){ status = 'ok'; why = how + ' זה תואם.'; }
+    else if (diff > 0){ status = 'info'; why = how + ` נוכו ${fmt(diff)} ₪ יותר. ייתכן שהמעסיק מחשב לפי ממוצע של כל השנה, או שחסרות נקודות בטופס 101.` + back; }
+    else { status = 'info'; why = how + ` נוכו ${fmt(-diff)} ₪ פחות. ייתכן שהמעסיק מחשב לפי ממוצע של כל השנה. אם יש לך עבודה נוספת, ייתכן שתחויב בהפרש אחרי סוף השנה.`; }
+    if (pts === R.basePoints && (exp > 0 || taxPaid > 0)) why += ` טיפ: בתלוש רשומות רק ${fmtH(R.basePoints)} נקודות, נקודות הבסיס. מי שהשתחרר מצה"ל בשלוש השנים האחרונות, או עשה 30 ימי מילואים ומעלה כלוחם בשנה שעברה, זכאי לעוד נקודות (כל נקודה ${fmt0(R.creditPoint)} ₪ בחודש). מעדכנים בטופס 101 אצל המעסיק.`;
+    if (og){
+      const total = gross + og;
+      const combined = expectedTax(total, secondary ? R.basePoints : pts, pensEe, R);
+      const otherWithheld = secondary ? expectedTax(og, R.basePoints, 0, R) : og * R.secondJobTax;
+      const refund = round10(taxPaid + otherWithheld - combined);
+      why += refund >= 10
+        ? ` עם העבודה הנוספת: תיאום מס יחזיר לך בערך ${fmt0(refund)} ₪ על החודש הזה.`
+        : ' עם העבודה הנוספת: לפי הסכומים האלה, תיאום מס כמעט לא משנה בחודש הזה.';
+      why += secondary ? ' (ההנחה: בעבודה השנייה יש לך 2.25 נקודות.)' : ' (ההנחה: בעבודה הנוספת נוכה 47%, כי אין תיאום. אם כבר עשית תיאום, הסכום נמוך יותר.)';
+    }
+    add(status, 'מס הכנסה', why, 0, null, jobForm);
+  }
+
+  // 10. ביטוח לאומי ובריאות
+  const blPaid = r2((d['ביטוח לאומי'] || 0) + (d['ב"ל הפרשים'] || 0) + (d['ביטוח בריאות'] || 0) + (d['בב"ר הפרשים'] || 0));
+  const blExp = r2(blCalc(gross, R)), blDiff = r2(blPaid - blExp);
+  let blWhy = `נוכו ${fmt(blPaid)} ₪ ביטוח לאומי וביטוח בריאות. על ברוטו ${fmt(gross)} ₪ הצפוי ${fmt(blExp)} ₪ (${(R.blLow * 100).toFixed(2)}% עד ${fmt0(R.blThreshold)} ₪, ו-${(R.blHigh * 100).toFixed(2)}% מעל זה).`;
+  const blOk = Math.abs(blDiff) <= R.tolerance;
+  blWhy += blOk ? ' זה תואם.' : ` נוכו ${fmt(Math.abs(blDiff))} ₪ ${blDiff > 0 ? 'יותר' : 'פחות'}. כדאי לשאול את מחלקת השכר.`;
+  if (og){
+    const extraBl = round10(blCalc(gross + og, R) - blCalc(gross, R) - blCalc(og, R));
+    blWhy += extraBl >= 10
+      ? ` עם העבודה הנוספת: השיעור המופחת ניתן רק פעם אחת, על ${fmt0(R.blThreshold)} ₪ הראשונים מכל העבודות יחד. בלי תיאום ביטוח לאומי, בערך ${fmt0(extraBl)} ₪ על החודש הזה ייגבו ממך בנפרד. את התיאום עושים מול ביטוח לאומי, והוא נפרד מתיאום המס.`
+      : ' עם העבודה הנוספת: סך שתי העבודות לא עובר את הסף, ולכן לא צפוי חיוב נוסף בביטוח לאומי.';
+  }
+  if (gross) add(blOk ? 'ok' : 'info', 'ביטוח לאומי ובריאות', blWhy);
+  return out;
+}
+
+/* ===================== תצוגה ===================== */
+function moneyBreakdown(slip){
+  const d = slip.deductions;
+  const tax = (d['מס הכנסה'] || 0), bl = (d['ביטוח לאומי'] || 0) + (d['ב"ל הפרשים'] || 0), health = (d['ביטוח בריאות'] || 0) + (d['בב"ר הפרשים'] || 0), union = d['דמי טיפול'] || 0;
+  const pensEe = slip.funds.filter(f => !/השתלמות/.test(f.type)).reduce((a, f) => a + f.employee, 0);
+  const kerenEe = slip.funds.filter(f => /השתלמות/.test(f.type)).reduce((a, f) => a + f.employee, 0);
+  const parts = [
+    ['נכנס לחשבון שלך', slip.net, 'var(--net)'],
+    ['פנסיה (חלק שלך)', pensEe, 'var(--fund)'],
+    ['קרן השתלמות (חלק שלך)', kerenEe, 'var(--emp)'],
+    ['ביטוח לאומי', bl, 'var(--tax)'],
+    ['ביטוח בריאות', health, 'var(--tax)'],
+    ['מס הכנסה', tax, 'var(--tax)'],
+    ['דמי טיפול לארגון העובדים', union, 'var(--union)'],
+  ].filter(p => p[1] > 0);
+  const total = parts.reduce((a, p) => a + p[1], 0);
+  const empPens = slip.funds.filter(f => !/השתלמות/.test(f.type)).reduce((a, f) => a + f.employer, 0);
+  const empKeren = slip.funds.filter(f => /השתלמות/.test(f.type)).reduce((a, f) => a + f.employer, 0);
+  return `
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <h3>לאן הלכו ${fmt(slip.gross)} ₪ ברוטו</h3>
+    <div class="bar" role="img" aria-label="חלוקת הברוטו">${parts.map(p => `<span style="width:${(p[1] / total * 100).toFixed(2)}%;background:${p[2]}" title="${esc(p[0])}"></span>`).join('')}</div>
+    <div class="legend">${parts.map(p => `<span class="k"><span class="sw" style="background:${p[2]}"></span>${esc(p[0])}</span><span class="num">${fmt(p[1])} ₪</span>`).join('')}</div>
+    <h3 style="margin-top:6px">המעסיק חוסך לך בנוסף, מעל הברוטו</h3>
+    <div class="legend">
+      <span class="k"><span class="sw" style="background:var(--fund)"></span>פנסיה ופיצויים</span><span class="num">${fmt(empPens)} ₪</span>
+      <span class="k"><span class="sw" style="background:var(--emp)"></span>קרן השתלמות</span><span class="num">${fmt(empKeren)} ₪</span>
+      <span class="sum">נחסך לך החודש בסך הכל</span><span class="sum num">${fmt(r2(empPens + empKeren + pensEe + kerenEe))} ₪</span>
+    </div>
+  </div>`;
+}
+function linesTable(slip){
+  return `<div style="display:flex;flex-direction:column;gap:8px"><h3>מה כתוב בתלוש</h3><div class="tbl-wrap"><table>
+    <thead><tr><th>שורה</th><th class="n">תעריף</th><th class="n">כמות</th><th class="n">סכום</th></tr></thead>
+    <tbody>${slip.lines.map(l => `<tr><td>${esc(l.name)}</td><td class="n">${l.rate != null ? fmt(l.rate) : ''}</td><td class="n">${l.qty != null ? fmtH(l.qty) : ''}</td><td class="n">${l.amount != null ? fmt(l.amount) : ''}</td></tr>`).join('')}
+    <tr><td><b>סך כל התשלומים</b></td><td></td><td></td><td class="n"><b>${fmt(slip.gross)}</b></td></tr></tbody></table></div></div>`;
+}
+function letter(slip, res){
+  const gaps = res.checks.filter(c => c.status === 'gap');
+  if (!gaps.length) return '';
+  const txt = `שלום,\nבדקתי את תלוש השכר שלי לחודש ${slip.month ? slip.month.label : ''}, ונראה לי שיש כמה דברים שכדאי לבדוק:\n` +
+    gaps.map(g => `• ${g.title}: ${g.why} (בערך ${fmt(g.amount)} ₪)`).join('\n') +
+    `\n\nייתכן שאני טועה, ואשמח אם תבדקו ותעדכנו אותי.\nתודה,\n`;
+  return `<div style="display:flex;flex-direction:column;gap:10px">
+    <h3>הודעה מוכנה למחלקת השכר</h3>
+    <p class="note">אפשר לערוך אותה לפני ששולחים. השם לא נשמר בשום מקום.</p>
+    <div class="row"><label for="sig" class="note">השם שלך</label><input type="text" id="sig" placeholder="שם מלא"></div>
+    <textarea id="letterText" aria-label="נוסח ההודעה">${esc(txt)}</textarea>
+    <div class="row"><button type="button" id="copyBtn">העתק את ההודעה</button><span class="note" id="copyMsg" role="status"></span></div>
+  </div>`;
+}
+/* הבדיקה האחרונה שהוצגה, כדי לחשב מחדש כשהעובד מוסיף עבודה נוספת. שום דבר לא נשמר אחרי סגירת הדף */
+let lastCtx = null, otherGross = 0;
+function showResult(slip, shifts, isExample, profile){
+  lastCtx = {slip, shifts, isExample, profile};
+  renderResult(slip, check(slip, shifts, {otherGross, profile}), isExample);
+}
+function rerender(v, focusId){
+  otherGross = v;
+  if (!lastCtx) return;
+  renderResult(lastCtx.slip, check(lastCtx.slip, lastCtx.shifts, {otherGross, profile: lastCtx.profile}), lastCtx.isExample);
+  const f = document.getElementById(focusId); if (f) f.focus({preventScroll: true});
+}
+function renderResult(slip, res, isExample){
+  const el = document.getElementById('result');
+  const gaps = res.checks.filter(c => c.status === 'gap');
+  const label = {ok: 'תקין', gap: 'חסר', info: 'לשים לב', skip: 'לא נבדק'};
+  el.innerHTML = `
+    ${isExample ? '<span class="tag">דוגמה: כך נראית תוצאה. המספרים לא של אדם אמיתי</span>' : ''}
+    <div style="display:flex;flex-direction:column;gap:2px"><h2>תלוש ${esc(slip.month ? slip.month.label : '')}</h2><p class="note">${esc(slip.employer)}${res.rules ? ' · נבדק לפי ' + esc(res.rules.label) : ''}</p></div>
+    <div class="verdict ${gaps.length ? 'gap' : 'ok'}">
+      <span class="big">${gaps.length ? `נראה שחסרים לך ${fmt(res.gapTotal)} ₪` : 'נראה ששולם לך כל מה שמגיע'}</span>
+      <span>${gaps.length ? `נמצאו ${gaps.length} פערים. הפירוט וההודעה למעסיק למטה.` : 'כל הבדיקות שנעשו יצאו תקינות.'}</span>
+    </div>
+    <div class="checks">${res.checks.map(c => `<div class="check ${c.status}"><span class="dot">${label[c.status]}</span><div class="body"><h3>${esc(c.title)}</h3><span class="why">${esc(c.why)}</span>${c.status === 'gap' && c.amount ? `<span class="amt">חסר: <span class="num">${fmt(c.amount)}</span> ₪</span>` : ''}${c.extra || ''}${c.detail ? `<details class="more"><summary>פירוט</summary>${c.detail}</details>` : ''}</div></div>`).join('')}</div>
+    ${moneyBreakdown(slip)}
+    ${linesTable(slip)}
+    ${letter(slip, res)}`;
+  // עבודה נוספת: פותח את השדה, ובלחיצה מחשב מחדש את בדיקת המס והביטוח הלאומי
+  const $ = id => document.getElementById(id);
+  if ($('jobOpen')) $('jobOpen').addEventListener('click', () => { $('jobOpen').hidden = true; el.querySelector('.jobIn').hidden = false; $('jobGross').focus(); });
+  const runJob = () => { const v = parseFloat($('jobGross').value); if (v > 0) rerender(v, 'jobClear'); };
+  if ($('jobRun')){ $('jobRun').addEventListener('click', runJob); $('jobGross').addEventListener('keydown', e => { if (e.key === 'Enter') runJob(); }); }
+  if ($('jobClear')) $('jobClear').addEventListener('click', () => rerender(0, 'jobOpen'));
+  const sig = document.getElementById('sig'), ta = document.getElementById('letterText');
+  if (sig && ta){
+    const baseTxt = ta.value;
+    sig.addEventListener('input', () => { ta.value = baseTxt + sig.value; });
+    document.getElementById('copyBtn').addEventListener('click', () => {
+      const msg = document.getElementById('copyMsg');
+      navigator.clipboard.writeText(ta.value).then(() => { msg.textContent = 'ההודעה הועתקה'; }).catch(() => { ta.select(); msg.textContent = 'סמן והעתק ידנית'; });
+    });
+  }
+}
+function renderRules(){
+  const R = RULESETS[RULESETS.length - 1];
+  document.getElementById('rulesBox').innerHTML = `<h3>לפי מה בודקים</h3><ul>${R.sources.map(s => `<li>${esc(s[0])}. <span>${esc(s[1])}${s[2] ? '' : ' (לא אומת)'}</span></li>`).join('')}</ul>
+  <p>זה מידע כללי ולא ייעוץ משפטי. במקרה של ספק, פנה למחלקת השכר או לארגון העובדים.</p>
+  <p>התלוש והיומן נקראים רק במכשיר שלך, והתלוש לא נשלח לשום מקום. לסטטיסטיקה נשמרים רק חודש התלוש, האם נמצא פער והסכום, בלי שם ובלי פרטים מזהים. <a href="privacy.html" target="_blank" rel="noopener">מדיניות הפרטיות</a></p>`;
+}
+
+/* ===================== מוני המשמרות ===================== */
+const counts = {};
+function buildCounters(){
+  for (const t of SHIFT_TYPES){
+    counts[t.id] = 0;
+    const box = document.createElement('div'); box.className = 'counter'; box.id = 'c-' + t.id;
+    box.innerHTML = `<span class="lbl">${esc(t.label)}</span><span class="time">${esc(t.time)}</span>
+      <div class="stepper"><button type="button" aria-label="פחות משמרות ${esc(t.label)}" data-d="-1">−</button><output id="n-${t.id}" aria-live="polite">0</output><button type="button" aria-label="עוד משמרת ${esc(t.label)}" data-d="1">+</button></div>`;
+    box.querySelectorAll('button').forEach(b => b.addEventListener('click', () => setCount(t.id, counts[t.id] + Number(b.dataset.d))));
+    document.getElementById('row' + t.row).appendChild(box);
+  }
+}
+function setCount(id, n){
+  const out = document.getElementById('n-' + id), changed = counts[id] !== Math.max(0, n);
+  counts[id] = Math.max(0, n);
+  out.textContent = counts[id];
+  if (changed){ out.classList.remove('pop'); void out.offsetWidth; out.classList.add('pop'); }
+  document.getElementById('c-' + id).classList.toggle('on', counts[id] > 0);
+  updateTotals();
+}
+
+/* ===================== יומן ===================== */
+// מזהה הכניסה מ-Google Cloud (פרויקט Bodek-salary). הכניסה עובדת רק מהכתובת המאושרת
+const GOOGLE_CLIENT_ID = '603702704625-604hbttroul1aus8vc4o9pev9bvoeeqr.apps.googleusercontent.com';
+const ON_SITE = ['yoav854.github.io', 'bodek-eight.vercel.app'].includes(location.hostname);
+const TYPE_LABEL = Object.fromEntries(SHIFT_TYPES.map(t => [t.id, t.label]));
+const DAY = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+const pad = n => String(n).padStart(2, '0');
+const dKey = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const hm = d => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+// מזהה משמרות לפי שעות: אירוע של 6 עד 13 שעות שמתחיל סביב 7, 15 או 23
+function classifyEvents(events, ym, holidays){
+  const items = [];
+  for (const e of events){
+    if (!e.start || !e.start.dateTime || !e.end || !e.end.dateTime || e.status === 'cancelled') continue;
+    const s = new Date(e.start.dateTime), en = new Date(e.end.dateTime);
+    if (isNaN(s) || isNaN(en) || !dKey(s).startsWith(ym)) continue;
+    const dur = (en - s) / 36e5;
+    const h = s.getHours(), dow = s.getDay();
+    const exact = (h >= 5 && h <= 10) ? 'morning' : (h >= 13 && h <= 17) ? 'noon' : (h >= 21 || h <= 1) ? 'night' : null;
+    const slot = exact || (h < 11 ? 'morning' : h < 19 ? 'noon' : 'night'); // לאירוע שלא במשמרת רגילה: הקרוב ביותר
+    let type = slot;
+    if (slot === 'night'){ if (dow === 6) type = 'motzash'; else if (dow === 5) type = 'friNight'; }
+    else if (dow === 5 && slot === 'noon') type = 'friNoon'; // השבת מתחילה ב-16:00, באמצע המשמרת
+    else if (dow === 6) type = 'shabbat';
+    if (type !== 'shabbat' && type !== 'motzash' && type !== 'friNight'){
+      const next = new Date(s); next.setDate(next.getDate() + 1);
+      // חג = שבת (יואב, 20.11): מ-16:00 בערב החג עד 04:00 במוצאי החג
+      const today = holidays.has(dKey(s)), tomorrow = holidays.has(dKey(next));
+      if (slot === 'night') type = tomorrow ? 'holiday' : today ? 'motzash' : type; // הלילה שבו החג נכנס, או מוצאי החג (עד 04:00)
+      else if (today) type = 'holiday';
+      else if (slot === 'noon' && tomorrow) type = 'friNoon'; // צהריים בערב חג: שעה רגילה ו-7 חג
+    }
+    const title = e.summary || '';
+    const looksLikeShift = !!exact && dur >= 6 && dur <= 13 && (/משמרת|שמירה|אבטח|סייר|סיור|רשף|shift/i.test(title) || (s.getMinutes() === 0 && Math.abs(dur - 8) < 0.01));
+    items.push({date: s, end: en, type, title, on: looksLikeShift, shift: looksLikeShift});
+  }
+  return items.sort((a, b) => a.date - b.date);
+}
+function calRow(it, i, items){
+  const row = document.createElement('label'); row.className = 'calitem' + (it.on ? '' : ' off');
+  row.innerHTML = `<input type="checkbox" id="ci${i}" ${it.on ? 'checked' : ''}><span class="t"><span><b>${DAY[it.date.getDay()]} ${it.date.getDate()}/${it.date.getMonth() + 1}</b> · <span class="num">${hm(it.date)}–${hm(it.end)}</span></span><span>${esc(it.title)}</span></span><span class="kind">${esc(TYPE_LABEL[it.type])}</span>`;
+  row.querySelector('input').addEventListener('change', ev => { it.on = ev.target.checked; row.classList.toggle('off', !it.on); applyCalendar(items); });
+  return row;
+}
+function renderCalendar(items){
+  const shifts = items.filter(i => i.shift), others = items.filter(i => !i.shift);
+  const list = document.getElementById('calList'), msg = document.getElementById('calMsg');
+  list.innerHTML = ''; list.hidden = !items.length;
+  msg.hidden = false;
+  msg.textContent = shifts.length ? `נמצאו ${shifts.length} משמרות בחודש ${shifts[0].date.getMonth() + 1}/${shifts[0].date.getFullYear()}. אם משהו כאן אינו משמרת, בטל את הסימון שלו.` : 'לא נמצאו ביומן משמרות בחודש הזה. אפשר לסמן למטה, או לספור בעצמך.';
+  shifts.forEach((it, i) => list.appendChild(calRow(it, i, items)));
+  if (others.length){ // אירועים אחרים: מקופלים, ומסמנים רק אם חסרה משמרת
+    const det = document.createElement('details'); det.className = 'others';
+    det.innerHTML = `<summary>חסרה משמרת? אירועים אחרים ביומן בחודש הזה (${others.length})</summary>`;
+    const inner = document.createElement('div'); inner.className = 'callist';
+    others.forEach((it, i) => inner.appendChild(calRow(it, 'o' + i, items)));
+    det.appendChild(inner); list.appendChild(det);
+  }
+  applyCalendar(items);
+}
+function applyCalendar(items){ calSel = items.filter(i => i.on); applySources(); }
+/* היומן והרשימה החופשית נספרים יחד (החלטה 49). משמרת מהרשימה שחופפת בזמן למשמרת מסומנת ביומן נספרת פעם אחת, ומוצגת כחפיפה */
+let calSel = [], freeRes = null;
+function applySources(){
+  const tally = {}, dups = [];
+  const add = (type, n) => { tally[type] = (tally[type] || 0) + n; };
+  for (const c of calSel) add(c.type, 1);
+  let undated = 0;
+  if (freeRes){
+    for (const it of freeRes.items){
+      const hit = calSel.find(c => c.date < it.end && it.date < c.end);
+      if (hit) dups.push(`"${it.text}" חופפת ל${TYPE_LABEL[hit.type]} ביומן ב-${hit.date.getDate()}/${hit.date.getMonth() + 1} (${hm(hit.date)}–${hm(hit.end)})`);
+      else add(it.type, 1);
+    }
+    // משמרות בלי תאריך ("3 צהריים"): נספרות, אבל אי אפשר לבדוק להן חפיפה
+    const dated = {}; for (const it of freeRes.items) dated[it.type] = (dated[it.type] || 0) + 1;
+    for (const [type, n] of Object.entries(freeRes.counts)){ const u = n - (dated[type] || 0); if (u > 0){ add(type, u); undated += u; } }
+  }
+  const K = fillKind();
+  for (const t of SHIFT_TYPES) if (t.kind === K) setCount(t.id, tally[t.base] || 0);
+  const box = document.getElementById('mergeMsg');
+  const parts = [];
+  if (dups.length) parts.push(`<b>${dups.length === 1 ? 'נמצאה משמרת אחת שרשומה גם ביומן וגם ברשימה, והיא נספרה' : `נמצאו ${dups.length} משמרות שרשומות גם ביומן וגם ברשימה, והן נספרו`} פעם אחת:</b> ${esc(dups.join(' · '))}.`);
+  if (undated && calSel.length) parts.push(undated === 1 ? 'משמרת אחת מהרשימה בלי תאריך נוספה על היומן. אי אפשר לבדוק אם היא חופפת. אם היא כבר ביומן, מחק אותה מהרשימה.'
+    : `${undated} משמרות מהרשימה בלי תאריך נוספו על היומן. אי אפשר לבדוק אם הן חופפות. אם הן כבר ביומן, מחק אותן מהרשימה.`);
+  box.innerHTML = parts.join(' '); box.hidden = !parts.length;
+}
+// ימי חג שבהם אסור לעבוד (בלי ערב חג ובלי חול המועד)
+const HOLIDAY_RE = /ראש השנה|יום כיפור|יום הכיפורים|סוכות|שמחת תורה|שמיני עצרת|פסח|שבועות|יום העצמאות|Rosh Hashana|Yom Kippur|Sukkot|Shmini Atzeret|Simchat Torah|Pesach|Passover|Shavuot|Independence/i;
+const NOT_HOLIDAY_RE = /ערב|חול המועד|חוה"מ|Erev|CH''M|Chol/i;
+function loadScript(src){ return new Promise((ok, bad) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = bad; document.head.appendChild(s); }); }
+// הכפתור של גוגל נטען מראש, כדי שחלון הכניסה ייפתח ישר מהלחיצה (ספארי חוסם חלונות שנפתחים באיחור)
+let gToken = null, gTokenAt = 0, tokenClient = null, gReady = null;
+if (ON_SITE) gReady = loadScript('https://accounts.google.com/gsi/client').then(() => {
+  tokenClient = google.accounts.oauth2.initTokenClient({client_id: GOOGLE_CLIENT_ID, scope: 'https://www.googleapis.com/auth/calendar.events.readonly',
+    callback: r => { if (r.access_token){ gToken = r.access_token; gTokenAt = Date.now(); readGoogle(); } else googleFailed('denied'); },
+    error_callback: () => googleFailed('denied')});
+}).catch(() => { gReady = null; });
+const tokenFresh = () => gToken && Date.now() - gTokenAt < 50 * 6e4; // אסימון של גוגל תקף כשעה
+async function googleList(calId, ym, token){
+  const [y, m] = ym.split('-').map(Number);
+  const from = new Date(y, m - 1, 1), to = new Date(y, m, 1);
+  const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events?singleEvents=true&orderBy=startTime&maxResults=250&timeMin=${from.toISOString()}&timeMax=${to.toISOString()}`;
+  const r = await fetch(url, {headers: {Authorization: 'Bearer ' + token}});
+  if (r.status === 401){ gToken = null; throw new Error('expired'); }
+  if (!r.ok) throw new Error('fetch ' + r.status);
+  return (await r.json()).items || [];
+}
+function googleFailed(code){
+  const msg = document.getElementById('calMsg'); msg.hidden = false;
+  msg.textContent = code === 'denied' ? 'לא התקבל אישור לקרוא את היומן. אפשר לנסות שוב, או לספור משמרות למטה.'
+    : code === 'expired' ? 'החיבור ליומן פג. לחץ שוב על "מלא מהיומן של גוגל".'
+    : code === 'noscript' ? 'הכניסה של גוגל לא נטענה (אולי חוסם פרסומות או רשת חלשה). רענן את הדף ונסה שוב, או ספור משמרות למטה.'
+    : 'לא הצלחתי לקרוא את היומן. נסה שוב, או ספור משמרות למטה.';
+}
+// הלחיצה: אם אין חיבור, פותחים מיד את חלון הכניסה. הקריאה עצמה ממשיכה אחרי האישור
+function fillFromGoogle(){
+  const ym = document.getElementById('calMonth').value, msg = document.getElementById('calMsg');
+  msg.hidden = false;
+  if (!ON_SITE){ showCalendarDemo(); return; }
+  if (!ym){ msg.textContent = 'בחר חודש, או העלה קודם את התלוש והחודש יתמלא לבד.'; return; }
+  if (tokenFresh()){ readGoogle(); return; }
+  if (!tokenClient){ googleFailed('noscript'); return; }
+  msg.textContent = 'מתחבר לגוגל…';
+  tokenClient.requestAccessToken({prompt: ''});
+}
+async function readGoogle(){
+  const ym = document.getElementById('calMonth').value, msg = document.getElementById('calMsg');
+  msg.hidden = false;
+  try {
+    msg.textContent = 'קורא את היומן…';
+    const token = gToken;
+    const events = await googleList('primary', ym, token);
+    const holidays = new Set();
+    for (const id of ['iw.jewish#holiday@group.v.calendar.google.com', 'en.jewish#holiday@group.v.calendar.google.com']){
+      try { (await googleList(id, ym, token)).filter(h => HOLIDAY_RE.test(h.summary || '') && !NOT_HOLIDAY_RE.test(h.summary || '')).forEach(h => holidays.add(h.start.date || h.start.dateTime.slice(0, 10))); break; } catch (e){}
+    }
+    renderCalendar(classifyEvents(events, ym, holidays));
+  } catch (e){ googleFailed(e.message); }
+}
+document.getElementById('calBtn').addEventListener('click', fillFromGoogle);
+window.__showCalendar = (events, ym) => renderCalendar(classifyEvents(events, ym, new Set()));
+
+/* ===================== רשימה חופשית ===================== */
+// מבין שורות כמו "1/11 בוקר", "בוקר: 4/11, 5/11", "3 צהריים", "מוצ"ש 14/11", "20/11 7-15"
+const KIND_RE = [
+  ['motzash', /מוצ["״']?ש|מוצאי ?שבת|מוצש|מוצ["״']?ח|מוצאי ?(ה)?חג/],
+  ['friNight', /(לילה|ליל) (של )?(יום )?שישי|שישי (ב)?לילה|ליל שבת/],
+  ['night', /לילה|לילות/],
+  ['friNoon', /(צהר[יי]?ים|צהריים|אחה["״]?צ|ערב) (של )?(יום )?שישי|שישי (ב)?(צהר|אחה|ערב)|ערב (ה)?חג/],
+  ['noon', /צהר[יי]?ים|צהריים|ערב|אחה["״]?צ|אחר הצהריים/],
+  ['morning', /בוקר|בקרים/],
+  ['holiday', /(^|[^א-ת])חג/],
+  ['shabbat', /שבת/],
+];
+const KIND_TIMES = {morning: ['07:00', '15:00'], noon: ['15:00', '23:00'], night: ['23:00', '07:00'], motzash: ['23:00', '07:00'], friNight: ['23:00', '07:00'], friNoon: ['15:00', '23:00'], shabbat: ['07:00', '15:00'], holiday: ['07:00', '15:00']};
+function kindOf(s){ for (const [k, re] of KIND_RE) if (re.test(s)) return k; return null; }
+function parseFreeText(text, ym){
+  const year = Number((ym || '').slice(0, 4)) || new Date().getFullYear();
+  const counts = {}, read = [], unknown = [], items = []; // items: משמרות עם תאריך ושעות, לבדיקת חפיפה עם היומן
+  for (const t of SHIFT_TYPES) counts[t.id] = 0;
+  for (const line of String(text).split(/\r?\n/)){
+    let lineKind = kindOf(line);
+    for (let seg of line.split(/[,;،]+/)){
+      seg = seg.trim(); if (!seg) continue;
+      const dm = /(\d{1,2})[\/.](\d{1,2})(?:[\/.](\d{2,4}))?/.exec(seg);
+      let rest = dm ? seg.replace(dm[0], ' ') : seg;
+      const tm = /(\d{1,2})(?::(\d\d))?\s*[-–—]\s*(\d{1,2})(?::(\d\d))?/.exec(rest);
+      if (tm) rest = rest.replace(tm[0], ' ');
+      const kind = kindOf(seg) || lineKind;
+      if (kindOf(seg)) lineKind = kindOf(seg);
+      if (dm){ // משמרת עם תאריך: היום בשבוע קובע שבת ומוצ"ש
+        let y = dm[3] ? Number(dm[3]) : year; if (y < 100) y += 2000;
+        const date = `${y}-${pad(dm[2])}-${pad(dm[1])}`;
+        if (ym && date.slice(0, 7) !== ym){ unknown.push(seg + ' (לא בחודש הדיווח)'); continue; } // רק משמרות מהחודש שנבחר
+        let [st, en] = tm ? [`${pad(tm[1])}:${tm[2] || '00'}`, `${pad(tm[3])}:${tm[4] || '00'}`] : (KIND_TIMES[kind] || []);
+        if (!st){ unknown.push(seg); continue; }
+        const s = new Date(`${date}T${st}:00`), e = new Date(`${date}T${en}:00`); if (e <= s) e.setDate(e.getDate() + 1);
+        if (isNaN(s)){ unknown.push(seg); continue; }
+        const it = classifyEvents([{summary: 'משמרת', start: {dateTime: `${date}T${st}:00`}, end: {dateTime: e.toISOString()}}], dKey(s).slice(0, 7), new Set())[0];
+        let type = it && it.shift ? it.type : kind;
+        if (['holiday', 'shabbat', 'motzash', 'friNight', 'friNoon'].includes(kind) && !(it && it.type === 'friNoon')) type = kind; // מה שהעובד כתב גובר
+        if (!type || !(type in counts)){ unknown.push(seg); continue; }
+        counts[type]++; read.push(`${dm[1]}/${dm[2]} ${TYPE_LABEL[type]}`);
+        items.push({date: s, end: e, type, text: seg});
+      } else if (kind){ // בלי תאריך: מספר + סוג, למשל "3 צהריים"
+        const n = Number((rest.match(/\d+/) || [])[0] || 1);
+        counts[kind] += n; read.push(`${n} ${TYPE_LABEL[kind]}`);
+      } else unknown.push(seg);
+    }
+  }
+  return {counts, read, unknown, items};
+}
+document.getElementById('freeRun').addEventListener('click', () => {
+  const msg = document.getElementById('calMsg'); msg.hidden = false;
+  document.getElementById('calList').hidden = true;
+  const r = parseFreeText(document.getElementById('freeText').value, document.getElementById('calMonth').value);
+  freeRes = r;
+  const total = Object.values(r.counts).reduce((a, b) => a + b, 0);
+  msg.innerHTML = (total ? `מהרשימה קראתי ${total} משמרות: ${esc(SHIFT_TYPES.filter(t => r.counts[t.id]).map(t => `${r.counts[t.id]} ${t.label}`).join(', '))}. אפשר לתקן במונים למטה.` : 'לא הצלחתי לקרוא משמרות מהרשימה.')
+    + (r.unknown.length ? ` <span class="unknown">לא הבנתי: ${esc(r.unknown.join(' · '))}</span>` : '');
+  applySources();
+});
+
+// לפני שהאתר מחובר לגוגל: יומן מומצא שמראה איך הזיהוי עובד
+function showCalendarDemo(){
+  const E = (t, a, b) => ({summary: t, start: {dateTime: a + ':00+03:00'}, end: {dateTime: b + ':00+03:00'}});
+  const ev = [
+    E('משמרת בוקר', '2026-09-06T07:00', '2026-09-06T15:00'), E('רופא שיניים', '2026-09-06T16:00', '2026-09-06T17:00'),
+    E('צהריים - שער', '2026-09-07T15:00', '2026-09-07T23:00'), E('משמרת לילה', '2026-09-09T23:00', '2026-09-10T07:00'),
+    E('משמרת', '2026-09-12T07:00', '2026-09-12T15:00'), E('לילה מוצ"ש', '2026-09-12T23:00', '2026-09-13T07:00'),
+    E('ארוחה משפחתית', '2026-09-18T19:00', '2026-09-18T22:00'), E('משמרת בוקר', '2026-09-20T07:00', '2026-09-20T15:00'),
+  ];
+  renderCalendar(classifyEvents(ev, '2026-09', new Set()));
+  const msg = document.getElementById('calMsg');
+  msg.textContent = 'דוגמה עם יומן מומצא: החיבור לגוגל יעבוד באתר הקבוע של הבודק. ' + msg.textContent;
+}
+// המשמרות כמו שהבדיקה מקבלת אותן: המונים, אורך משמרת רמ"ש, ומשמרות באורך אחר
+function currentShifts(){
+  const ovr = [...document.querySelectorAll('#ovrs .ovr')].map(r => ({type: r.querySelector('.oType').value, n: parseInt(r.querySelector('.oN').value) || 0, hours: parseFloat(r.querySelector('.oH').value) || 0}));
+  const len = Number((document.querySelector('input[name=rLen]:checked') || {}).value) || 12;
+  return {...counts, _len: len, _ovr: ovr.concat(extraOvr(len))};
+}
+function updateTotals(){
+  renderExtras();
+  const S = summarize(currentShifts());
+  document.getElementById('shiftCount').textContent = S.count;
+  document.getElementById('shiftHours').textContent = fmtH(S.hours);
+}
+buildCounters();
+
+/* ===================== דרגה, שכר אישי ותוספות (שלבים 2 ו-4). רק בזיכרון של הדף ===================== */
+const numVal = id => { const v = parseFloat(document.getElementById(id).value); return v > 0 ? v : 0; };
+function getProfile(){
+  const role = document.querySelector('input[name=role]:checked').value;
+  return {
+    role,
+    payType: document.querySelector('input[name=payType]:checked').value,
+    leadRate: numVal('leadRate'), leadGlobal: numVal('leadGlobal'), leadHour: numVal('leadHour'),
+    leadGuardRate: numVal('leadGuardRate'), leadRamashRate: numVal('leadRamashRate'),
+    leadLine: document.getElementById('leadLine').value,
+    vars: [...document.querySelectorAll('#vars .var')].map(r => ({
+      name: r.querySelector('.vName').value.trim(), unit: parseFloat(r.querySelector('.vUnit').value) || 0,
+      qty: parseFloat(r.querySelector('.vQty').value) || 0, line: r.querySelector('.vLine').value})),
+  };
+}
+// הדרגה קובעת אילו מונים למעלה: רמ"ש רואה קודם את משמרות הרמ"ש, ומשמרות כמאבטח מתחת ל"עבדת גם כמאבטח?"
+// יומן ורשימה חופשית ממלאים את המשמרות של הדרגה שנבחרה (לרמ"ש: משמרות מאבטח, כי משמרות רמ"ש לא מזוהות מהיומן)
+const fillKind = () => document.querySelector('input[name=role]:checked').value === 'lead' ? 'lead' : 'guard';
+// הדרגה קובעת אילו מונים למעלה. כל אחד יכול להוסיף גם משמרות מסוג אחר (החלטה 47)
+const KIND_BLOCK = {guard: 'guardBlock', ramash: 'ramBlock', lead: 'leadBlock'};
+function syncRole(){
+  const role = document.querySelector('input[name=role]:checked').value, $ = id => document.getElementById(id);
+  $('leadBox').hidden = role !== 'lead';
+  for (const k in KIND_BLOCK){
+    const block = $(KIND_BLOCK[k]), box = $('ox-' + k);
+    if (k === role) $('primarySlot').appendChild(block);
+    else if (box) box.querySelector('.slot').appendChild(block);
+    else $('parking').appendChild(block); // משמרות ראש צוות רק לראש צוות
+    if (box){ box.hidden = k === role; if (k !== role) box.open = SHIFT_TYPES.some(t => t.kind === k && counts[t.id] > 0); }
+  }
+  document.querySelectorAll('.leadOnly').forEach(el => { el.hidden = role !== 'lead'; });
+  const global = document.querySelector('input[name=payType]:checked').value === 'global';
+  $('hourlyBox').hidden = global;
+  $('globalBox').hidden = !global;
+}
+document.querySelectorAll('input[name=role]').forEach(r => r.addEventListener('change', syncRole));
+document.querySelectorAll('input[name=payType]').forEach(r => r.addEventListener('change', syncRole));
+document.querySelectorAll('input[name=rLen]').forEach(r => r.addEventListener('change', () => {
+  const len = Number(r.value);
+  document.querySelector('#c-rDay .time').textContent = len === 12 ? '06:00–18:00' : '8 שעות';
+  updateTotals();
+}));
+// משמרות באורך אחר: סוג, כמה משמרות, כמה שעות כל אחת
+let ovrSeq = 0;
+document.getElementById('addOvr').addEventListener('click', () => {
+  const k = ++ovrSeq, row = document.createElement('div'); row.className = 'ovr';
+  row.innerHTML = `<label class="field wide"><span>סוג המשמרת</span><select class="oType" id="oType${k}">${SHIFT_TYPES.filter(t => t.kind !== 'lead' || document.querySelector('input[name=role]:checked').value === 'lead').map(t => `<option value="${t.id}">${t.kind === 'guard' ? '' : esc(KIND_NAME[t.kind]) + ': '}${esc(SHIFT_NAME[t.base])}</option>`).join('')}</select></label>
+    <label class="field"><span>כמה משמרות</span><input class="oN" id="oN${k}" type="number" inputmode="numeric" min="1" step="1" value="1"></label>
+    <label class="field"><span>שעות בכל אחת</span><input class="oH" id="oH${k}" type="number" inputmode="decimal" min="1" max="24" step="0.5" placeholder="למשל 10"></label>
+    <button type="button" class="del" aria-label="מחק">✕</button>`;
+  row.querySelector('.del').addEventListener('click', () => { row.remove(); updateTotals(); });
+  row.querySelectorAll('input,select').forEach(el => el.addEventListener('input', updateTotals));
+  document.getElementById('ovrs').appendChild(row);
+  row.querySelector('.oType').focus();
+});
+/* ===================== הערות: זמן עבודה נוסף ===================== */
+// "5/11 15:00-15:45" או "עוד 45 דק ב-5/11 מ-15:00". חובה תאריך ושעה. הזמן מתחבר למשמרת שהוא צמוד אליה:
+// נגמר ב-07:00/15:00/23:00 = לפני בוקר/צהריים/לילה. מתחיל ב-15:00/23:00/07:00 = אחרי בוקר/צהריים/לילה (של אתמול).
+// סוג המשמרת לפי היום (שישי צהריים, שבת, מוצ"ש), ואז החישוב הרגיל: שעות נוספות, שבת מ-16:00 וכו'
+const fmtMin = m => `${pad(Math.floor(m / 60) % 24)}:${pad(m % 60)}`;
+function parseDur(t){
+  let m;
+  if (/שעה וחצי/.test(t)) return 90;
+  if (/חצי שעה/.test(t)) return 30;
+  if (/רבע שעה/.test(t)) return 15;
+  if (/שעתיים/.test(t)) return 120;
+  if ((m = /(\d+(?:\.\d+)?)\s*(?:דקות|דקה|דק'?|ד'|min)/.exec(t))) return Math.round(parseFloat(m[1]));
+  if ((m = /(\d+(?:\.\d+)?)\s*(?:שעות|שעה|ש')/.exec(t))) return Math.round(parseFloat(m[1]) * 60);
+  if (/(^|[^א-ת])שעה($|[^א-ת])/.test(t)) return 60;
+  return 0;
+}
+function shiftAt(base, d, hol){ // סוג המשמרת לפי היום שבו היא מתחילה. hol: 'hol' (התאריך הוא חג), 'eve' (ערב חג), 'mots' (מוצאי חג). חג = שבת
+  const dow = d.getDay();
+  if (hol === 'hol') return base === 'night' ? 'motzash' : 'holiday';
+  if (hol === 'eve' && base !== 'morning') return base === 'night' ? 'holiday' : 'friNoon';
+  if (hol === 'mots' && base === 'night') return 'motzash';
+  if (base === 'night') return dow === 5 ? 'friNight' : dow === 6 ? 'motzash' : 'night';
+  if (base === 'noon') return dow === 5 ? 'friNoon' : dow === 6 ? 'shabbat' : 'noon';
+  return dow === 6 ? 'shabbat' : 'morning';
+}
+function parseExtras(text, ym, role){
+  const year = Number((ym || '').slice(0, 4)) || new Date().getFullYear();
+  const items = [], errs = [];
+  for (const raw of String(text).split(/\r?\n/)){
+    const line = raw.trim(); if (!line) continue;
+    const dm = /(\d{1,2})[\/.](\d{1,2})(?:[\/.](\d{2,4}))?/.exec(line);
+    if (!dm){ errs.push(`"${line}": חסר תאריך. למשל 5/11 15:00-15:45`); continue; }
+    let y = dm[3] ? Number(dm[3]) : year; if (y < 100) y += 2000;
+    const day = new Date(y, Number(dm[2]) - 1, Number(dm[1]));
+    if (isNaN(day) || day.getDate() !== Number(dm[1])){ errs.push(`"${line}": תאריך לא תקין`); continue; }
+    if (ym && dKey(day).slice(0, 7) !== ym){ errs.push(`"${line}": התאריך לא בחודש הדיווח`); continue; }
+    let rest = line.replace(dm[0], ' ');
+    const times = [...rest.matchAll(/(\d{1,2}):(\d\d)/g)].map(m => Number(m[1]) * 60 + Number(m[2]));
+    const untilTime = /עד\s*(ה?שעה\s*)?\d{1,2}:\d\d/.test(rest);
+    rest = rest.replace(/(\d{1,2}):(\d\d)/g, ' ');
+    let st, en;
+    if (times.length >= 2){ [st, en] = times; }
+    else if (times.length === 1){
+      const dur = parseDur(rest);
+      if (!dur){ errs.push(`"${line}": כמה זמן? כתוב גם שעת סיום, למשל ${fmtMin(times[0])}-${fmtMin(times[0] + 45)}`); continue; }
+      if (untilTime){ en = times[0]; st = en - dur; } else { st = times[0]; en = st + dur; }
+    } else {
+      const r = /(^|[^\d])(\d{1,2})\s*[-–—]\s*(\d{1,2})($|[^\d])/.exec(rest);
+      if (!r){ errs.push(`"${line}": חסרה השעה. כתוב מאיזו שעה עד איזו שעה, למשל ${dm[0]} 15:00-15:45`); continue; }
+      st = Number(r[2]) * 60; en = Number(r[3]) * 60;
+    }
+    if (st < 0) st += 1440;
+    if (en <= st) en += 1440;
+    const mins = en - st;
+    if (!(mins > 0 && mins <= 12 * 60)){ errs.push(`"${line}": משך לא סביר`); continue; }
+    const E = en % 1440, S0 = st % 1440, date = new Date(day);
+    let base = null, pre = false;
+    if (role === 'ramash') base = day.getDay() === 5 ? 'rFri' : 'rDay'; // רמ"ש: כל השעות באותו תעריף
+    else if (E === 420){ base = 'morning'; pre = true; if (en >= 1440) date.setDate(date.getDate() + 1); }
+    else if (E === 900){ base = 'noon'; pre = true; }
+    else if (E === 1380){ base = 'night'; pre = true; }
+    else if (S0 === 900) base = 'morning';
+    else if (S0 === 1380) base = 'noon';
+    else if (S0 === 420){ base = 'night'; date.setDate(date.getDate() - 1); }
+    if (!base){ errs.push(`"${line}": ${fmtMin(st)}–${fmtMin(en)} לא צמוד לתחילה או לסוף של משמרת (07:00, 15:00, 23:00). אם זו משמרת נפרדת, כתוב אותה ברשימת המשמרות למעלה`); continue; }
+    const hk = /ערב\s*(ה)?חג/.test(line) ? 'eve' : /מוצאי\s*(ה)?חג|מוצ["״']?ח/.test(line) ? 'mots' : /חג/.test(line) ? 'hol' : '';
+    const type = role === 'ramash' ? base : shiftAt(base, date, hk);
+    items.push({line, date, st, en, mins, type, pre, key: dKey(date) + '|' + type});
+  }
+  return {items, errs};
+}
+function extraState(){
+  const el = document.getElementById('extraText'); if (!el || !el.value.trim()) return {items: [], errs: [], groups: []};
+  const role = document.querySelector('input[name=role]:checked').value;
+  const r = parseExtras(el.value, document.getElementById('calMonth').value, role);
+  const prefix = role !== 'ramash' && fillKind() === 'lead' ? 'L_' : '';
+  const by = {};
+  for (const it of r.items){
+    const g = by[it.key] = by[it.key] || {type: prefix + it.type, base: it.type, date: it.date, pre: 0, post: 0, lines: []};
+    g[it.pre ? 'pre' : 'post'] += it.mins; g.lines.push(it);
+  }
+  return {...r, groups: Object.values(by)};
+}
+// כל משמרת שהתארכה נכנסת כמשמרת אחת באורך אחר (כמו "חלק מהמשמרות היו באורך אחר")
+function extraOvr(len){
+  return extraState().groups.map(g => ({type: g.type, n: 1, hours: typeHours(SHIFT_TYPES.find(x => x.id === g.type), {_len: len}) + (g.pre + g.post) / 60, pre: g.pre / 60}));
+}
+function renderExtras(){
+  const box = document.getElementById('extraMsg'); if (!box) return;
+  const st = extraState(), out = [], need = {};
+  const len = Number((document.querySelector('input[name=rLen]:checked') || {}).value) || 12;
+  for (const g of st.groups){
+    need[g.type] = (need[g.type] || 0) + 1;
+    const add = g.pre + g.post, h = typeHours(SHIFT_TYPES.find(x => x.id === g.type), {_len: len}) + add / 60;
+    out.push(esc(`${DAY[g.date.getDay()]} ${g.date.getDate()}/${g.date.getMonth() + 1}: ${g.lines.map(it => `${fmtMin(it.st)}–${fmtMin(it.en)}`).join(', ')}, עוד ${add} דקות על משמרת ${SHIFT_NAME[g.base]} (${fmtH(h)} שעות)`));
+  }
+  for (const [type, n] of Object.entries(need)) if ((counts[type] || 0) < n)
+    out.push(`<span class="bad">${esc(`לא נספרה משמרת ${SHIFT_NAME[SHIFT_TYPES.find(x => x.id === type).base]} לתאריך הזה. הוסף אותה למונים או לרשימה, אחרת הזמן הנוסף לא ייספר.`)}</span>`);
+  for (const e of st.errs) out.push(`<span class="bad">${esc(e)}</span>`);
+  box.innerHTML = out.join('<br>'); box.hidden = !out.length;
+}
+document.getElementById('extraText').addEventListener('input', updateTotals);
+document.getElementById('calMonth').addEventListener('change', updateTotals);
+// רשימת שורות התלוש לבחירה: לשכר הגלובלי ולכל תוספת
+function lineOptions(empty){
+  const L = currentSlip ? currentSlip.lines : [];
+  return `<option value="">${esc(empty)}</option>` + L.map((l, i) => `<option value="${i}">${esc(l.name)}${l.amount != null ? ' · ' + fmt(l.amount) + ' ₪' : ''}</option>`).join('');
+}
+function fillLineSelects(){
+  const g = document.getElementById('leadLine'), gv = g.value;
+  g.innerHTML = currentSlip ? lineOptions('בחר שורה') : '<option value="">קודם העלה את התלוש</option>'; g.value = gv;
+  document.querySelectorAll('#vars .vLine').forEach(s => { const v = s.value; s.innerHTML = lineOptions(currentSlip ? 'לא מופיע בתלוש' : 'קודם העלה את התלוש'); s.value = v; });
+}
+let varSeq = 0;
+document.getElementById('addVar').addEventListener('click', () => {
+  const k = ++varSeq, row = document.createElement('div'); row.className = 'var';
+  row.innerHTML = `<label class="field wide"><span>שם</span><input class="vName" id="vName${k}" placeholder="למשל שיחות טלפון"></label>
+    <label class="field"><span>סכום ליחידה (₪)</span><input class="vUnit" id="vUnit${k}" type="number" inputmode="decimal" min="0" step="0.01"></label>
+    <label class="field"><span>כמות</span><input class="vQty" id="vQty${k}" type="number" inputmode="decimal" min="0" step="1" value="1"></label>
+    <label class="field wide"><span>השורה בתלוש</span><select class="vLine" id="vLine${k}">${lineOptions(currentSlip ? 'לא מופיע בתלוש' : 'קודם העלה את התלוש')}</select></label>
+    <button type="button" class="del" aria-label="מחק את התוספת">✕</button>`;
+  row.querySelector('.del').addEventListener('click', () => row.remove());
+  document.getElementById('vars').appendChild(row);
+  row.querySelector('.vName').focus();
+});
+syncRole();
+/* ===================== הפעלה ===================== */
+let pdfBuf = null;
+document.getElementById('pdf').addEventListener('change', async e => {
+  const f = e.target.files[0]; if (!f) return;
+  document.getElementById('fname').textContent = f.name;
+  pdfBuf = new Uint8Array(await f.arrayBuffer());
+  currentSlip = null;
+  const go = document.getElementById('go');
+  go.disabled = true; go.textContent = 'קורא את התלוש…'; go.classList.add('busy');
+  try { // קוראים את התלוש פעם אחת. החודש שלו ממלא את החודש של היומן
+    const pages = await readPdfItems(pdfBuf);
+    if (!pages.flat().length) throw new Error('scan');
+    const slip = parsePayslip(pages);
+    if (!slip) throw new Error('unknown');
+    currentSlip = slip; showError(''); fillLineSelects();
+    // חודש הדיווח: אם עוד לא נבחר, לוקחים את החודש של התלוש. אם נבחר חודש אחר, לא משנים בשקט, אלא מזהירים
+    const cm = document.getElementById('calMonth');
+    if (slip.month && !cm.value) cm.value = slip.month.ym;
+    checkMonth();
+  } catch (err){ showError(pdfErrorText(err)); }
+  go.disabled = !currentSlip; go.textContent = 'בדוק את התלוש'; go.classList.remove('busy');
+});
+function showError(t){ const e = document.getElementById('error'); e.textContent = t; e.hidden = !t; }
+let currentSlip = null;
+/* בדיקה רק כשהחודש בתלוש הוא החודש שדווח באתר (החלטה 48). מחזיר הודעת שגיאה, או ריק אם הכל תקין */
+const ymLabel = ym => { const [y, m] = ym.split('-').map(Number); return new Date(y, m - 1, 1).toLocaleDateString('he-IL', {month: 'long', year: 'numeric'}); };
+function monthProblem(){
+  const ym = document.getElementById('calMonth').value;
+  if (!currentSlip) return '';
+  if (!currentSlip.month || !currentSlip.month.ym) return 'לא מצאתי בתלוש את החודש שלו, ולכן אי אפשר לבדוק אותו.';
+  if (!ym) return `בחר בשלב 3 את חודש הדיווח: ${ymLabel(currentSlip.month.ym)}, החודש של התלוש.`;
+  if (ym !== currentSlip.month.ym) return `התלוש הוא של ${ymLabel(currentSlip.month.ym)}, והדיווח באתר הוא על ${ymLabel(ym)}. אפשר לבדוק רק כשהם אותו חודש: העלה את התלוש של ${ymLabel(ym)}, או שנה את חודש הדיווח ובדוק שהמשמרות הן של החודש הזה.`;
+  return '';
+}
+function checkMonth(){
+  const p = monthProblem(), w = document.getElementById('monthWarn');
+  w.textContent = p; w.hidden = !p;
+  return !p;
+}
+document.getElementById('calMonth').addEventListener('change', () => {
+  checkMonth();
+  const any = Object.values(counts).some(n => n > 0);
+  if (any){ const msg = document.getElementById('calMsg'); msg.hidden = false; msg.textContent = 'שינית את חודש הדיווח. ודא שהמשמרות במונים הן של החודש החדש.'; }
+});
+const pdfErrorText = err => err.message === 'scan' ? 'בקובץ הזה אין טקסט, כנראה שהוא צילום סרוק. צריך את קובץ ה-PDF המקורי ממערכת השכר.'
+  : err.message === 'unknown' ? 'המבנה של התלוש הזה עדיין לא מוכר. כרגע הבדיקה מכירה תלושים של רשף ביטחון.'
+  : 'לא הצלחתי לקרוא את הקובץ. ודא שזה קובץ PDF של תלוש שכר.';
+async function runCheck(buf, shifts){
+  const pages = await readPdfItems(buf);
+  if (!pages.flat().length) throw new Error('scan');
+  const slip = parsePayslip(pages);
+  if (!slip) throw new Error('unknown');
+  return {slip, res: check(slip, shifts)};
+}
+/* סטטיסטיקה אנונימית (החלטות 33-36): שורה אחת לתלוש, בלי שם ובלי התלוש עצמו.
+   נשלחים רק: טביעת אצבע (SHA-256 שנוצר כאן במכשיר), חודש התלוש, האם נמצא פער, והסכום. מס וביטוח לאומי לא נספרים */
+const STATS_URL = 'https://hwzvmmpkhgrtkbjdojir.supabase.co/rest/v1/rpc/record_check';
+const STATS_KEY = 'sb_publishable_RIUtKFbtioKIwhNtPebgmg_QMjfUR17'; // מפתח ציבורי: יכול רק לרשום בדיקה, לא לקרוא
+async function recordStats(slip, res){
+  try {
+    if (!slip.month || !slip.month.ym || !crypto.subtle) return;
+    // טביעת האצבע מהתלוש בלבד, בלי המשמרות: בדיקה חוזרת של אותו תלוש (למשל אחרי תיקון משמרות) מחליפה את הקודמת (החלטה 51)
+    const src = JSON.stringify([slip.employer, slip.month.ym, slip.gross, slip.net, slip.lines.map(l => [l.name, l.qty, l.rate, l.amount])]);
+    const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(src));
+    const fp = [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2, '0')).join('');
+    const gap = r2(res.gapTotal + (res.kerenUnverified || 0));
+    await fetch(STATS_URL, {method: 'POST', keepalive: true, headers: {apikey: STATS_KEY, 'Content-Type': 'application/json'},
+      body: JSON.stringify({p_fingerprint: fp, p_month: slip.month.ym + '-01', p_has_gap: gap > 0, p_gap: gap})});
+  } catch (e) {} // תקלה בסטטיסטיקה לא פוגעת בבדיקה
+}
+document.getElementById('go').addEventListener('click', () => {
+  if (!currentSlip) return;
+  const problem = monthProblem();
+  if (problem){ // לא בודקים ולא רושמים סטטיסטיקה כשהחודשים לא תואמים
+    checkMonth(); showError(problem);
+    document.getElementById('result').innerHTML = '';
+    document.getElementById('calMonth').scrollIntoView({behavior: 'smooth', block: 'center'});
+    return;
+  }
+  showError('');
+  const profile = getProfile(), shifts = currentShifts();
+  showResult(currentSlip, shifts, false, profile);
+  recordStats(currentSlip, check(currentSlip, shifts, {profile}));
+  const res = document.getElementById('result');
+  res.classList.remove('enter'); void res.offsetWidth; res.classList.add('enter'); // הכרטיסים עולים אחד אחרי השני
+  res.scrollIntoView({behavior: 'smooth', block: 'start'});
+});
+window.__runCheck = runCheck;
+
+/* דוגמה שמוצגת בפתיחה: עובד מומצא, 10 משמרות, שולמו 78 שעות מתוך 80 */
+(function example(){
+  const base = 78 * 47, hv = r2(78 * 1.64), tr = 160, gross = r2(base + hv + tr);
+  const pb = r2(base + hv);
+  const funds = [
+    {type: 'קצבה שכיר-תגמולים', base: pb, employer: r2(pb * .075), employee: r2(pb * .07)},
+    {type: 'קצבה שכיר-פיצויים', base: pb, employer: r2(pb * .0833), employee: 0},
+    {type: 'קצבה שכיר-תגמולים', base: tr, employer: 8, employee: 8},
+    {type: 'קרן השתלמות', base: r2(78 * 35.40 + hv), employer: r2((78 * 35.40 + hv) * .075), employee: r2((78 * 35.40 + hv) * .025)},
+  ];
+  const fundTotal = r2(funds.reduce((a, f) => a + f.employee, 0));
+  const deductions = {'ביטוח לאומי': 41.12, 'ביטוח בריאות': 127.71, 'דמי טיפול': 15};
+  const taxTotal = 183.83;
+  const slip = {employer: 'רשף ביטחון (דוגמה)', month: {ym: '2026-09', label: 'ספטמבר 2026'},
+    lines: [{name: 'שכר יסוד', rate: 47, qty: 78, amount: base}, {name: 'נסיעות', amount: tr}, {name: 'הבראה', rate: 1.64, qty: 78, amount: hv}, {name: 'ימי עבודה', qty: 10}],
+    deductions, funds, gross, taxTotal, fundTotal, otherTotal: 0, net: r2(gross - taxTotal - fundTotal), seniorityMonths: 6, creditPoints: 2.25};
+  showResult(slip, {morning: 10}, true);
+})();
+renderRules();
+
+/* ===================== עיגול התמיכה (בוט שאלות קבועות + דיווח תקלות, החלטה 52) =====================
+   התשובות נבנות מהכללים ב-RULESETS, כדי שלא יסתרו את הבודק. בלי AI ובלי שליחה לגורם חיצוני.
+   נשמר במסד הנתונים רק: דיווח תקלה, שאלה שאין לה תשובה, ותקציר (אילו שאלות נפתחו). מספרים של 3 ספרות ומעלה ומיילים נמחקים לפני השליחה.
+   את הדיווחים קורא ומטפל בהם הסוכן site-qa (הסקיל support-bot). */
+const FEEDBACK_URL = 'https://hwzvmmpkhgrtkbjdojir.supabase.co/rest/v1/rpc/submit_feedback';
+const FAQ = (() => {
+  const R = RULESETS[0], p = x => String(Math.round(x * 10000) / 100) + '%';
+  return [
+    {id: 'what', q: 'מה האתר בודק?', k: ['בודק', 'מה האתר', 'מה זה', 'איך עובד', 'מה עושים'],
+     a: 'משווים את התלוש למשמרות שעבדת: שעות ותעריף, שעות נוספות ושבת, הבראה, נסיעות, פנסיה ופיצויים, קרן השתלמות ותוספות שהוספת. לכל נושא מקבלים תקין או פער, עם הסבר וסכום.'},
+    {id: 'privacy', q: 'התלוש שלי נשמר איפשהו?', k: ['נשמר', 'שומרים', 'פרטיות', 'מידע', 'רואים', 'בטוח', 'מאגר', 'נשלח'],
+     a: 'לא. התלוש והיומן נקראים רק במכשיר שלך ולא נשלחים לשום מקום. לסטטיסטיקה אנונימית נשמרים רק חודש התלוש, האם נמצא פער והסכום, וטביעת אצבע מוצפנת של התלוש, כדי שבדיקה חוזרת לא תיספר פעמיים. מה שאתה כותב כאן בעיגול כן נשמר, בלי מספרים ומיילים. הפירוט המלא נמצא במדיניות הפרטיות.', link: ['privacy.html', 'מדיניות הפרטיות']},
+    {id: 'month', q: 'למה הבדיקה חסומה?', k: ['חסום', 'חסומה', 'לא נותן', 'חודש הדיווח', 'חודש התלוש', 'חודש לא', 'חודש אחר', 'לא מאפשר', 'לא עובד הכפתור', 'לא נלחץ'],
+     a: 'בודקים רק כשחודש התלוש זהה לחודש הדיווח שבחרת בשלב 3. בחר את החודש שמופיע בתלוש, והכפתור ייפתח. גם תאריכים ברשימה החופשית חייבים להיות באותו חודש.'},
+    {id: 'pdf', q: 'התלוש לא נקרא. מה עושים?', k: ['לא נקרא', 'קובץ', 'pdf', 'סרוק', 'תמונה', 'שגיאה', 'לא עולה', 'להעלות'],
+     a: 'האתר קורא תלוש PDF מקורי של רשף ביטחון, כמו שהוא מגיע מהמערכת. צילום או סריקה של תלוש לא נקראים. אם יש לך PDF מקורי והוא עדיין לא נקרא, דווח על תקלה כאן למטה.'},
+    {id: 'overtime', q: 'איך מחושבות שעות נוספות ושבת?', k: ['נוספות', '125', '150', '175', '200', 'שבת', 'חג', 'לילה', 'מוצ"ש', 'שישי', 'צהריים', 'ערב שישי', 'ערב חג', 'מוצאי חג', '15:00', '16:00', 'כניסת שבת'],
+     a: 'שעות נוספות נספרות לפי כל משמרת, לא לפי החודש. משמרת יום: 8 שעות רגילות בשבוע של 6 ימים, או 8.6 בשבוע של 5 ימים. משמרת לילה (לפחות שעתיים בין 22:00 ל-06:00): 7 שעות רגילות. אחרי השעות הרגילות: שעתיים ב-125%, והשאר ב-150%. בשבת ובחג (משישי 16:00 עד ראשון 04:00, שעות קבועות כל השנה ולא לפי כניסת השבת. חג כמו שבת: מ-16:00 בערב החג עד 04:00 במוצאי החג) כל שעה רגילה היא 150%, שתי השעות הנוספות הראשונות ב-175%, והשאר ב-200%. דוגמה: בצהריים של שישי או של ערב חג (15:00–23:00) שעה רגילה ו-7 ב-150%, גם בקיץ. במוצאי חג, כמו במוצ"ש, 5 שעות ב-150%. בלילה של שישי 7 שעות ב-150%, והשמינית ב-175%. בלילה של מוצ"ש 5 השעות הראשונות ב-150%. לרמ"ש אין שעות נוספות, כי ' + fmt(R.roleRates.ramash) + ' ₪ הוא שכר כולל לכל השעות.',
+     src: 'חוק שעות עבודה ומנוחה, צו 42 שעות (2018), צו ההרחבה בענף השמירה 2014 (סעיף 8) ו-2022, כל זכות'},
+    {id: 'nine', q: 'מותר לשלם 9% במקום שעות נוספות?', chip: false, k: ['9%', 'תוספת כוללת', 'גלובליות', 'במקום שעות נוספות', 'תוספת קבועה'],
+     a: 'רק אם חתמת על הסכם בכתב, בנוסח שקבוע בצו. ההסכם חל רק על ימי חול. התוספת היא 9% לפחות על כל שעות היום, גם ביום שבו לא היו שעות נוספות. בשבת ובחג מגיע 50% על כל שעה, גם עם הסכם. כל צד יכול לבטל את ההסכם בהודעה בכתב, 30 יום מראש. אם לא חתמת, מגיע לך תשלום מלא על כל שעה נוספת.',
+     src: 'צו ההרחבה בענף השמירה 2014, סעיף 8(ב)'},
+    {id: 'hours', q: 'כמה שעות מותר להעסיק אותי?', chip: false, k: ['כמה שעות מותר', 'מותר לעבוד', '12 שעות ביום', 'מקסימום שעות', 'מנוחה בין משמרות', 'כפולה', 'רצוף'],
+     a: 'בענף השמירה מותרות עד 4 שעות נוספות ביום (5 ביום שלפני המנוחה השבועית), ועד 37 שעות נוספות בשבוע. בדרך כלל זה עד 12 שעות ביום. בין משמרות מגיעה מנוחה של 8 שעות לפחות. גם כשמותר לעבוד יותר, כל שעה נוספת משולמת בתוספת.',
+     src: 'היתר העבודה בשעות נוספות בענף השמירה, חוק שעות עבודה ומנוחה, כל זכות'},
+    {id: 'ramash', q: 'אני רמ"ש. מה ההבדל?', k: ['רמש', 'רמ"ש', 'רמ״ש', '12 שעות', '8 שעות', 'שישי'],
+     a: 'רמ"ש מקבל ' + fmt(R.roleRates.ramash) + ' ₪ לשעה, שכר כולל שסוכם מראש. בוחרים אם המשמרות הן של 12 שעות (06:00-18:00) או של 8, ויש סוג נפרד למשמרת שישי (06:00-14:00). אם עבדת גם כמאבטח, פתח "עבדת גם כמאבטח?".'},
+    {id: 'lead', q: 'אני ראש צוות. איך זה עובד?', k: ['ראש צוות', 'גלובלי', 'שעתי', 'השכר שלי'],
+     a: 'ראש צוות מקליד את השכר שלו, שעתי או גלובלי, והבודק מחשב לפיו. מה שמוקלד לא נשמר ולא נשלח לשום מקום. אפשר לסמן גם משמרות של מאבטח או של רמ"ש, ולהוסיף משתנים כמו שיחות טלפון או מוניות.'},
+    {id: 'havraa', q: 'כמה הבראה מגיעה לי?', k: ['הבראה'],
+     a: 'לפי הבודק מגיעים ' + fmt(R.havraaPerHour) + ' ₪ על כל שעת עבודה רגילה, עד ' + R.havraaCapHours + ' שעות בחודש. זה 7 ימי הבראה בשנה, שמגיעים בשלוש השנים הראשונות. מהשנה הרביעית מגיעים 9 ימים (כ-' + fmt(R.havraaPerHour * 9 / 7) + ' ₪ לשעה), ומהשנה ה-11 מגיעים 10 ימים. הבודק בודק לפי 7 ימים, אז עם ותק ארוך כדאי לבדוק בנפרד. בשכר חודשי מותר לשלם את ההבראה פעם בשנה, ביוני עד ספטמבר.',
+     src: 'צו ההרחבה בענף השמירה 2014, סעיף 11, כל זכות'},
+    {id: 'travel', q: 'איך נבדקות הנסיעות?', k: ['נסיעות', 'נסיעה', 'דמי נסיעה', 'הסעה'],
+     a: 'נסיעות מגיעות עד ' + fmt(R.travelDayCap) + ' ₪ לכל יום עבודה, ולא לכל משמרת: שתי משמרות באותו יום הן יום נסיעה אחד. ביום שבו המעסיק הסיע אותך לא מגיעות נסיעות. נסיעה מאתר לאתר באמצע משמרת נחשבת זמן עבודה, והמעסיק משלם עליה. על הנסיעות מפרישים גם לפנסיה, 5% ממך ו-5% מהמעסיק.',
+     src: 'צו ההרחבה בדבר השתתפות המעסיק בהוצאות נסיעה (2016), צו השמירה 2014 (סעיפים 9 ו-18), כל זכות'},
+    {id: 'pension', q: 'כמה פנסיה צריך להפריש?', k: ['פנסיה', 'פיצויים', 'הפרשה', 'תגמולים'],
+     a: 'מהשכר ומההבראה: ' + p(R.pensionEmployee) + ' מנוכים ממך, ' + p(R.pensionEmployer) + ' מפריש המעסיק לפנסיה, ועוד ' + p(R.severance) + ' לפיצויים. על שעות נוספות ושבת: אותם אחוזים לפנסיה, ו-' + p(R.severanceExtras) + ' לפיצויים. על הנסיעות: ' + p(R.pensionTravel) + ' ממך ו-' + p(R.pensionTravel) + ' מהמעסיק. הפנסיה מתחילה אחרי חודש עבודה, ומכסה גם אותו (רטרואקטיבית). אם עברת מחברת שמירה אחרת באותו מקום עבודה בגלל מכרז, היא מתחילה מהיום הראשון.',
+     src: 'צו ההרחבה בענף השמירה 2014, סעיף 9 (השיעורים עודכנו ב-2015), כל זכות'},
+    {id: 'minwage', q: 'מה שכר המינימום בשמירה?', chip: false, k: ['שכר מינימום', 'שכר המינימום', 'מינימום', 'כמה מגיע לשעה', 'שכר בענף'],
+     a: 'שכר המינימום בענף השמירה הוא ' + fmt(R.sectorMinHour) + ' ₪ לשעה (מ-1.4.2026), ואחראי שמירה מקבל קצת יותר. מאבטח עם הכשרה מתקדמת זכאי ליותר: 10% עד 60% מעל שכר המינימום הכללי, לפי סוג ההכשרה, אם הוא עובד בתפקיד שדורש אותה. ברשף ביטחון השכר הוא ' + fmt(R.roleRates.guard) + ' ₪ לשעה לכל המאבטחים, ו-' + fmt(R.roleRates.ramash) + ' ₪ לרמ"ש. ב-1.1.2027 השכר בענף עולה.',
+     src: 'חוזר הממונה על יחסי עבודה (16.3.2026), צו ההרחבה בענף השמירה 2022, סעיף 6'},
+    {id: 'deduct', q: 'מותר לנכות ממני על מטווח או ריענון?', chip: false, k: ['מטווח', 'ריענון', 'ירי', 'ניכוי', 'ניכו', 'הורידו לי', 'קיזזו'],
+     a: 'לא. מטווח, ריענון ירי והשתלמות מקצועית הם על חשבון המעסיק בלבד, ואסור לנכות עליהם מהשכר. הזמן שם נחשב זמן עבודה לכל דבר, עם שכר ונסיעות. גם על מטווח קצר משלמים לפחות שעה.',
+     src: 'צו ההרחבה בענף השמירה 2014, סעיף 29'},
+    {id: 'keren', q: 'מה עם קרן השתלמות?', k: ['השתלמות', 'קרן'],
+     a: 'המעסיק מפקיד ' + p(R.kerenEmployer) + ' ומנוכים ממך ' + p(R.kerenEmployee) + '. הבסיס הוא שכר המינימום הכללי (' + fmt(R.generalMinHour) + ' ₪ לשעה) כפול השעות הרגילות, עד ' + R.kerenCapHours + ' בחודש, ועוד ההבראה. כלומר לא השכר המלא, לא התוספות של שבת ושעות נוספות, ולא הנסיעות. על השעה הנוספת עצמה הצו לא מחייב במפורש להפקיד. שעות שבת רגילות נכנסות לבסיס, בשכר המינימום.' + (R.kerenFromDayOne ? ' ברשף ההפקדה מתחילה מהיום הראשון. לפי הצו מותר לחכות חודשיים, ואז להפקיד גם עליהם.' : ' ההפקדה מתחילה אחרי חודשיים, ומכסה גם אותם.') + (R.verified.keren ? '' : ' הכלל עוד לא אומת מול נוסח הצו, ולכן פער בקרן מוצג כמידע ולא כחוב.'),
+     src: 'צו ההרחבה בענף השמירה 2014, סעיף 10, וצו 2022, סעיף 7, כל זכות'},
+    {id: 'gap', q: 'נמצא פער. מה עושים?', k: ['פער', 'חסר', 'חוב', 'מה עושים', 'לפנות', 'תביעה', 'תלונה', 'לתבוע', 'עורך דין'],
+     a: 'שמור את התלושים ואת רשימת המשמרות. קודם פנה בכתב למחלקת השכר, עם הפירוט מהבודק (יש בו הודעה מוכנה). אם הפער לא נסגר, יש שלוש אפשרויות: תלונה למינהל ההסדרה והאכיפה במשרד העבודה, פנייה לאיגוד עובדי השמירה בהסתדרות (צד להסכם בענף), או עורך דין לדיני עבודה. תביעת שכר אפשר בדרך כלל להגיש עד 7 שנים אחורה. מעסיק שניכה ממך כסף לפנסיה או לקרן ולא העביר אותו עובר עבירה פלילית.',
+     src: 'כל זכות, חוק ההתיישנות, חוק להגברת האכיפה של דיני העבודה'},
+    {id: 'rights', q: '⚖️ זכויות לפי החוק', k: ['זכויות', 'חוקי', 'מגיע לי', 'מה החוק'], more: ['overtime', 'nine', 'hours', 'minwage', 'keren', 'havraa', 'travel', 'pension', 'deduct', 'gap'],
+     a: 'על מה תרצה לדעת? כל תשובה מגיעה עם המקור שלה בחוק או בצו.'},
+  ];
+})();
+(function supportBot(){
+  const $s = id => document.getElementById(id);
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `
+<button id="sbOpen" class="sb-bubble" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="sbPanel" aria-label="עזרה ודיווח על תקלה">?</button>
+<section id="sbPanel" class="sb-panel" role="dialog" aria-label="עזרה ודיווח על תקלה" hidden>
+  <header class="sb-head"><strong>עזרה</strong><button id="sbClose" type="button" class="sb-x" aria-label="סגור">✕</button></header>
+  <div id="sbLog" class="sb-log" aria-live="polite"></div>
+  <div class="sb-chips" id="sbChips"></div>
+  <form id="sbForm" class="sb-form">
+    <label for="sbText" class="sb-hint">כתוב שאלה או תקלה. בלי שם, תעודת זהות או סכומים מהתלוש.</label>
+    <div class="sb-row"><textarea id="sbText" rows="2" maxlength="1000" placeholder="למשל: הכפתור בדוק לא נלחץ"></textarea><button type="submit" class="primary sb-send">שלח</button></div>
+    <button type="button" id="sbBug" class="linkish">🐞 דווח על תקלה</button>
+  </form>
+</section>`;
+  document.body.appendChild(wrap);
+  const log = $s('sbLog'), seen = new Set(), unanswered = [];
+  const sentFaq = new Set(); let sentUn = 0, bugMode = false;
+  const say = (html, who) => { if (who === 'me') $s('sbPanel').classList.add('talked'); const d = document.createElement('div'); d.className = 'sb-msg ' + (who || 'bot'); d.innerHTML = html; log.appendChild(d); log.scrollTop = log.scrollHeight; return d; };
+  // כל מספר עם 3 ספרות ומעלה נמחק (ת"ז, טלפון, סכום כמו 850 או 47.5). מספר קצר נשאר, כמו "8 שעות" או "5/10"
+  const scrub = t => String(t).replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, '[מייל]').replace(/\d[\d,.]*\d|\d/g, m => m.replace(/\D/g, '').length >= 3 ? '[מספר]' : m).slice(0, 1000);
+  const role = () => { try { return getProfile().role || ''; } catch (e) { return ''; } };
+  const screen = () => [role(),$s('result') && $s('result').children.length ? 'אחרי-בדיקה' : 'לפני-בדיקה', innerWidth < 600 ? 'טלפון' : 'מחשב'].join(' · ');
+  async function send(kind, text, faq){
+    try {
+      const r = await fetch(FEEDBACK_URL, {method: 'POST', keepalive: true, headers: {apikey: STATS_KEY, 'Content-Type': 'application/json'},
+        body: JSON.stringify({p_kind: kind, p_text: scrub(text), p_screen: screen(), p_faq: (faq || [...seen]).slice(0, 30)})});
+      return r.ok;
+    } catch (e) { return false; }
+  }
+  function answer(f){
+    seen.add(f.id);
+    const src = f.src ? `<div class="sb-src">מקור: ${esc(f.src)}. זה מידע כללי, לא ייעוץ משפטי.</div>` : '';
+    const more = f.more ? `<div class="sb-more">${f.more.map(id => FAQ.find(x => x.id === id)).filter(Boolean).map(x => `<button type="button" class="sb-chip" data-faq="${x.id}">${esc(x.q)}</button>`).join('')}</div>` : '';
+    say(esc(f.a) + (f.link ? ` <a href="${f.link[0]}" target="_blank" rel="noopener">${esc(f.link[1])}</a>` : '') + src + more);
+  }
+  $s('sbChips').innerHTML = FAQ.filter(f => f.chip !== false).map(f => `<button type="button" class="sb-chip" data-faq="${f.id}">${esc(f.q)}</button>`).join('');
+  $s('sbChips').addEventListener('click', e => {
+    const b = e.target.closest('[data-faq]'); if (!b) return;
+    const f = FAQ.find(x => x.id === b.dataset.faq); say(esc(f.q), 'me'); answer(f);
+  });
+  // מילה שלמה שווה 2 נקודות, חלק ממילה נקודה אחת. מספר (כמו 125) נספר רק כשהוא עומד לבד, לא בתוך מספר אחר
+  log.addEventListener('click', e => {
+    const b = e.target.closest('[data-faq]'); if (!b) return;
+    const f = FAQ.find(x => x.id === b.dataset.faq); if (f){ say(esc(f.q), 'me'); answer(f); }
+  });
+  function match(t){
+    const s = t.replace(/[״"']/g, '"').toLowerCase();
+    const whole = k => new RegExp('(^|[^\\p{L}\\d])' + k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '($|[^\\p{L}\\d])', 'u').test(s);
+    let best = null, score = 0;
+    for (const f of FAQ){
+      let n = 0;
+      for (const k0 of f.k){ const k = k0.toLowerCase(); if (!s.includes(k)) continue; if (whole(k)) n += 2; else if (!/^\d+$/.test(k)) n += 1; }
+      if (n > score){ score = n; best = f; }
+    }
+    return best;
+  }
+  $s('sbBug').addEventListener('click', () => { bugMode = true; say('תאר מה קרה: מה לחצת, מה ציפית שיקרה ומה קרה בפועל. בלי פרטים אישיים.'); $s('sbText').focus(); });
+  $s('sbForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const t = $s('sbText').value.trim(); if (!t) return;
+    say(esc(t), 'me'); $s('sbText').value = '';
+    if (bugMode){
+      bugMode = false;
+      say((await send('bug', t)) ? 'תודה! הדיווח נשלח, ונבדוק אותו.' : 'השליחה נכשלה. נסה שוב בעוד רגע.');
+      return;
+    }
+    const f = match(t);
+    if (f){ answer(f); return; }
+    const st = scrub(t); unanswered.push(st);
+    const m = say('אין לי תשובה מוכנה לזה. ');
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'linkish'; b.textContent = 'לשלוח כדיווח על תקלה?';
+    b.onclick = async () => {
+      b.disabled = true;
+      // מוציאים מהתקציר את השאלה הזו בדיוק (ולא את האחרונה), כדי שלא תישלח פעמיים
+      const i = unanswered.indexOf(st, sentUn); if (i >= 0) unanswered.splice(i, 1);
+      say((await send('bug', t)) ? 'נשלח. תודה!' : 'השליחה נכשלה. נסה שוב בעוד רגע.');
+    };
+    m.appendChild(b);
+  });
+  // תקציר השיחה: נשלח בסגירה ובעזיבת הדף, רק עם מה שחדש מאז התקציר הקודם (שאלות שנפתחו ושאלות בלי תשובה)
+  function sendSummary(){
+    const newFaq = [...seen].filter(id => !sentFaq.has(id)), newUn = unanswered.slice(sentUn);
+    if (!newFaq.length && !newUn.length) return;
+    newFaq.forEach(id => sentFaq.add(id)); sentUn = unanswered.length;
+    send('summary', newUn.join(' | '), newFaq);
+  }
+  function toggle(open){
+    $s('sbPanel').hidden = !open; $s('sbOpen').setAttribute('aria-expanded', open);
+    if (open){ if (!log.children.length) say('שלום! בחר שאלה, כתוב שאלה משלך, או דווח על תקלה.'); $s('sbText').focus(); }
+    else { sendSummary(); $s('sbOpen').focus(); }
+  }
+  $s('sbOpen').addEventListener('click', () => toggle($s('sbPanel').hidden));
+  $s('sbClose').addEventListener('click', () => toggle(false));
+  // Esc סוגר מכל מקום בדף כשהחלון פתוח, ולא רק כשהפוקוס בתוכו
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$s('sbPanel').hidden) toggle(false); });
+  addEventListener('pagehide', sendSummary);
+  window.__supportBot = {match, scrub, send, FAQ};
+})();
+</script>
+</body>
+</html>

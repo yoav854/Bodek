@@ -1,0 +1,67 @@
+/* בדיקות לדף הכניסה (index.html): כותרת, קישורים, מעבר בין מסכים, כרטיס העדכונים (טקסט רגיל בלבד, "הבנתי" זוכר), ושאין שגיאות סקריפט.
+   התוצאה נכתבת כ-JSON לאלמנט pre בשם qa-out, באותו מבנה של runner.js. */
+(async function(){
+  const res = [];
+  const ok = (area, name) => res.push({area, name, pass: true});
+  const bad = (area, name, sev, problem, fix) => res.push({area, name, pass: false, sev, problem, fix});
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  try {
+    // 1. הכותרת: המשפט שנבחר
+    const h1 = document.getElementById('h1');
+    (h1 && /התלוש\s+נשאר\s+בטלפון\s+שלך/.test(h1.textContent)) ? ok('מסך', 'הכותרת "התלוש נשאר בטלפון שלך"') : bad('מסך', 'הכותרת', 'גבוה', `הכותרת היא "${h1 && h1.textContent.trim()}"`, 'להחזיר את המשפט שיואב בחר בכותרת');
+
+    // 2. קישורים: כל כפתור "בדוק את התלוש" לכלי, כל קישור פרטיות לדף הפרטיות, ואין קישור שבור
+    const ctas = [...document.querySelectorAll('a.pill')];
+    (ctas.length >= 2 && ctas.every(a => a.getAttribute('href') === 'check.html')) ? ok('מסך', 'כפתורי "בדוק את התלוש" מובילים לכלי') : bad('מסך', 'כפתורי הבדיקה', 'קריטי', `נמצאו ${ctas.length}, כתובות: ${ctas.map(a => a.getAttribute('href')).join(', ')}`, 'לכוון כל כפתור ל-check.html');
+    const priv = [...document.querySelectorAll('a[href*="privacy"]')];
+    (priv.length >= 2 && priv.every(a => a.getAttribute('href') === 'privacy.html')) ? ok('מסך', 'קישורי הפרטיות') : bad('מסך', 'קישורי הפרטיות', 'גבוה', `נמצאו ${priv.length}`, 'לכוון ל-privacy.html');
+    const known = ['check.html', 'privacy.html', 'index.html'];
+    const dead = [...document.querySelectorAll('a[href]')].filter(a => !known.includes(a.getAttribute('href'))).map(a => a.getAttribute('href'));
+    dead.length ? bad('מסך', 'קישורים בדף הכניסה', 'גבוה', 'קישור לא מוכר: ' + dead.join(', '), 'להשאיר רק check.html, privacy.html ו-index.html') : ok('מסך', 'אין קישור לא מוכר');
+
+    // 3. מעבר בין מסכים בחשיפה עגולה ובחזרה
+    const btn = n => document.querySelector(`.rb[data-view=${n}]`), on = n => document.getElementById('v-' + n).classList.contains('is-on');
+    // השעון של הבדיקה לא מריץ אנימציות, לכן כאן בודקים את הלוגיקה בלי החשיפה העגולה (כמו מכשיר שביקש פחות תנועה).
+    // את החשיפה עצמה בדקנו בדפדפן בזמן אמיתי: נפתחת, המסך מתחלף אחרי כחצי שנייה, ונסגרת תוך כשנייה.
+    window.__qaReduce = true;
+    btn('how').click(); await sleep(50);
+    const toHow = on('how') && !on('home') && btn('how').classList.contains('is-on') && btn('how').getAttribute('aria-current') === 'page';
+    btn('privacy').click(); await sleep(50);
+    const toPriv = on('privacy') && !on('how') && !btn('how').hasAttribute('aria-current');
+    btn('home').click(); await sleep(50);
+    const back = on('home') && !on('privacy') && !document.getElementById('wipe').classList.contains('on');
+    window.__qaReduce = false;
+    (toHow && toPriv && back) ? ok('מסך', 'מעבר בין בית, איך זה עובד ופרטיות') : bad('מסך', 'מעבר בין מסכים', 'קריטי', `איך זה עובד: ${toHow}, פרטיות: ${toPriv}, חזרה: ${back}`, 'לבדוק את go() ו-show()');
+
+    // 4. כרטיס העדכונים: בלי עדכון הוא מוסתר, ועדכון מוצג כטקסט רגיל
+    await sleep(2500); // קודם מחכים שהבקשה האמיתית למסד הנתונים תחזור, כדי שלא תדרוס את העדכונים שהבדיקה מזינה
+    const card = document.getElementById('notice');
+    try { localStorage.removeItem('bodek_seen_notices'); } catch (e) {}
+    window.__setNotices([]);
+    card.hidden ? ok('מסך', 'בלי עדכון הכרטיס מוסתר') : bad('מסך', 'כרטיס עדכונים', 'גבוה', 'הכרטיס מוצג בלי עדכון', 'להסתיר כשהרשימה ריקה');
+    window.__x = 0;
+    window.__setNotices([{id: 1, body: '<img src=x onerror="window.__x=1">שכר המינימום עודכן', source: 'צו ההרחבה, <b>סעיף 9</b>', created_at: '2026-11-20T10:00:00Z'}, {id: 2, body: 'עדכון שני', source: 'כל זכות', created_at: '2026-11-19T10:00:00Z'}]);
+    await sleep(200);
+    const safe = !card.hidden && !card.querySelector('img') && !card.querySelector('b') && card.textContent.includes('<img') && !window.__x;
+    safe ? ok('אבטחה', 'עדכון מוצג כטקסט רגיל (XSS נחסם)') : bad('אבטחה', 'XSS בכרטיס עדכונים', 'קריטי', 'קוד מתוך עדכון נכנס לדף', 'להציג עדכון רק דרך textContent');
+    document.getElementById('nOk').click();
+    const second = !card.hidden && card.textContent.includes('עדכון שני') && !card.textContent.includes('<img');
+    document.getElementById('nOk').click();
+    let stored = []; try { stored = JSON.parse(localStorage.getItem('bodek_seen_notices') || '[]'); } catch (e) {}
+    (second && card.hidden && stored.includes(1) && stored.includes(2)) ? ok('מסך', '"הבנתי" מציג את העדכון הבא וזוכר') : bad('מסך', '"הבנתי"', 'גבוה', `העדכון השני הוצג: ${second}, הכרטיס נסגר: ${card.hidden}, נשמר: ${stored.join(',')}`, 'לבדוק את remember() ו-showNotice()');
+    try { localStorage.removeItem('bodek_seen_notices'); } catch (e) {}
+
+    // 5. כשאין כרטיס עדכונים, כרטיס הכותרת תופס את כל השורה
+    const heroW = document.querySelector('.hero').getBoundingClientRect().width, bentoW = document.querySelector('#v-home .bento').getBoundingClientRect().width;
+    window.__setNotices([]); await sleep(50);
+    const wide = document.querySelector('.hero').getBoundingClientRect().width;
+    (wide > bentoW * 0.95) ? ok('מסך', 'בלי עדכון כרטיס הכותרת ברוחב מלא') : bad('מסך', 'רוחב כרטיס הכותרת', 'בינוני', `רוחב ${Math.round(wide)} מתוך ${Math.round(bentoW)}`, 'לבדוק את .bento:has(.updates[hidden])');
+
+    // 6. שגיאות סקריפט (לא כולל משאבים חיצוניים כמו גופנים)
+    const errs = (window.__qaErr || []).filter(e => !/^resource failed/.test(e));
+    errs.length ? bad('חישוב', 'שגיאות סקריפט', 'קריטי', errs.slice(0, 3).join(' | '), 'לתקן את השגיאה בדף') : ok('חישוב', 'אין שגיאות סקריפט בדף הכניסה');
+  } catch (e) {
+    bad('חישוב', 'חבילת דף הכניסה', 'קריטי', 'קרסה: ' + e.message, 'לבדוק את qa/landing-runner.js');
+  }
+  const pre = document.createElement('pre'); pre.id = 'qa-out'; pre.textContent = JSON.stringify(res); document.body.appendChild(pre);
+})();

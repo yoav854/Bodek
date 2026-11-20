@@ -23,10 +23,14 @@
       fails.length ? bad('חישוב', c.name, 'קריטי', fails.join('; '), 'לתקן את החישוב ב-check()') : ok('חישוב', c.name);
     }
 
-    // 2. מסך: בחירת תפקיד בכניסה
-    const pick = document.getElementById('rolePick');
-    if (!pick) bad('מסך', 'בחירת תפקיד', 'גבוה', 'מסך בחירת התפקיד לא קיים', 'להחזיר את #rolePick');
-    else { pick.querySelector('[data-role=guard]').click(); document.getElementById('rolePick') ? bad('מסך', 'בחירת תפקיד', 'גבוה', 'המסך לא נסגר אחרי בחירה', 'לבדוק את rolePick()') : ok('מסך', 'בחירת תפקיד'); }
+    // 2. מסך: בחירת תפקיד בכרטיס (בלי חלון קופץ), ובלי מדריך עמוס. ראש צוות פותח את שדות השכר, מאבטח סוגר אותם
+    const roleLead = document.querySelector('input[name=role][value=lead]'), roleGuard = document.querySelector('input[name=role][value=guard]'), leadBox = document.getElementById('leadBox');
+    if (!roleLead || !roleGuard || !leadBox) bad('מסך', 'בחירת תפקיד', 'גבוה', 'כרטיס התפקיד חסר', 'להחזיר את בחירת התפקיד בשלב 2');
+    else {
+      roleLead.checked = true; roleLead.dispatchEvent(new Event('change', {bubbles: true})); const opened = !leadBox.hidden;
+      roleGuard.checked = true; roleGuard.dispatchEvent(new Event('change', {bubbles: true})); const closed = leadBox.hidden;
+      (opened && closed && !document.getElementById('rolePick') && !document.getElementById('guideBox')) ? ok('מסך', 'בחירת תפקיד בכרטיס, בלי חלון קופץ') : bad('מסך', 'בחירת תפקיד', 'גבוה', `ראש צוות פותח שדות: ${opened}, מאבטח סוגר: ${closed}`, 'לבדוק את syncRole()');
+    }
 
     // 3. מסך: חסימה כשחודש התלוש שונה מחודש הדיווח (החלטה 48)
     const s0 = window.QA_CASES[0].slip, cm = document.getElementById('calMonth'), go = document.getElementById('go'), err = document.getElementById('error'), out = document.getElementById('result');
