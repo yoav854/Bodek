@@ -48,7 +48,7 @@ a { color: inherit; }
 .rb:hover { color: #fff; background: rgb(255 255 255 / .08); }
 .rb.is-on { background: var(--mint-2); color: var(--forest); box-shadow: 0 0 0 6px rgb(143 211 220 / .18), 0 0 26px rgb(143 211 220 / .55); }
 .rb::after { content: attr(data-label); position: absolute; inset-inline-end: calc(100% + 14px); top: 50%; transform: translateY(-50%) translateX(6px); opacity: 0; pointer-events: none; white-space: nowrap;
-  background: rgb(14 43 37 / .92); color: #fff; font-size: 13px; padding: 5px 10px; border-radius: 99px; transition: opacity .2s, transform .2s; }
+  background: rgb(31 48 56 / .92); color: #fff; font-size: 13px; padding: 5px 10px; border-radius: 99px; transition: opacity .2s, transform .2s; }
 .rb:hover::after, .rb:focus-visible::after { opacity: 1; transform: translateY(-50%); }
 .rail .foot { color: #6f9a8d; font-size: 12px; }
 
@@ -59,7 +59,7 @@ a { color: inherit; }
 .bento { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--gap); }
 .card { background: var(--card); border-radius: var(--r); padding: 22px; box-shadow: 0 1px 0 rgb(255 255 255 / .8) inset, 0 18px 34px -24px rgb(20 45 55 / .4); min-width: 0;
   transition: transform .3s cubic-bezier(.2, .7, .2, 1), box-shadow .3s; }
-.card:hover { transform: translateY(-3px); box-shadow: 0 1px 0 rgb(255 255 255 / .8) inset, 0 26px 40px -24px rgb(15 50 40 / .5); }
+.card:hover { transform: translateY(-3px); box-shadow: 0 1px 0 rgb(255 255 255 / .8) inset, 0 26px 40px -24px rgb(20 45 55 / .4); }
 .card h2, .card h3 { margin: 0; font-weight: 600; }
 .card .lbl { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 15px; font-weight: 500; color: var(--muted); margin-bottom: 12px; }
 .chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 99px; background: #e4f5ee; color: #1a6b54; }
