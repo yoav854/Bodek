@@ -152,6 +152,9 @@ a { color: inherit; }
 /* the circular wipe between views */
 .wipe { position: fixed; inset: 0; background: var(--forest); z-index: 60; pointer-events: none; display: none; }
 .wipe.on { display: block; }
+.wipe { background-repeat: repeat; background-size: 104px 104px; }
+.wipe-ic { position: absolute; left: 50%; top: 50%; width: min(58vmin, 440px); aspect-ratio: 1; will-change: transform, opacity; }
+.wipe-ic svg { width: 100%; height: 100%; fill: none; stroke: var(--mint-2); stroke-width: 1.1; stroke-linecap: round; stroke-linejoin: round; }
 
 @media (max-width: 1100px) {
   .hero, .priv { grid-column: span 12; } .updates, .res, .steps, .checks, .cta { grid-column: span 6; }
@@ -311,17 +314,35 @@ a { color: inherit; }
     if (focus) v.focus({ preventScroll: true });
   }
 
+  /* the wipe floods the screen with the icon of the view you open: the icon tiled faintly across the screen, and one big icon that flies in from the button */
+  function floodWith(name) {
+    var src = document.querySelector('.rb[data-view="' + name + '"] svg');
+    wipe.textContent = ''; wipe.style.backgroundImage = 'none';
+    if (!src) return null;
+    var inner = src.innerHTML;
+    var tile = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="-12 -12 48 48" fill="none" stroke="#8fd3dc" stroke-opacity=".16" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">' + inner + '</svg>';
+    wipe.style.backgroundImage = 'url("data:image/svg+xml,' + encodeURIComponent(tile) + '")';
+    var ic = document.createElement('div'); ic.className = 'wipe-ic';
+    ic.innerHTML = '<svg viewBox="0 0 24 24">' + inner + '</svg>';
+    wipe.appendChild(ic);
+    return ic;
+  }
+
   function go(name, x, y) {
     if (busy || document.getElementById('v-' + name).classList.contains('is-on')) return;
     if (reduced()) { show(name, true); return; }
     busy = true;
     var from = 'circle(0px at ' + x + 'px ' + y + 'px)', to = 'circle(150vmax at ' + x + 'px ' + y + 'px)';
+    var ic = floodWith(name);
     wipe.classList.add('on');
-    var a = wipe.animate([{ clipPath: from }, { clipPath: to }], { duration: 520, easing: 'cubic-bezier(.7,0,.2,1)', fill: 'forwards' });
+    var dx = x - innerWidth / 2, dy = y - innerHeight / 2, ease = 'cubic-bezier(.7,0,.2,1)';
+    if (ic) ic.animate([{ transform: 'translate(calc(-50% + ' + dx + 'px), calc(-50% + ' + dy + 'px)) scale(.06)', opacity: .2 }, { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 }], { duration: 520, easing: ease, fill: 'forwards' });
+    var a = wipe.animate([{ clipPath: from }, { clipPath: to }], { duration: 520, easing: ease, fill: 'forwards' });
     a.onfinish = function () {
       show(name, true);
-      var b = wipe.animate([{ clipPath: to }, { clipPath: from }], { duration: 560, easing: 'cubic-bezier(.7,0,.2,1)', fill: 'forwards' });
-      b.onfinish = function () { wipe.classList.remove('on'); a.cancel(); b.cancel(); busy = false; };
+      if (ic) ic.animate([{ transform: 'translate(-50%, -50%) scale(1)', opacity: 1 }, { transform: 'translate(-50%, -50%) scale(2.2)', opacity: 0 }], { duration: 560, easing: ease, fill: 'forwards' });
+      var b = wipe.animate([{ clipPath: to }, { clipPath: from }], { duration: 560, easing: ease, fill: 'forwards' });
+      b.onfinish = function () { wipe.classList.remove('on'); a.cancel(); b.cancel(); wipe.textContent = ''; wipe.style.backgroundImage = 'none'; busy = false; };
     };
   }
 
