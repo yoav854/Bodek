@@ -9,27 +9,27 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700&family=Frank+Ruhl+Libre:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root { --forest: #0e2b25; --mint: #c9ece0; --mint-2: #8fe3c4; --peach: #fbd9c4; --orange: #f58a4a; --ink: #10201c; --muted: #5f7069; --line: rgb(16 32 28 / .12); --accent: #0b7a63; color-scheme: light; }
+  :root { --forest: #1f3038; --mint: #dcebee; --mint-2: #8fd3dc; --glow: #a9dfe6; --acc: #0d7480; --ink: #1f3038; --muted: #586a72; --line: rgb(31 48 56 / .12); --accent: #0d7480; color-scheme: light; }
   * { box-sizing: border-box; }
   html, body { margin: 0; }
   body { font: 400 17px/1.75 "Assistant", system-ui, -apple-system, "Segoe UI", Arial, sans-serif; color: var(--ink); background: #f3f5f4; }
-  :focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+  :focus-visible { outline: 3px solid var(--acc); outline-offset: 2px; }
   .app { margin: 20px; border-radius: 40px; padding: 16px; display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 16px; min-height: calc(100svh - 40px);
-    background: radial-gradient(60% 70% at 100% 0%, #bfeadb 0%, transparent 62%), radial-gradient(55% 60% at 0% 100%, #f7e2d3 0%, transparent 62%), linear-gradient(135deg, #dcf0e8, #eef2f0 55%, #f3e8de); }
-  .rail { position: sticky; top: 16px; align-self: start; height: calc(100svh - 72px); min-height: 420px; border-radius: 44px; background: var(--forest); color: #d6efe6; display: flex; flex-direction: column; align-items: center; padding: 18px 0; gap: 8px; box-shadow: 0 20px 40px -24px rgb(8 30 25 / .7); }
-  .logo { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; font: 600 22px/1 "Frank Ruhl Libre", Georgia, serif; color: var(--peach); margin-bottom: 14px; text-decoration: none; }
+    background: radial-gradient(60% 70% at 100% 0%, #cfe6ea 0%, transparent 62%), radial-gradient(55% 60% at 0% 100%, #e3ecf1 0%, transparent 62%), linear-gradient(135deg, #e4eff2, #f1f5f7 55%, #eaeff4); }
+  .rail { position: sticky; top: 16px; align-self: start; height: calc(100svh - 72px); min-height: 420px; border-radius: 44px; background: var(--forest); color: #d6e6ea; display: flex; flex-direction: column; align-items: center; padding: 18px 0; gap: 8px; box-shadow: 0 20px 40px -24px rgb(10 24 30 / .7); }
+  .logo { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; font: 600 22px/1 "Frank Ruhl Libre", Georgia, serif; color: var(--glow); margin-bottom: 14px; text-decoration: none; }
   .rail nav { display: flex; flex-direction: column; gap: 10px; flex: 1; }
   .rb { position: relative; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; color: #9fc2b6; text-decoration: none; transition: background .25s, color .25s; }
   .rb svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
   .rb:hover { color: #fff; background: rgb(255 255 255 / .08); }
-  .rb.is-on { background: var(--mint-2); color: var(--forest); box-shadow: 0 0 0 6px rgb(143 227 196 / .18), 0 0 26px rgb(143 227 196 / .55); }
+  .rb.is-on { background: var(--mint-2); color: var(--forest); box-shadow: 0 0 0 6px rgb(143 211 220 / .18), 0 0 26px rgb(143 211 220 / .55); }
   .rb::after { content: attr(data-label); position: absolute; inset-inline-end: calc(100% + 14px); top: 50%; transform: translateY(-50%) translateX(6px); opacity: 0; pointer-events: none; white-space: nowrap; background: rgb(14 43 37 / .92); color: #fff; font-size: 13px; padding: 5px 10px; border-radius: 99px; transition: opacity .2s, transform .2s; }
   .rb:hover::after, .rb:focus-visible::after { opacity: 1; transform: translateY(-50%); }
   .foot { color: #6f9a8d; font-size: 12px; }
   .skip { position: absolute; inset-inline-start: 12px; top: -64px; z-index: 100; background: var(--forest); color: #fff; padding: 10px 18px; border-radius: 99px; text-decoration: none; font-weight: 600; transition: top .15s; }
   .skip:focus { top: 12px; }
   .main { min-width: 0; width: 100%; max-width: 820px; margin-inline: auto; display: grid; gap: 16px; align-content: start; }
-  .doc { background: #fff; border-radius: 28px; padding: 30px 34px; box-shadow: 0 1px 0 rgb(255 255 255 / .8) inset, 0 18px 34px -24px rgb(15 50 40 / .45); }
+  .doc { background: #fff; border-radius: 28px; padding: 30px 34px; box-shadow: 0 1px 0 rgb(255 255 255 / .8) inset, 0 18px 34px -24px rgb(20 45 55 / .4); }
   h1 { font-size: clamp(26px, 3vw, 36px); font-weight: 600; line-height: 1.2; margin: 0 0 .3rem; }
   h2 { font-size: 1.25rem; font-weight: 600; margin: 2rem 0 .4rem; }
   .muted { color: var(--muted); font-size: .95rem; }

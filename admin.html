@@ -11,28 +11,28 @@
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   /* דף ניהול פרטי: מוסיפים עדכון בתנאים או בשכר, והוא מופיע בדף הכניסה */
-  :root { --forest:#0e2b25; --mint:#c9ece0; --orange:#f58a4a; --orange-ink:#2a1306; --ink:#10201c; --muted:#5f7069; --line:rgb(16 32 28 / .12); --gap:#b4361f; --ok:#1d7a46; color-scheme: light; }
+  :root { --forest:#1f3038; --mint:#dcebee; --acc:#0d7480; --acc-ink:#ffffff; --ink:#1f3038; --muted:#586a72; --line:rgb(31 48 56 / .12); --gap:#b4361f; --ok:#1d7a46; color-scheme: light; }
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
   body { margin: 0; font: 400 16px/1.55 "Assistant", system-ui, sans-serif; color: var(--ink); min-height: 100svh; padding: 20px;
-    background: radial-gradient(60% 70% at 100% 0%, #bfeadb 0%, transparent 62%), radial-gradient(55% 60% at 0% 100%, #f7e2d3 0%, transparent 62%), linear-gradient(135deg, #dcf0e8, #eef2f0 55%, #f3e8de); background-attachment: fixed; }
+    background: radial-gradient(60% 70% at 100% 0%, #cfe6ea 0%, transparent 62%), radial-gradient(55% 60% at 0% 100%, #e3ecf1 0%, transparent 62%), linear-gradient(135deg, #e4eff2, #f1f5f7 55%, #eaeff4); background-attachment: fixed; }
   main { max-width: 760px; margin: 0 auto; display: grid; gap: 16px; }
-  :focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+  :focus-visible { outline: 3px solid var(--acc); outline-offset: 2px; }
   h1 { margin: 0; font-size: clamp(26px, 3vw, 34px); font-weight: 600; }
   h2 { margin: 0; font-size: 1.15rem; font-weight: 600; }
   .sub, .note { margin: 0; color: var(--muted); font-size: .95rem; }
-  .card { background: #fff; border-radius: 28px; padding: 22px; display: grid; gap: 12px; box-shadow: 0 18px 34px -24px rgb(15 50 40 / .45); min-width: 0; }
+  .card { background: #fff; border-radius: 28px; padding: 22px; display: grid; gap: 12px; box-shadow: 0 18px 34px -24px rgb(20 45 55 / .4); min-width: 0; }
   label { font-weight: 600; font-size: .95rem; }
-  input[type=text], input[type=password], select, textarea { font: inherit; width: 100%; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line); background: #f6faf8; color: var(--ink); }
+  input[type=text], input[type=password], select, textarea { font: inherit; width: 100%; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line); background: #f4f8f9; color: var(--ink); }
   input[type=password] { direction: ltr; }
   textarea { min-height: 6.5em; resize: vertical; }
   .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
   .row > * { flex: 1 1 200px; min-width: 0; }
   button { font: inherit; font-weight: 600; border-radius: 99px; border: 1px solid var(--line); background: #fff; color: var(--ink); padding: 10px 20px; cursor: pointer; }
-  button.primary { background: var(--orange); border-color: var(--orange); color: var(--orange-ink); font-weight: 700; padding: 12px 22px; }
+  button.primary { background: var(--acc); border-color: var(--acc); color: var(--acc-ink); font-weight: 700; padding: 12px 22px; }
   button:disabled { opacity: .55; cursor: not-allowed; }
-  button.link { background: none; border: 0; color: #0b7a63; padding: 0; text-decoration: underline; }
-  .check { display: flex; gap: 10px; align-items: flex-start; font-weight: 400; padding: 12px 14px; border-radius: 16px; background: #fdeee3; }
+  button.link { background: none; border: 0; color: #0d7480; padding: 0; text-decoration: underline; }
+  .check { display: flex; gap: 10px; align-items: flex-start; font-weight: 400; padding: 12px 14px; border-radius: 16px; background: #e6f0f2; }
   .check input { margin-top: .35em; width: 18px; height: 18px; accent-color: var(--forest); flex: none; }
   .err { color: var(--gap); margin: 0; font-weight: 600; }
   .ok { color: var(--ok); margin: 0; font-weight: 600; }
