@@ -343,7 +343,7 @@ a { color: inherit; }
     a.onfinish = function () {
       show(name, true);
       if (ic) ic.animate([{ transform: 'translate(-50%, -50%) scale(1)', opacity: 1 }, { transform: 'translate(-50%, -50%) scale(2.2)', opacity: 0 }], { duration: 560, easing: ease, fill: 'forwards' });
-      var b = wipe.animate([{ clipPath: to }, { clipPath: from }], { duration: 560, easing: ease, fill: 'forwards' });
+      var b = wipe.animate([{ clipPath: to }, { clipPath: 'circle(0px at 50% 50%)' }], { duration: 560, easing: ease, fill: 'forwards' });
       b.onfinish = function () { wipe.classList.remove('on'); a.cancel(); b.cancel(); wipe.textContent = ''; wipe.style.backgroundImage = 'none'; busy = false; };
     };
   }
@@ -418,7 +418,7 @@ function run(kind,x,y,opt){
   a.onfinish=function(){
     if(opt.href){try{sessionStorage.setItem(KEY,kind)}catch(e){}location.href=opt.href;setTimeout(function(){try{sessionStorage.removeItem(KEY)}catch(e){}o.w.remove();busy=false},3000);return}
     if(opt.mid)opt.mid();
-    reveal(o,to,from,function(){busy=false});
+    reveal(o,to,"circle(0px at 50% 50%)",function(){busy=false});
   };
 }
 // arriving from another page: start covered, then open up

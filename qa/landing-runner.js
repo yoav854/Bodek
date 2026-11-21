@@ -33,6 +33,28 @@
     window.__qaReduce = false;
     (toHow && toPriv && back) ? ok('מסך', 'מעבר בין בית, איך זה עובד ופרטיות') : bad('מסך', 'מעבר בין מסכים', 'קריטי', `איך זה עובד: ${toHow}, פרטיות: ${toPriv}, חזרה: ${back}`, 'לבדוק את go() ו-show()');
 
+    // 3ב. החשיפה העגולה נסגרת למרכז המסך ולא לנקודת הלחיצה (יואב, 22.11). השעון של הבדיקה לא מריץ אנימציות, לכן מחליפים את animate באחת מזויפת שמסיימת מיד ורושמת את התנועה.
+    {
+      const rec = [], realAnimate = Element.prototype.animate, centre = 'circle(0px at 50% 50%)';
+      Element.prototype.animate = function(kf, o){ rec.push(kf); const f = {cancel(){}}; Object.defineProperty(f, 'onfinish', {set(fn){ setTimeout(fn, 0); }}); return f; };
+      const closes = () => rec.filter(k => Array.isArray(k) && k.length === 2 && k[0].clipPath && k[1].clipPath && /150vmax/.test(k[0].clipPath));
+      try {
+        window.__qaReduce = false;
+        btn('how').click(); await sleep(150);
+        const viaRail = closes();
+        const railOk = viaRail.length > 0 && viaRail[viaRail.length - 1][1].clipPath === centre;
+        railOk ? ok('מסך', 'סמל בסרגל: החשיפה נסגרת למרכז המסך') : bad('מסך', 'סגירת החשיפה בסרגל', 'בינוני', 'החשיפה נסגרת לנקודת הלחיצה: ' + (viaRail.length ? viaRail[viaRail.length - 1][1].clipPath : 'לא נרשמה תנועה'), 'לסגור ל-circle(0px at 50% 50%) ב-go()');
+        btn('home').click(); await sleep(150);
+        const lg = document.querySelector('.logo');
+        if (lg && /(^\/$|index\.html$)/.test(location.pathname)) {
+          rec.length = 0; lg.click(); await sleep(700);
+          const viaLogo = closes();
+          const logoOk = viaLogo.length > 0 && viaLogo[viaLogo.length - 1][1].clipPath === centre;
+          logoOk ? ok('מסך', 'הלוגו: החשיפה נסגרת למרכז המסך') : bad('מסך', 'סגירת החשיפה בלוגו', 'בינוני', 'החשיפה נסגרת לנקודת הלחיצה: ' + (viaLogo.length ? viaLogo[viaLogo.length - 1][1].clipPath : 'לא נרשמה תנועה'), 'לסגור ל-circle(0px at 50% 50%) ב-reveal() של הלוגו');
+        }
+      } finally { Element.prototype.animate = realAnimate; window.__qaReduce = false; await sleep(50); }
+    }
+
     // 4. כרטיס העדכונים: בלי עדכון הוא מוסתר, ועדכון מוצג כטקסט רגיל
     await sleep(2500); // קודם מחכים שהבקשה האמיתית למסד הנתונים תחזור, כדי שלא תדרוס את העדכונים שהבדיקה מזינה
     const card = document.getElementById('notice');

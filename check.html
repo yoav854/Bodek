@@ -1995,7 +1995,7 @@ function run(kind,x,y,opt){
   a.onfinish=function(){
     if(opt.href){try{sessionStorage.setItem(KEY,kind)}catch(e){}location.href=opt.href;setTimeout(function(){try{sessionStorage.removeItem(KEY)}catch(e){}o.w.remove();busy=false},3000);return}
     if(opt.mid)opt.mid();
-    reveal(o,to,from,function(){busy=false});
+    reveal(o,to,"circle(0px at 50% 50%)",function(){busy=false});
   };
 }
 // arriving from another page: start covered, then open up
