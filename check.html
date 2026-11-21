@@ -324,6 +324,75 @@ body:has(#sbOpen){padding-bottom:0}
   .sb-bubble{bottom:92px}
   body:has(#sbOpen){padding-bottom:0}
 }
+/* ===== v3: polish. Loaded last. Same structure, palette and fonts: depth, rhythm, motion and details only. ===== */
+:root{
+  --ease:cubic-bezier(.2,.7,.2,1); --t-fast:.18s; --t-med:.32s;
+  --shadow-1:0 1px 1px rgb(20 45 55 / .05),0 2px 5px rgb(20 45 55 / .04),0 10px 18px -10px rgb(20 45 55 / .16);
+  --shadow-2:0 1px 1px rgb(20 45 55 / .05),0 4px 8px rgb(20 45 55 / .05),0 20px 38px -20px rgb(20 45 55 / .3);
+  --shadow-3:0 2px 2px rgb(20 45 55 / .06),0 12px 22px rgb(20 45 55 / .09),0 34px 60px -26px rgb(20 45 55 / .42);
+  --ring:0 0 0 3px rgb(13 116 128 / .24);
+  --edge:rgb(255 255 255 / .95);
+}
+/* depth: layered shadows, a bright top edge, a hair border in the palette */
+.app{isolation:isolate;overflow:clip}
+.app::before,.app::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;border-radius:inherit}
+.app::before{background:radial-gradient(38% 34% at 18% 22%,rgb(143 211 220 / .34),transparent 70%),radial-gradient(34% 38% at 86% 74%,rgb(169 223 230 / .3),transparent 70%)}
+.app::after{opacity:.05;mix-blend-mode:multiply;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .12 0 0 0 0 .19 0 0 0 0 .22 0 0 0 .6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.main{position:relative;z-index:1}.rail{z-index:2}
+.card{border:1px solid rgb(31 48 56 / .06);box-shadow:inset 0 1px 0 var(--edge),var(--shadow-2)}
+.card:hover{box-shadow:inset 0 1px 0 var(--edge),var(--shadow-3)}
+.rail{background:linear-gradient(180deg,#27414d 0%,#1f3038 52%,#1a2a32 100%);box-shadow:inset 0 1px 0 rgb(255 255 255 / .1),inset 0 0 0 1px rgb(255 255 255 / .04),0 30px 50px -28px rgb(10 24 30 / .85)}
+.check,#result>div:not(.checks):not(.verdict):not(:first-of-type){border:1px solid rgb(31 48 56 / .05);box-shadow:inset 0 1px 0 var(--edge),var(--shadow-1)}
+/* rhythm and type */
+.top h1{letter-spacing:-.02em}
+.top .lead{line-height:1.65}
+.card{gap:16px}
+.step b{background:linear-gradient(180deg,#eef7f9,var(--mint));box-shadow:inset 0 0 0 1px rgb(13 116 128 / .18),0 3px 8px -3px rgb(13 116 128 / .35)}
+.step h2{letter-spacing:-.005em}
+.num,td.n,.stepper output{font-variant-numeric:tabular-nums}
+/* buttons: a lit surface, one confident main action */
+.primary{background:linear-gradient(180deg,#118391 0%,#0d7480 58%,#0b6a75 100%);border-color:#0b6a75;box-shadow:inset 0 1px 0 rgb(255 255 255 / .24),0 12px 24px -12px rgb(13 116 128 / .7)}
+.primary:disabled{background:#e6ebe9;border-color:#e6ebe9;box-shadow:none}
+.stepper button,.gcal{box-shadow:inset 0 1px 0 var(--edge),var(--shadow-1)}
+/* fields: a clear focus state */
+.field input,.field select,#calMonth,.cal input[type=month],textarea,.row input[type=text],.check .jobIn input{transition:border-color var(--t-fast),box-shadow var(--t-fast),background-color var(--t-fast)}
+.field input:focus-visible,.field select:focus-visible,#calMonth:focus-visible,.cal input[type=month]:focus-visible,textarea:focus-visible,.row input[type=text]:focus-visible,.check .jobIn input:focus-visible{outline:0;border-color:var(--accent);background:#fff;box-shadow:var(--ring)}
+/* the drop zone: an icon above the invitation */
+.drop:not(.has-file)::before{content:"";width:54px;height:54px;border-radius:50%;margin-bottom:4px;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230d7480' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 16V5m0 0-4 4m4-4 4 4M5 19h14'/></svg>") center/24px no-repeat,linear-gradient(180deg,#fafdfd,#dcebee);box-shadow:inset 0 0 0 1px rgb(13 116 128 / .16),0 8px 16px -8px rgb(13 116 128 / .45)}
+/* choices */
+.role,.counter{transition:border-color var(--t-fast),background-color var(--t-fast),box-shadow var(--t-fast)}
+.role:hover,.counter:hover{border-color:rgb(13 116 128 / .4)}
+.role:has(input:checked),.counter.on{box-shadow:var(--shadow-1)}
+/* the verdict: a lit dark card with a soft glow */
+.verdict{position:relative;overflow:hidden;background:linear-gradient(135deg,#29444f 0%,#1f3038 55%,#1a2a32 100%);box-shadow:inset 0 1px 0 rgb(255 255 255 / .1),var(--shadow-3)}
+.verdict::before{content:"";position:absolute;inset-inline-end:-8%;top:-70%;width:58%;aspect-ratio:1;border-radius:50%;background:radial-gradient(closest-side,rgb(143 211 220 / .24),transparent);pointer-events:none}
+.verdict>*{position:relative}
+/* each check wears a status icon and a thin edge in its colour */
+.dot{display:inline-flex;align-items:center;gap:5px}
+.dot::before{content:"";width:12px;height:12px;background:currentColor;-webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat}
+.check.ok .dot{--ic:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='m3 8.5 3.2 3.2L13 5'/></svg>")}
+.check.gap .dot{--ic:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'><path d='M8 3v6.5M8 12.7v.1'/></svg>")}
+.check.info .dot,.check.skip .dot{--ic:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'><path d='M8 7.2v5.3M8 3.3v.1'/></svg>")}
+.check.gap{background:linear-gradient(180deg,#fff 0%,#fff6f7 100%);border-color:rgb(179 38 63 / .14)}
+/* the help button's icon replaces the emoji */
+.ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;vertical-align:-3px;margin-inline-end:6px}
+@media (prefers-reduced-motion:no-preference){
+  .app::before{animation:drift 26s ease-in-out infinite alternate}
+  @keyframes drift{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(2.5%,-2%,0) scale(1.08)}}
+  .card,.check{transition:box-shadow var(--t-med) var(--ease),transform var(--t-med) var(--ease)}
+  .check:hover{transform:translateY(-2px);box-shadow:inset 0 1px 0 var(--edge),var(--shadow-2)}
+  .primary{transition:transform var(--t-fast) var(--ease),box-shadow var(--t-med) var(--ease),filter var(--t-fast)}
+  .primary:hover:not(:disabled){transform:translateY(-2px);box-shadow:inset 0 1px 0 rgb(255 255 255 / .24),0 18px 30px -12px rgb(13 116 128 / .75)}
+  .drop{transition:background .2s,border-color .2s,transform var(--t-med) var(--ease)}
+  .drop:not(.has-file):hover{transform:translateY(-2px)}
+}
+/* phones: comfortable touch targets and tighter rhythm */
+@media (max-width:700px){
+  .card{padding:18px;gap:14px}
+  button,.btn,.seg label{min-height:44px}
+  .stepper button{width:44px;height:44px}
+  .primary{min-height:52px}
+}
 </style>
 <script>try{if(sessionStorage.getItem("bodekFlood")){document.documentElement.className+=" fl-in";setTimeout(function(){document.documentElement.classList.remove("fl-in")},2500)}}catch(e){}</script>
 </head>
@@ -1792,7 +1861,7 @@ const FAQ = (() => {
     {id: 'gap', q: 'נמצא פער. מה עושים?', k: ['פער', 'חסר', 'חוב', 'מה עושים', 'לפנות', 'תביעה', 'תלונה', 'לתבוע', 'עורך דין'],
      a: 'שמור את התלושים ואת רשימת המשמרות. קודם פנה בכתב למחלקת השכר, עם הפירוט מהבודק (יש בו הודעה מוכנה). אם הפער לא נסגר, יש שלוש אפשרויות: תלונה למינהל ההסדרה והאכיפה במשרד העבודה, פנייה לאיגוד עובדי השמירה בהסתדרות (צד להסכם בענף), או עורך דין לדיני עבודה. תביעת שכר אפשר בדרך כלל להגיש עד 7 שנים אחורה. מעסיק שניכה ממך כסף לפנסיה או לקרן ולא העביר אותו עובר עבירה פלילית.',
      src: 'כל זכות, חוק ההתיישנות, חוק להגברת האכיפה של דיני העבודה'},
-    {id: 'rights', q: '⚖️ זכויות לפי החוק', k: ['זכויות', 'חוקי', 'מגיע לי', 'מה החוק'], more: ['overtime', 'nine', 'hours', 'minwage', 'keren', 'havraa', 'travel', 'pension', 'deduct', 'gap'],
+    {id: 'rights', q: 'זכויות לפי החוק', k: ['זכויות', 'חוקי', 'מגיע לי', 'מה החוק'], more: ['overtime', 'nine', 'hours', 'minwage', 'keren', 'havraa', 'travel', 'pension', 'deduct', 'gap'],
      a: 'על מה תרצה לדעת? כל תשובה מגיעה עם המקור שלה בחוק או בצו.'},
   ];
 })();
@@ -1808,7 +1877,7 @@ const FAQ = (() => {
   <form id="sbForm" class="sb-form">
     <label for="sbText" class="sb-hint">כתוב שאלה או תקלה. בלי שם, תעודת זהות או סכומים מהתלוש.</label>
     <div class="sb-row"><textarea id="sbText" rows="2" maxlength="1000" placeholder="למשל: הכפתור בדוק לא נלחץ"></textarea><button type="submit" class="primary sb-send">שלח</button></div>
-    <button type="button" id="sbBug" class="linkish">🐞 דווח על תקלה</button>
+    <button type="button" id="sbBug" class="linkish"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 9h7v5a3.5 3.5 0 0 1-7 0z"/><path d="M9.5 5.5 11 8m3.5-2.5L13 8M4.5 12h4m7 0h4M5.5 19l3-2m10 2-3-2"/></svg>דווח על תקלה</button>
   </form>
 </section>`;
   document.body.appendChild(wrap);
