@@ -234,6 +234,23 @@ textarea{min-height:0}
 .drop{border:2px dashed #9fcdd5;background:#f2f8f9;border-radius:22px;padding:30px 18px;transition:background .2s,border-color .2s}
 .drop:hover,.drop:focus-within{border-color:var(--accent);background:#e9f2f4}
 .filename{font:600 1.15rem/1.3 var(--display)}
+/* כרטיס הקובץ אחרי בחירה: כרטיס עם סיכה, הכפתור מתפשט לכל הרוחב, ופס התקדמות כהה מתמלא בתחתית */
+.upl{display:none;position:relative;align-items:center;gap:10px;width:min(100%,380px);height:54px;padding:6px 14px 6px 6px;box-sizing:border-box;border-radius:16px;background:#fff;box-shadow:0 8px 22px rgb(31 48 56 / .12);overflow:hidden;transition:padding .55s cubic-bezier(.7,0,.2,1),gap .55s cubic-bezier(.7,0,.2,1)}
+.drop.has-file{padding-block:22px}
+.drop.has-file .filename,.drop.has-file>.note{display:none}
+.drop.has-file .upl{display:flex}
+.upl-clip{flex:none;width:20px;height:20px;margin-inline-start:10px;fill:none;stroke:var(--muted);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:opacity .3s,width .5s,margin .5s}
+.upl-name{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;direction:ltr;unicode-bidi:isolate;text-align:right;font:500 .95rem/1 var(--body);color:var(--ink);transition:opacity .3s,flex .5s}
+.upl-tag{flex:none;display:flex;align-items:center;justify-content:center;height:100%;padding:0 18px;border-radius:12px;background:var(--accent);color:var(--accent-ink);font:600 .9rem/1 var(--body);white-space:nowrap;transition:flex .55s cubic-bezier(.7,0,.2,1),border-radius .55s,background .3s}
+.upl-bar{position:absolute;inset-inline:0;bottom:0;height:4px;background:transparent}
+.upl-bar b{display:block;height:100%;width:0;background:var(--forest)}
+.upl[data-state=busy],.upl[data-state=done]{padding:0;gap:0}
+.upl[data-state=busy] .upl-clip,.upl[data-state=done] .upl-clip{width:0;margin:0;opacity:0}
+.upl[data-state=busy] .upl-name,.upl[data-state=done] .upl-name{flex:0;opacity:0}
+.upl[data-state=busy] .upl-tag,.upl[data-state=done] .upl-tag{flex:1;border-radius:16px}
+.upl[data-state=done] .upl-bar{opacity:0;transition:opacity .4s .25s}
+.upl[data-state=error] .upl-tag{background:#b3263f}
+@media (prefers-reduced-motion:reduce){.upl,.upl-clip,.upl-name,.upl-tag{transition:none}}
 /* role cards and counters */
 .roles{grid-template-columns:1fr}
 .role,.counter{border:1px solid var(--line);border-radius:18px;background:#fff}
@@ -335,6 +352,12 @@ body:has(#sbOpen){padding-bottom:0}
         <label class="drop" for="pdf">
           <input type="file" id="pdf" accept="application/pdf,.pdf">
           <span class="filename" id="fname">בחר את קובץ ה-PDF של התלוש</span>
+          <span class="upl" id="upl" data-state="card" aria-live="polite">
+            <svg class="upl-clip" viewBox="0 0 24 24" aria-hidden="true"><path d="m20 11.5-8 8a5 5 0 0 1-7-7l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7l-8.6 8.6a1.7 1.7 0 0 1-2.4-2.4L15 7.5"/></svg>
+            <span class="upl-name" id="uplName"></span>
+            <span class="upl-tag" id="uplTag">נבחר</span>
+            <i class="upl-bar" aria-hidden="true"><b id="uplFill"></b></i>
+          </span>
           <span class="note">הקובץ המקורי שקיבלת ממערכת השכר, לא צילום. הוא נקרא רק במכשיר שלך ולא נשלח לשום מקום. תעודת זהות וחשבון בנק לא נקראים.</span>
         </label>
       </section>
@@ -1586,9 +1609,34 @@ document.getElementById('addVar').addEventListener('click', () => {
 syncRole();
 /* ===================== הפעלה ===================== */
 let pdfBuf = null;
+/* אנימציית בחירת הקובץ: כרטיס, אז כפתור רחב עם "קורא את התלוש…" ופס התקדמות, ובסוף "נקרא" או "לא נקרא" */
+let uplRun = 0;
+function startUpload(name){
+  const drop = document.querySelector('.drop'), upl = document.getElementById('upl'), fill = document.getElementById('uplFill'), tag = document.getElementById('uplTag');
+  const fast = !!(window.__qaReduce || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)), sleep = ms => new Promise(r => setTimeout(r, fast ? 0 : ms)), me = ++uplRun;
+  document.getElementById('uplName').textContent = name;
+  fill.style.transition = 'none'; fill.style.width = '0';
+  drop.classList.add('has-file'); upl.dataset.state = 'card'; tag.textContent = 'נבחר';
+  const t0 = Date.now(); let busyAt = 0;
+  const begin = sleep(550).then(() => {
+    if (me !== uplRun) return;
+    upl.dataset.state = 'busy'; tag.textContent = 'קורא את התלוש…'; busyAt = Date.now();
+    void fill.offsetWidth; fill.style.transition = fast ? 'none' : 'width 1.1s cubic-bezier(.2,.7,.2,1)'; fill.style.width = '88%';
+  });
+  return {
+    async finish(ok){
+      await begin; if (me !== uplRun) return;
+      if (ok){ await sleep(Math.max(0, 900 - (Date.now() - busyAt))); if (me !== uplRun) return;
+        fill.style.transition = fast ? 'none' : 'width .25s ease-out'; fill.style.width = '100%'; await sleep(260); if (me !== uplRun) return;
+        upl.dataset.state = 'done'; tag.textContent = 'נקרא ✓';
+      } else { upl.dataset.state = 'error'; tag.textContent = 'לא נקרא'; }
+    }
+  };
+}
 document.getElementById('pdf').addEventListener('change', async e => {
   const f = e.target.files[0]; if (!f) return;
   document.getElementById('fname').textContent = f.name;
+  const anim = startUpload(f.name);
   pdfBuf = new Uint8Array(await f.arrayBuffer());
   currentSlip = null;
   const go = document.getElementById('go');
@@ -1603,7 +1651,8 @@ document.getElementById('pdf').addEventListener('change', async e => {
     const cm = document.getElementById('calMonth');
     if (slip.month && !cm.value) cm.value = slip.month.ym;
     checkMonth();
-  } catch (err){ showError(pdfErrorText(err)); }
+    await anim.finish(true);
+  } catch (err){ showError(pdfErrorText(err)); await anim.finish(false); }
   go.disabled = !currentSlip; go.textContent = 'בדוק את התלוש'; go.classList.remove('busy');
 });
 function showError(t){ const e = document.getElementById('error'); e.textContent = t; e.hidden = !t; }
