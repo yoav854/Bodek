@@ -6,9 +6,11 @@
   const bad = (area, name, sev, problem, fix) => res.push({area, name, pass: false, sev, problem, fix});
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   try {
-    // 1. הכותרת: המשפט שנבחר
+    // 1. הכותרת: השם שנבחר (יואב, 22.11: "תלושי"), ומתחתיה משפט הפרטיות "המידע נשמר אצלך בלבד"
     const h1 = document.getElementById('h1');
-    (h1 && /התלוש\s+נשאר\s+בטלפון\s+שלך/.test(h1.textContent)) ? ok('מסך', 'הכותרת "התלוש נשאר בטלפון שלך"') : bad('מסך', 'הכותרת', 'גבוה', `הכותרת היא "${h1 && h1.textContent.trim()}"`, 'להחזיר את המשפט שיואב בחר בכותרת');
+    (h1 && h1.textContent.trim() === 'תלושי') ? ok('מסך', 'הכותרת "תלושי"') : bad('מסך', 'הכותרת', 'גבוה', `הכותרת היא "${h1 && h1.textContent.trim()}"`, 'להחזיר את השם שיואב בחר בכותרת: תלושי');
+    const sub = h1 && h1.nextElementSibling;
+    (sub && /המידע נשמר אצלך בלבד/.test(sub.textContent)) ? ok('מסך', 'מתחת לכותרת: "המידע נשמר אצלך בלבד"') : bad('מסך', 'משפט הפרטיות מתחת לכותרת', 'גבוה', `מתחת לכותרת כתוב "${sub && sub.textContent.trim()}"`, 'להחזיר את "המידע נשמר אצלך בלבד" מתחת לכותרת');
 
     // 2. קישורים: כל כפתור "בדוק את התלוש" לכלי, כל קישור פרטיות לדף הפרטיות, ואין קישור שבור
     const ctas = [...document.querySelectorAll('a.pill')];
