@@ -1629,7 +1629,7 @@ function startUpload(name){
       if (ok){ await sleep(Math.max(0, 900 - (Date.now() - busyAt))); if (me !== uplRun) return;
         fill.style.transition = fast ? 'none' : 'width .25s ease-out'; fill.style.width = '100%'; await sleep(260); if (me !== uplRun) return;
         upl.dataset.state = 'done'; tag.textContent = 'נקרא ✓';
-      } else { upl.dataset.state = 'error'; tag.textContent = 'לא נקרא'; }
+      } else { upl.dataset.state = 'error'; tag.textContent = 'PDF בלבד'; }
     }
   };
 }
