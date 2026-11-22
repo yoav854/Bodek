@@ -6,7 +6,7 @@
   const ok = (area, name) => res.push({area, name, pass: true});
   const bad = (area, name, sev, problem, fix) => res.push({area, name, pass: false, sev, problem, fix});
   const sleep = ms => new Promise(r => setTimeout(r, ms));
-  const DATA_HASH = 'c795dd40';
+  const DATA_HASH = 'f2726f70';
   const frameOf = (w, h) => new Promise(res => {
     const html = '<!doctype html>' + document.documentElement.outerHTML.replace(/<script>(?:(?!<\/script>)[^])*?(?:qa-out|__qaErr)(?:(?!<\/script>)[^])*<\/script>/g, '');
     const f = document.createElement('iframe'); f.style.cssText = `position:fixed;left:-9999px;top:0;width:${w}px;height:${h}px;border:0`;
@@ -23,15 +23,18 @@
 
     // 2. מבנה: כל כרטיס עם כותרת, עובדות, מקור https מרשימה מותרת, נושא מוכר ומזהה ייחודי
     const cats = new Set(CATS.map(c => c[0])), ids = new Set(); const probs = [];
-    const okHost = /^(?:www\.)?(?:kolzchut\.org\.il|gov\.il|btl\.gov\.il|chamber\.org\.il|workrights\.co\.il)$/;
+    const okHost = /^(?:www\.)?(?:kolzchut\.org\.il|gov\.il|btl\.gov\.il|chamber\.org\.il|he\.wikisource\.org|malam-payroll\.com)$/;
     for (const r of RIGHTS) {
       if (ids.has(r.id)) probs.push('מזהה כפול ' + r.id); ids.add(r.id);
       if (!r.title || !r.short || !r.facts.length) probs.push('חסר תוכן ב-' + r.id);
       if (!cats.has(r.cat)) probs.push('נושא לא מוכר ב-' + r.id);
       if (!r.src.length) probs.push('אין מקור ב-' + r.id);
+      if (!['p', 'm', 's'].includes(r.v)) probs.push('חסרה תווית אימות ב-' + r.id);
       for (const s of r.src) { let u; try { u = new URL(s[1]); } catch (e) { probs.push('כתובת שבורה ב-' + r.id); continue; } if (u.protocol !== 'https:' || !okHost.test(u.hostname)) probs.push('מקור לא מאושר ב-' + r.id + ': ' + u.hostname); if (!s[2]) probs.push('חסר תאריך מקור ב-' + r.id); }
     }
     (RIGHTS.length >= 20 && !probs.length) ? ok('מסך', `${RIGHTS.length} כרטיסים, לכל אחד מקור מאושר ותאריך`) : bad('מסך', 'מבנה הכרטיסים', 'גבוה', `כרטיסים: ${RIGHTS.length}. ${probs.slice(0, 4).join('; ')}`, 'להשלים מקור, תאריך ונושא לכל כרטיס, ולהשתמש רק במקורות מרשימת המארחים');
+    const nBadges = document.querySelectorAll('.rc .vb').length;
+    nBadges === RIGHTS.length ? ok('מסך', 'בכל כרטיס תווית שאומרת מה אומת מול מקור רשמי') : bad('מסך', 'תוויות אימות', 'גבוה', `${nBadges} תוויות מתוך ${RIGHTS.length} כרטיסים`, 'להציג את VER[r.v] בכל כרטיס');
     const nCards = document.querySelectorAll('.rc').length;
     const links = [...document.querySelectorAll('.rc a[target=_blank]')];
     (nCards === RIGHTS.length && links.length > 0 && links.every(a => /noopener/.test(a.rel) && a.protocol === 'https:')) ? ok('מסך', 'כל כרטיס מוצג, וקישורי המקור נפתחים בלשונית חדשה בבטחה') : bad('מסך', 'הצגת הכרטיסים והקישורים', 'גבוה', `מוצגים ${nCards} מתוך ${RIGHTS.length}`, 'לבדוק את card() ואת rel="noopener"');
