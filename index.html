@@ -208,6 +208,16 @@ a { color: inherit; }
 @media (max-width: 700px) {
   .pill, .btn-dark, .ghost { min-height: 44px; }
 }
+.rtile { grid-column: span 12; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px 28px; align-items: center; }
+.rtile h2 { font-size: 28px; font-weight: 600; line-height: 1.15; margin: 0; letter-spacing: -.01em; }
+.rtile h2 em { font: 300 1.05em/1 var(--serif); font-style: normal; color: #0d7480; }
+.rtile p { margin: 8px 0 0; color: var(--muted); line-height: 1.6; }
+.rsearch { display: flex; gap: 10px; align-items: center; }
+.rsearch input { flex: 1; min-width: 0; font: inherit; font-size: 17px; padding: 13px 20px; border-radius: 99px; border: 1px solid var(--line); background: #f4f8f9; color: var(--ink); -webkit-appearance: none; appearance: none; transition: border-color var(--t-fast), box-shadow var(--t-fast), background-color var(--t-fast); }
+.rsearch input::-webkit-search-cancel-button { display: none; }
+.rsearch input:focus-visible { outline: 0; border-color: var(--acc); background: #fff; box-shadow: 0 0 0 3px rgb(13 116 128 / .24); }
+.rsearch .pill { cursor: pointer; flex: none; background: linear-gradient(180deg, #118391 0%, #0d7480 58%, #0b6a75 100%); box-shadow: inset 0 1px 0 rgb(255 255 255 / .24), 0 12px 24px -12px rgb(13 116 128 / .7); }
+@media (max-width: 700px) { .rtile { grid-template-columns: 1fr; } .rsearch input { min-height: 48px; } }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
   .seg i { width: var(--w) !important; }
@@ -227,6 +237,7 @@ a { color: inherit; }
       <button class="rb" type="button" data-view="how" data-label="איך זה עובד" aria-label="איך זה עובד"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg></button>
       <button class="rb" type="button" data-view="privacy" data-label="פרטיות" aria-label="פרטיות"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.4 2.9 8.3 7 10 4.1-1.7 7-5.6 7-10V6z"/><path d="m9 12 2.2 2.2L15.5 10"/></svg></button>
       <a class="rb" href="check.html" data-label="בדיקת תלוש" aria-label="בדיקת תלוש"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="m9.5 14 2 2 3.5-4"/></svg></a>
+      <a class="rb" href="rights.html" data-label="הזכויות שלך" aria-label="הזכויות שלך"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M8 20h8M5 7h14"/><path d="M5 7 2 14a3.2 3.2 0 0 0 6 0zM19 7l-3 7a3.2 3.2 0 0 0 6 0z"/></svg></a>
     </nav>
     <span class="foot">2026</span>
   </div>
@@ -278,13 +289,25 @@ a { color: inherit; }
           </div>
         </article>
 
-        <article class="card priv" style="--i:5">
+        <article class="card rtile" style="--i:5">
+          <div>
+            <h2>הזכויות <em>שלך</em></h2>
+            <p>שבת, שעות נוספות, הבראה, פיטורים ועוד. חפש מילה ותקבל את הזכות, עם מקור.</p>
+          </div>
+          <form class="rsearch" action="rights.html" method="get" role="search">
+            <label class="sr" for="rq">חיפוש בזכויות ובחוקים</label>
+            <input id="rq" name="q" type="search" placeholder="חפש: שבת, הבראה, פיטורים…" autocomplete="off" maxlength="80">
+            <button class="pill" type="submit">חפש</button>
+          </form>
+        </article>
+
+        <article class="card priv" style="--i:6">
           <h2>הפרטיות <em>שלך</em></h2>
           <p>התלוש נקרא על המכשיר שלך ולא עולה לשום שרת. תעודת זהות ומספר חשבון בנק לא נשמרים בשום מקום.</p>
           <p><a href="privacy.html">קרא את מדיניות הפרטיות</a></p>
         </article>
 
-        <article class="card cta" style="--i:6">
+        <article class="card cta" style="--i:7">
           <h3>מוכן לבדוק?</h3>
           <a class="pill" href="check.html">בדוק את התלוש<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h11M9 3.5 13.5 8 9 12.5"/></svg></a>
         </article>
@@ -429,7 +452,7 @@ a { color: inherit; }
 </script>
 <script>(function(){
 var KEY="bodekFlood",EASE="cubic-bezier(.7,0,.2,1)",busy=false;
-var IC={home:'<path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4v-5H9v5H5a1 1 0 0 1-1-1z"/>',how:'<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/>',privacy:'<path d="M12 3 5 6v5c0 4.4 2.9 8.3 7 10 4.1-1.7 7-5.6 7-10V6z"/><path d="m9 12 2.2 2.2L15.5 10"/>',check:'<path d="M6 3h9l4 4v14H6z"/><path d="m9.5 14 2 2 3.5-4"/>',logo:'<path d="M16 15h32v35H16z" fill="#fff"/><rect x="12" y="9" width="40" height="8" rx="4" fill="#e4eef0"/><rect x="12" y="9" width="40" height="3.2" rx="1.6" fill="#fff" opacity=".8"/><rect x="12" y="48" width="40" height="8" rx="4" fill="#e4eef0"/><rect x="12" y="53" width="40" height="3" rx="1.5" fill="#c9d8dc"/><text x="32" y="41.5" text-anchor="middle" font-family="Rubik,Arial Black,Arial,sans-serif" font-weight="900" font-size="23" fill="#0d7480">$</text>'};
+var IC={rights:'<path d="M12 4v16M8 20h8M5 7h14"/><path d="M5 7 2 14a3.2 3.2 0 0 0 6 0zM19 7l-3 7a3.2 3.2 0 0 0 6 0z"/>',home:'<path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4v-5H9v5H5a1 1 0 0 1-1-1z"/>',how:'<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/>',privacy:'<path d="M12 3 5 6v5c0 4.4 2.9 8.3 7 10 4.1-1.7 7-5.6 7-10V6z"/><path d="m9 12 2.2 2.2L15.5 10"/>',check:'<path d="M6 3h9l4 4v14H6z"/><path d="m9.5 14 2 2 3.5-4"/>',logo:'<path d="M16 15h32v35H16z" fill="#fff"/><rect x="12" y="9" width="40" height="8" rx="4" fill="#e4eef0"/><rect x="12" y="9" width="40" height="3.2" rx="1.6" fill="#fff" opacity=".8"/><rect x="12" y="48" width="40" height="8" rx="4" fill="#e4eef0"/><rect x="12" y="53" width="40" height="3" rx="1.5" fill="#c9d8dc"/><text x="32" y="41.5" text-anchor="middle" font-family="Rubik,Arial Black,Arial,sans-serif" font-weight="900" font-size="23" fill="#0d7480">$</text>'};
 function reduce(){return !!(window.__qaReduce||(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches))}
 function build(kind){
   var w=document.createElement("div");w.className="fnav";w.setAttribute("aria-hidden","true");
@@ -470,7 +493,7 @@ if(k&&IC[k]&&!reduce()){
 window.addEventListener("pageshow",function(e){if(e.persisted){document.querySelectorAll(".fnav").forEach(function(n){n.remove()});busy=false}});
 function plain(e){return e.ctrlKey||e.metaKey||e.shiftKey||e.altKey||e.button}
 function centre(el){var r=el.getBoundingClientRect();return [r.left+r.width/2,r.top+r.height/2]}
-var kinds={"index.html":"home","check.html":"check","privacy.html":"privacy"};
+var kinds={"index.html":"home","check.html":"check","privacy.html":"privacy","rights.html":"rights"};
 document.querySelectorAll("a.rb[href]").forEach(function(a){
   var href=a.getAttribute("href"),kind=kinds[href];
   if(!kind||a.getAttribute("aria-current")==="page")return;

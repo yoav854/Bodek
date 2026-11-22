@@ -31,6 +31,10 @@ jobs:
         if: always()
         shell: pwsh
         run: ./qa/run-suite.ps1 -PageFile privacy.html
+      - name: בדיקת הקוד שהועלה (דף הזכויות)
+        if: always()
+        shell: pwsh
+        run: ./qa/run-suite.ps1 -PageFile rights.html
       - name: המתנה לפרסום ב-Vercel
         if: always() && github.ref == 'refs/heads/main'
         # מחכים עד שהאתר החי מגיש בדיוק את check.html (הכלי) מהעדכון (עד 5 דקות), ולא סתם 90 שניות
@@ -58,3 +62,7 @@ jobs:
         if: always()
         shell: pwsh
         run: ./qa/run-suite.ps1 -Target live -PageFile privacy.html
+      - name: בדיקת האתר החי (דף הזכויות)
+        if: always()
+        shell: pwsh
+        run: ./qa/run-suite.ps1 -Target live -PageFile rights.html

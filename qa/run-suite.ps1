@@ -7,6 +7,7 @@
     run-suite.ps1 -PageFile index.html     דף הכניסה (qa/landing-runner.js) במקום הכלי
     run-suite.ps1 -PageFile admin.html     דף ניהול העדכונים (qa/admin-runner.js)
     run-suite.ps1 -PageFile privacy.html   דף הפרטיות (qa/privacy-runner.js)
+    run-suite.ps1 -PageFile rights.html    דף הזכויות והחיפוש (qa/rights-runner.js)
     run-suite.ps1 -ExtraCases <js>     מקרים נוספים (window.QA_CASES.push(...))
     run-suite.ps1 -Repo <תיקייה>       check.html מתיקייה אחרת (למשל עותק עם באג מכוון)
   קוד יציאה: 0 תקין, 1 נמצאו בעיות, 2 ההרצה נכשלה.
@@ -14,7 +15,7 @@
 param(
   [ValidateSet('local', 'live')] [string]$Target = 'local',
   [string]$Repo = '',
-  [ValidateSet('check.html', 'index.html', 'admin.html', 'privacy.html')] [string]$PageFile = 'check.html',
+  [ValidateSet('check.html', 'index.html', 'admin.html', 'privacy.html', 'rights.html')] [string]$PageFile = 'check.html',
   [string]$LiveUrl = '',
   [string]$ExtraCases = ''
 )
@@ -31,9 +32,11 @@ try {
   else { $page = & $read (Join-Path $Repo $PageFile) }
   if ($PageFile -eq 'check.html' -and $page -notmatch 'id="go"') { Write-Output '🔴 קריטי | הדף שנטען אינו הכלי (חסר #go) | לבדוק את כתובת הבדיקה או את הקובץ'; exit 2 }
   if ($PageFile -eq 'index.html' -and $page -notmatch 'id="h1"') { Write-Output '🔴 קריטי | הדף שנטען אינו דף הכניסה (חסר #h1) | לבדוק את כתובת הבדיקה או את הקובץ'; exit 2 }
+  if ($PageFile -eq 'rights.html' -and $page -notmatch 'id="rgrid"') { Write-Output '🔴 קריטי | הדף שנטען אינו דף הזכויות (חסר #rgrid) | לבדוק את כתובת הבדיקה או את הקובץ'; exit 2 }
   if ($PageFile -eq 'index.html') { $inject = '<script>' + (& $read (Join-Path $qa 'landing-runner.js')) + '</script>' }
   elseif ($PageFile -eq 'admin.html') { $inject = '<script>' + (& $read (Join-Path $qa 'admin-runner.js')) + '</script>' }
   elseif ($PageFile -eq 'privacy.html') { $inject = '<script>' + (& $read (Join-Path $qa 'privacy-runner.js')) + '</script>' }
+  elseif ($PageFile -eq 'rights.html') { $inject = '<script>' + (& $read (Join-Path $qa 'rights-runner.js')) + '</script>' }
   else {
     $inject = '<script>' + (& $read (Join-Path $qa 'cases.js')) + '</script>'
     if ($ExtraCases) { $inject += '<script>' + (& $read $ExtraCases) + '</script>' }

@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>הזכויות שלך – תלושי</title>
+<meta name="description" content="כל הזכויות של עובד בענף השמירה והאבטחה: שכר, שעות נוספות, שבת, הבראה, פנסיה, חופשה, מחלה ופיטורים. עם חיפוש ומקור לכל נתון.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --forest: #1f3038; --mint: #dcebee; --mint-2: #8fd3dc; --glow: #a9dfe6; --acc: #0d7480; --ink: #1f3038; --muted: #586a72; --line: rgb(31 48 56 / .12); --accent: #0d7480; color-scheme: light; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { font: 400 17px/1.75 "Rubik", system-ui, -apple-system, "Segoe UI", Arial, sans-serif; color: var(--ink); background: #f3f5f4; }
+  :focus-visible { outline: 3px solid var(--acc); outline-offset: 2px; }
+  .app { margin: 20px; border-radius: 40px; padding: 16px; display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 16px; min-height: calc(100svh - 40px);
+    background: radial-gradient(60% 70% at 100% 0%, #cfe6ea 0%, transparent 62%), radial-gradient(55% 60% at 0% 100%, #e3ecf1 0%, transparent 62%), linear-gradient(135deg, #e4eff2, #f1f5f7 55%, #eaeff4); }
+  .rail { position: sticky; top: 16px; align-self: start; height: calc(100svh - 72px); min-height: 420px; border-radius: 44px; background: var(--forest); color: #d6e6ea; display: flex; flex-direction: column; align-items: center; padding: 18px 0; gap: 8px; box-shadow: 0 20px 40px -24px rgb(10 24 30 / .7); }
+  .logo { width: 48px; height: 48px; display: block; margin-bottom: 14px; text-decoration: none; transition: transform .25s; }
+  .logo:hover { transform: rotate(-6deg) scale(1.06); }
+  .logo svg { display: block; }
+  .rail nav { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+  .rb { position: relative; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; color: #9fc2b6; text-decoration: none; transition: background .25s, color .25s; }
+  .rb svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .rb:hover { color: #fff; background: rgb(255 255 255 / .08); }
+  .rb.is-on { background: var(--mint-2); color: var(--forest); box-shadow: 0 0 0 6px rgb(143 211 220 / .18), 0 0 26px rgb(143 211 220 / .55); }
+  .rb::after { content: attr(data-label); position: absolute; inset-inline-end: calc(100% + 14px); top: 50%; transform: translateY(-50%) translateX(6px); opacity: 0; pointer-events: none; white-space: nowrap; background: rgb(31 48 56 / .92); color: #fff; font-size: 13px; padding: 5px 10px; border-radius: 99px; transition: opacity .2s, transform .2s; }
+  .rb:hover::after, .rb:focus-visible::after { opacity: 1; transform: translateY(-50%); }
+  .foot { color: #6f9a8d; font-size: 12px; }
+  .skip { position: absolute; inset-inline-start: 12px; top: -64px; z-index: 100; background: var(--forest); color: #fff; padding: 10px 18px; border-radius: 99px; text-decoration: none; font-weight: 600; transition: top .15s; }
+  .skip:focus { top: 12px; }
+  .main { min-width: 0; width: 100%; max-width: 820px; margin-inline: auto; display: grid; gap: 16px; align-content: start; }
+  .doc { background: #fff; border-radius: 28px; padding: 30px 34px; box-shadow: 0 1px 0 rgb(255 255 255 / .8) inset, 0 18px 34px -24px rgb(20 45 55 / .4); }
+  h1 { font-size: clamp(26px, 3vw, 36px); font-weight: 600; line-height: 1.2; margin: 0 0 .3rem; }
+  h2 { font-size: 1.25rem; font-weight: 600; margin: 2rem 0 .4rem; }
+  .muted { color: var(--muted); font-size: .95rem; }
+  [lang="en"] { direction: ltr; text-align: left; }
+  a { color: var(--accent); }
+  code { background: #eef7f3; border-radius: 6px; padding: 1px 6px; font-size: .9em; direction: ltr; unicode-bidi: isolate; overflow-wrap: anywhere; }
+  @media (prefers-reduced-motion: no-preference) { @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } } .doc { animation: rise .6s cubic-bezier(.2, .7, .2, 1) both; } .doc + .doc { animation-delay: .1s; } }
+  @media (max-width: 700px) {
+    .app { margin: 0; border-radius: 0; padding: 12px 12px 92px; grid-template-columns: 1fr; }
+    .rail { position: fixed; z-index: 40; inset: auto 12px 12px 12px; top: auto; height: 64px; min-height: 0; flex-direction: row; padding: 8px 14px; border-radius: 32px; justify-content: space-between; }
+    .rail nav { flex-direction: row; flex: 1; justify-content: space-around; gap: 4px; }
+    .logo, .foot, .rb::after { display: none; }
+    .doc { padding: 22px 20px; border-radius: 24px; }
+  }
+  .logo .s{transform-box:view-box}@keyframes flagWave{0%,100%{transform:translateY(0)}25%{transform:translateY(calc(var(--a)*-1px))}75%{transform:translateY(calc(var(--a)*1px))}}.logo.wave .s{animation:flagWave .55s ease-in-out 2}.logo.wave .s2{animation-delay:.04s}.logo.wave .s3{animation-delay:.08s}.logo.wave .s4{animation-delay:.12s}.logo.wave .s5{animation-delay:.16s}.logo.wave .s6{animation-delay:.2s}.logo.wave .s7{animation-delay:.24s}.logo.wave .s8{animation-delay:.28s}@media (prefers-reduced-motion:reduce){.logo.wave .s{animation:none}}
+  html.fl-in{background:#1f3038}html.fl-in body{opacity:0}.fnav{position:fixed;inset:0;z-index:70;background:#1f3038 repeat;background-size:104px 104px;pointer-events:none}.fnav-ic{position:absolute;left:50%;top:50%;width:min(58vmin,440px);aspect-ratio:1;will-change:transform,opacity}.fnav-ic svg{width:100%;height:100%;fill:none;stroke:#8fd3dc;stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round}.fnav-ic.logo svg{stroke:none}
+  /* ===== rights page: search, topic chips, cards ===== */
+  :root { --ease: cubic-bezier(.2, .7, .2, 1); --t-fast: .18s; --t-med: .32s; --shadow-1: 0 1px 1px rgb(20 45 55 / .05), 0 2px 5px rgb(20 45 55 / .04), 0 10px 18px -10px rgb(20 45 55 / .16); --shadow-2: 0 1px 1px rgb(20 45 55 / .05), 0 4px 8px rgb(20 45 55 / .05), 0 20px 38px -20px rgb(20 45 55 / .3); --shadow-3: 0 2px 2px rgb(20 45 55 / .06), 0 12px 22px rgb(20 45 55 / .09), 0 34px 60px -26px rgb(20 45 55 / .42); --edge: rgb(255 255 255 / .95); --gap: #b3263f; }
+  .app { isolation: isolate; overflow: clip; position: relative; }
+  .app::before, .app::after { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; border-radius: inherit; }
+  .app::before { background: radial-gradient(38% 34% at 18% 22%, rgb(143 211 220 / .34), transparent 70%), radial-gradient(34% 38% at 86% 74%, rgb(169 223 230 / .3), transparent 70%); }
+  .app::after { opacity: .05; mix-blend-mode: multiply; background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .12 0 0 0 0 .19 0 0 0 0 .22 0 0 0 .6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
+  .rail { z-index: 2; background: linear-gradient(180deg, #27414d 0%, #1f3038 52%, #1a2a32 100%); box-shadow: inset 0 1px 0 rgb(255 255 255 / .1), inset 0 0 0 1px rgb(255 255 255 / .04), 0 30px 50px -28px rgb(10 24 30 / .85); }
+  .main { position: relative; z-index: 1; max-width: 1060px; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .top { padding: 6px 8px 0; display: grid; gap: 6px; }
+  .top h1 { font: 600 clamp(30px, 3.4vw, 44px)/1.1 "Rubik", system-ui, sans-serif; letter-spacing: -.02em; margin: 0; }
+  .top h1 em { font: 300 1.04em/1 "Rubik", system-ui, sans-serif; font-style: normal; color: #0d7480; }
+  .lead { color: var(--muted); max-width: 60ch; margin: 0; font-size: 17px; line-height: 1.6; }
+  .finder { display: grid; gap: 14px; background: #fff; border: 1px solid rgb(31 48 56 / .06); border-radius: 28px; padding: 18px; box-shadow: inset 0 1px 0 var(--edge), var(--shadow-2); }
+  .sbox { position: relative; display: flex; align-items: center; }
+  .sbox svg { position: absolute; inset-inline-start: 18px; width: 22px; height: 22px; fill: none; stroke: var(--muted); stroke-width: 1.8; stroke-linecap: round; pointer-events: none; }
+  .sbox input { width: 100%; font: inherit; font-size: 18px; line-height: 1.4; padding: 15px 52px; border-radius: 99px; border: 1px solid var(--line); background: #f4f8f9; color: var(--ink); transition: border-color var(--t-fast), box-shadow var(--t-fast), background-color var(--t-fast); -webkit-appearance: none; appearance: none; }
+  .sbox input::-webkit-search-cancel-button { display: none; }
+  .sbox input:focus-visible { outline: 0; border-color: var(--acc); background: #fff; box-shadow: 0 0 0 3px rgb(13 116 128 / .24); }
+  .qx { position: absolute; inset-inline-end: 8px; width: 40px; height: 40px; border: 0; border-radius: 50%; background: none; color: var(--muted); font: inherit; font-size: 16px; cursor: pointer; }
+  .qx:hover { background: rgb(31 48 56 / .06); }
+  .cats { display: flex; flex-wrap: wrap; gap: 8px; }
+  .cat { font: inherit; font-weight: 600; font-size: 14px; padding: 8px 16px; border-radius: 99px; border: 1px solid var(--line); background: #fff; color: var(--ink); cursor: pointer; min-height: 40px; transition: background-color var(--t-fast), color var(--t-fast), border-color var(--t-fast); }
+  .cat:hover { border-color: rgb(13 116 128 / .4); }
+  .cat[aria-pressed="true"] { background: var(--forest); border-color: var(--forest); color: #fff; }
+  .count { margin: 0; color: var(--muted); font-size: 14px; min-height: 1.4em; }
+  .empty { display: grid; gap: 8px; justify-items: start; background: #fff; border-radius: 28px; padding: 22px; box-shadow: inset 0 1px 0 var(--edge), var(--shadow-1); }
+  .empty[hidden] { display: none; }
+  .sugg { display: flex; flex-wrap: wrap; gap: 8px; }
+  .rgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+  .rc { background: #fff; border: 1px solid rgb(31 48 56 / .06); border-radius: 28px; padding: 22px; display: grid; gap: 12px; min-width: 0; box-shadow: inset 0 1px 0 var(--edge), var(--shadow-2); scroll-margin-top: 24px; transition: box-shadow var(--t-med) var(--ease), transform var(--t-med) var(--ease); }
+  .rc:hover { box-shadow: inset 0 1px 0 var(--edge), var(--shadow-3); }
+  .rc.flash { box-shadow: 0 0 0 3px rgb(13 116 128 / .35), var(--shadow-3); }
+  .rc[hidden] { display: none; }
+  .ct { justify-self: start; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 99px; background: var(--mint); color: #0b5a64; }
+  .rc h2 { font-size: 1.3rem; font-weight: 600; line-height: 1.25; margin: 0; letter-spacing: -.005em; }
+  .rc .sh { margin: 0; color: var(--muted); line-height: 1.55; }
+  .facts { margin: 0; display: grid; }
+  .facts div { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 12px; padding: 9px 0; border-top: 1px solid var(--line); font-size: 15px; line-height: 1.45; }
+  .facts dt { color: var(--muted); }
+  .facts dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; unicode-bidi: plaintext; overflow-wrap: anywhere; }
+  .more { border-top: 1px solid var(--line); padding-top: 4px; }
+  .more summary { cursor: pointer; font-weight: 600; color: var(--forest); padding: 10px 2px; list-style: none; display: flex; align-items: center; gap: 10px; }
+  .more summary::-webkit-details-marker { display: none; }
+  .more summary::before { content: "+"; content: "+" / ""; font-size: 1.3rem; line-height: 1; color: var(--acc); }
+  .more[open] > summary::before { content: "\2212"; content: "\2212" / ""; }
+  .more p { margin: 0 0 10px; font-size: 15px; line-height: 1.65; }
+  .srcs { margin: 6px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; font-size: 14px; }
+  .srcs li { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; }
+  .srcs time { color: var(--muted); font-size: 13px; }
+  .chk { justify-self: start; display: inline-flex; align-items: center; gap: 8px; border-radius: 99px; background: linear-gradient(180deg, #118391 0%, #0d7480 58%, #0b6a75 100%); color: #fff; font-weight: 600; font-size: 14px; padding: 9px 18px; text-decoration: none; box-shadow: inset 0 1px 0 rgb(255 255 255 / .24), 0 10px 20px -12px rgb(13 116 128 / .7); }
+  .chk:hover { filter: brightness(1.06); }
+  .disc { background: #fff; border-radius: 28px; padding: 22px 26px; display: grid; gap: 6px; box-shadow: inset 0 1px 0 var(--edge), var(--shadow-1); color: var(--muted); font-size: 15px; line-height: 1.65; }
+  .disc b { color: var(--ink); }
+  .disc p { margin: 0; }
+  @media (prefers-reduced-motion: no-preference) {
+    .app::before { animation: drift 26s ease-in-out infinite alternate; }
+    @keyframes drift { from { transform: translate3d(0, 0, 0) scale(1); } to { transform: translate3d(2.5%, -2%, 0) scale(1.08); } }
+    @keyframes rise2 { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+    .top, .finder, .rc, .disc { animation: rise2 .6s var(--ease) both; }
+    .rc:hover { transform: translateY(-2px); }
+  }
+  @media (max-width: 1000px) { .rgrid { grid-template-columns: 1fr; } }
+  @media (max-width: 700px) { .rc, .finder { padding: 18px; border-radius: 24px; } .facts div { grid-template-columns: 1fr; gap: 2px; } .cat { min-height: 44px; } .chk { min-height: 44px; } }
+</style>
+<script>try{if(sessionStorage.getItem("bodekFlood")){document.documentElement.className+=" fl-in";setTimeout(function(){document.documentElement.classList.remove("fl-in")},2500)}}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">דלג לתוכן</a>
+<div class="app">
+  <div class="rail">
+    <a class="logo" href="index.html" tabindex="-1" aria-hidden="true"><svg class="flag" viewBox="0 0 64 64" width="48" height="48" aria-hidden="true" focusable="false" style="overflow:visible"><defs><linearGradient id="pig" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0d7480"/><stop offset="1" stop-color="#1f3038"/></linearGradient><g id="piart"><path d="M16 15h32v35H16z" fill="#fff"/><rect x="12" y="9" width="40" height="8" rx="4" fill="#e4eef0"/><rect x="12" y="9" width="40" height="3.2" rx="1.6" fill="#fff" opacity=".8"/><rect x="12" y="48" width="40" height="8" rx="4" fill="#e4eef0"/><rect x="12" y="53" width="40" height="3" rx="1.5" fill="#c9d8dc"/><text x="32" y="41.5" text-anchor="middle" font-family="Rubik,Arial Black,Arial,sans-serif" font-weight="900" font-size="23" fill="#0d7480">$</text></g></defs><rect width="64" height="64" rx="18" fill="url(#pig)"/><svg class="s s1" x="12" y="0" width="5" height="64" viewBox="12 0 5 64" style="--a:0"><use href="#piart"/></svg><svg class="s s2" x="17" y="0" width="5" height="64" viewBox="17 0 5 64" style="--a:.5"><use href="#piart"/></svg><svg class="s s3" x="22" y="0" width="5" height="64" viewBox="22 0 5 64" style="--a:1"><use href="#piart"/></svg><svg class="s s4" x="27" y="0" width="5" height="64" viewBox="27 0 5 64" style="--a:1.6"><use href="#piart"/></svg><svg class="s s5" x="32" y="0" width="5" height="64" viewBox="32 0 5 64" style="--a:2.2"><use href="#piart"/></svg><svg class="s s6" x="37" y="0" width="5" height="64" viewBox="37 0 5 64" style="--a:2.7"><use href="#piart"/></svg><svg class="s s7" x="42" y="0" width="5" height="64" viewBox="42 0 5 64" style="--a:3"><use href="#piart"/></svg><svg class="s s8" x="47" y="0" width="5" height="64" viewBox="47 0 5 64" style="--a:3.2"><use href="#piart"/></svg></svg></a>
+    <nav aria-label="ניווט ראשי">
+      <a class="rb" href="index.html" data-label="בית" aria-label="בית"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4v-5H9v5H5a1 1 0 0 1-1-1z"/></svg></a>
+      <a class="rb" href="check.html" data-label="בדיקת תלוש" aria-label="בדיקת תלוש"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="m9.5 14 2 2 3.5-4"/></svg></a>
+      <a class="rb is-on" href="rights.html" data-label="הזכויות שלך" aria-label="הזכויות שלך" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M8 20h8M5 7h14"/><path d="M5 7 2 14a3.2 3.2 0 0 0 6 0zM19 7l-3 7a3.2 3.2 0 0 0 6 0z"/></svg></a>
+      <a class="rb" href="privacy.html" data-label="פרטיות" aria-label="פרטיות"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.4 2.9 8.3 7 10 4.1-1.7 7-5.6 7-10V6z"/><path d="m9 12 2.2 2.2L15.5 10"/></svg></a>
+    </nav>
+    <span class="foot">2026</span>
+  </div>
+    <main class="main" id="main" tabindex="-1">
+    <header class="top">
+      <h1>הזכויות <em>שלך</em></h1>
+      <p class="lead">כל מה שמגיע לעובד בענף השמירה והאבטחה, בקצרה ועם מקור לכל נתון. חפש מילה, או בחר נושא.</p>
+    </header>
+
+    <section class="finder" aria-label="חיפוש בזכויות">
+      <label class="sr" for="q">חיפוש בזכויות ובחוקים</label>
+      <div class="sbox">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+        <input id="q" type="search" autocomplete="off" enterkeyhint="search" placeholder="חפש: שבת, הבראה, פיטורים, חופשה, מילואים…">
+        <button type="button" id="qx" class="qx" aria-label="נקה חיפוש" hidden>✕</button>
+      </div>
+      <div class="cats" id="cats" role="group" aria-label="סינון לפי נושא"></div>
+      <p class="count" id="count" role="status" aria-live="polite"></p>
+    </section>
+
+    <div class="empty" id="empty" hidden>
+      <b>לא נמצא נושא כזה.</b>
+      <span>נסה מילה אחרת, או אחד מאלה:</span>
+      <div class="sugg" id="sugg"></div>
+    </div>
+
+    <div class="rgrid" id="rgrid"></div>
+
+    <section class="disc" aria-label="הסתייגות">
+      <b>מידע כללי, לא ייעוץ משפטי.</b>
+      <p>הנתונים נאספו מאתרי מידע ציבוריים ומגופים רשמיים (בעיקר "כל זכות" ו-gov.il), ולא מנוסח הצו או החוק עצמו. כל כרטיס מציין מקור ותאריך עדכון של המקור. נתון שלא הצלחנו לאמת לא הוכנס. תעריפים משתנים מדי שנה, ולכן בדוק מול המקור לפני שאתה פועל. ייתכן שהסכם או חוזה שלך מיטיבים איתך יותר מהמינימום שכאן. נכון ל-22.11.2026.</p>
+    </section>
+  </main>
+</div>
+<script>
+/* הזכויות: רק מה שנמצא במקור. כל כרטיס: id, cat, title, short, facts [[תווית, ערך]], body [פסקאות], kw (מילים נרדפות לחיפוש), src [[שם, כתובת, תאריך עדכון]], chk (קישור לבדיקה). */
+const KZ = 'https://www.kolzchut.org.il/he/';
+const RIGHTS = [
+  {id: 'minwage', cat: 'wage', title: 'שכר מינימום בענף', chk: true,
+    short: 'בענף השמירה המינימום גבוה מהמינימום הכללי, ועולה עם ההכשרה.',
+    facts: [['עובד רגיל (מ-1.4.2026)', '39.11 ₪ לשעה'], ['אחראי', '39.16 ₪ לשעה'], ['מאבטח בסיס (קורס של 6 ימים)', '40.71 ₪ לשעה'], ['מאבטח מתקדם ב׳ (8 ימים)', '46.02 ₪ לשעה'], ['מאבטח מתקדם א׳ (15 ימים)', '49.56 ₪ לשעה'], ['עוטף ירושלים או בכיר ב׳', '56.64 ₪ לשעה'], ['שכר המינימום הכללי (מ-1.4.2026)', '35.40 ₪ לשעה, 6,443.85 ₪ לחודש']],
+    body: ['אם סיימת הכשרה שהצו מגדיר ואתה ממלא תפקיד שדורש אותה, ייתכן שמגיע לך יותר מהמינימום לעובד רגיל. כדאי לברר מול המעסיק איזו דרגה רשומה לך.'],
+    kw: 'שכר מינימום שכר שעתי כמה מגיע לי הכשרה דרגה קורס מאבטח מתקדם בכיר',
+    src: [['כל זכות: שכר מינימום לעובדי שמירה ואבטחה', KZ + 'שכר_מינימום_לעובדי_שמירה_ואבטחה', '19.4.2026'], ['כל זכות: שכר מינימום', KZ + 'שכר_מינימום', '17.8.2026']]},
+
+  {id: 'shabbat', cat: 'wage', title: 'שבת ומנוחה שבועית', chk: true,
+    short: 'בענף השמירה המנוחה היא חלון קבוע, ועבודה בו משולמת בתוספת.',
+    facts: [['החלון (מ-1.9.2022)', 'שישי 16:00 עד ראשון 04:00 (36 שעות)'], ['כל שעה בחלון', '150%'], ['שעה נוספת בחלון', '175% לשעתיים הראשונות, ואז 200%'], ['בנוסף', 'יום מנוחה חלופי']],
+    body: ['החלון קבוע כל השנה, ולא תלוי בשעת כניסת השבת. לעובד שעתי היום החלופי הוא בלי תשלום נוסף, אלא אם הצו קובע אחרת.'],
+    kw: 'שבת שישי מוצאי שבת מוצש מנוחה 150 תוספת שבת צהריים ערב שבת',
+    src: [['כל זכות: מנוחה שבועית לעובדי שמירה ואבטחה', KZ + 'מנוחה_שבועית_לעובדי_שמירה_ואבטחה', '25.12.2025'], ['כל זכות: גמול עבור העסקה במנוחה השבועית', KZ + 'גמול_עבור_העסקה_במנוחה_השבועית', '26.4.2026']]},
+
+  {id: 'overtime', cat: 'wage', title: 'שעות נוספות ומשמרת לילה', chk: true,
+    short: 'מעל היום הרגיל משלמים תוספת: 125% לשעתיים הראשונות ו-150% אחריהן.',
+    facts: [['שבוע עבודה', '5 ימים, 42 שעות'], ['שעה נוספת ביום חול', '125% לשעתיים הראשונות, 150% מהשלישית'], ['שעה נוספת במנוחה או בחג', '175% לשעתיים הראשונות, 200% אחר כך'], ['משמרת לילה', 'לפחות שעתיים בין 22:00 ל-06:00'], ['יום עבודה בלילה', '7 שעות']],
+    body: ['שעות נוספות נספרות קודם ביום ואחר כך בשבוע (מעל 42). בענף אין בצו תוספת נפרדת ללילה, אבל יום עבודה בלילה קצר יותר, ולכן השעה השמינית כבר נוספת.'],
+    kw: 'שעות נוספות 125 150 175 200 לילה משמרת לילה 42 שעות יום עבודה כמה שעות',
+    src: [['כל זכות: גמול עבור שעות נוספות', KZ + 'גמול_עבור_שעות_נוספות', '28.7.2026'], ['כל זכות: עבודה במשמרת לילה', KZ + 'עבודה_במשמרת_לילה', '15.9.2026']]},
+
+  {id: 'otlimits', cat: 'wage', title: 'כמה שעות מותר להעסיק',
+    short: 'בענף יש תקרה לשעות נוספות וליום עבודה.',
+    facts: [['שעות נוספות ביום', 'עד 4 (ו-5 ביום שלפני המנוחה)'], ['שעות נוספות בשבוע', 'עד 37'], ['בארבעה שבועות רצופים', 'עד 74'], ['אורך יום מקסימלי', '12.4 שעות (שבוע של 5 ימים), 12 שעות (6 ימים)'], ['שבוע שכולל לילה', 'עד 58 שעות כולל נוספות']],
+    body: ['היתרים מיוחדים בזמן חירום עשויים לשנות את המגבלות. בדוק מול משרד העבודה אם חל היתר כזה.'],
+    kw: 'כמה שעות מותר מקסימום שעות 12 שעות תקרה שעות נוספות מגבלה עבודה רצופה',
+    src: [['כל זכות: מגבלות על העסקת עובדי שמירה ואבטחה בשעות נוספות', KZ + 'מגבלות_על_העסקת_עובדי_שמירה_ואבטחה_בשעות_נוספות', '20.5.2025'], ['כל זכות: גמול עבור שעות נוספות', KZ + 'גמול_עבור_שעות_נוספות', '28.7.2026']]},
+
+  {id: 'nine', cat: 'wage', title: 'תוספת כוללת של 9% במקום שעות נוספות', chk: true,
+    short: 'מותר לשלם תוספת קבועה במקום גמול שעות נוספות, אבל רק בתנאים.',
+    facts: [['שיעור', 'לפחות 9% לכל שעות היום'], ['חל על', 'ימי חול בלבד, לא על שבת וחג'], ['תנאי', 'הסכמה בכתב בנוסח שבצו'], ['ביטול', 'בהודעה של 30 יום, מכל צד']],
+    body: ['בלי הסכם בכתב, מגיע גמול שעות נוספות מלא. בשבת ובחג ההסכם לא חל, ושם מגיע 50% לכל שעה.'],
+    kw: 'תוספת כוללת גלובלי גלובלית 9% שעות נוספות גלובליות הסכם בכתב',
+    src: [['כל זכות: גמול גלובלי עבור שעות נוספות לעובדי שמירה ואבטחה', KZ + 'גמול_גלובלי_עבור_שעות_נוספות_לעובדי_שמירה_ואבטחה', '2.3.2025']]},
+
+  {id: 'holiday', cat: 'extra', title: 'חגים: עבודה בחג ודמי חגים', chk: true,
+    short: 'עבודה בחג משולמת בתוספת, ועובד שעתי זכאי לדמי חגים בתנאים.',
+    facts: [['עבודה בחג בענף', '+50% ויום מנוחה חלופי בלי תשלום'], ['עובד חודשי', '9 ימי חג כלולים בשכר'], ['עובד שעתי', 'דמי חגים אחרי 3 חודשי עבודה, בתנאים']],
+    body: ['לעובד שעתי: צריך היה לעבוד באותו יום, ולעבוד ביום שלפני החג וביום שאחריו. אין זכאות לחג שחל בשישי או בשבת אם לא היית עובד בו. עובד בענף שנאלץ לעבוד בחג לא מקבל דמי חגים נוספים.'],
+    kw: 'חג חגים ערב חג מוצאי חג דמי חגים עבודה בחג ראש השנה פסח',
+    src: [['כל זכות: גמול עבור העסקה בחג לעובדי שמירה ואבטחה', KZ + 'גמול_עבור_העסקה_בחג_לעובדי_שמירה_ואבטחה', '30.11.2025'], ['כל זכות: דמי חגים', KZ + 'דמי_חגים', '22.9.2026']]},
+
+  {id: 'havraa', cat: 'extra', title: 'דמי הבראה', chk: true,
+    short: 'מגיעים מדי שנה, לפי הוותק, וגם לעובד שעתי.',
+    facts: [['עד 3 שנות ותק', '7 ימים'], ['שנים 4 עד 10', '9 ימים'], ['שנים 11 עד 15', '10 ימים'], ['שנים 16 עד 19', '11 ימים'], ['שנים 20 עד 24', '12 ימים'], ['מ-25 שנים', '13 ימים'], ['בבודק (ותק עד 3 שנים)', '1.64 ₪ לשעה']],
+    body: ['ערך יום הבראה מתעדכן בכל 1 ביולי, ולכן בדוק את הערך העדכני. לעובד שעתי ההבראה משולמת כרכיב נפרד לצד שכר השעה, ובהתאם למספר השעות. עובד חודשי יכול לקבל אותה פעם בשנה, במשכורות יוני עד ספטמבר.'],
+    kw: 'הבראה דמי הבראה ימי הבראה ותק',
+    src: [['כל זכות: דמי הבראה לעובדי שמירה ואבטחה', KZ + 'דמי_הבראה_לעובדי_שמירה_ואבטחה', '17.6.2026']]},
+
+  {id: 'travel', cat: 'extra', title: 'נסיעות', chk: true,
+    short: 'מגיע החזר על נסיעה לעבודה, עד תקרה ליום עבודה.',
+    facts: [['תקרה', '22.60 ₪ ליום עבודה'], ['מנוי חודשי', 'אם הוא זול יותר'], ['מי שהמעסיק הסיע', 'לא זכאי ליום הזה'], ['תביעה', 'עד 7 שנים אחורה']],
+    body: ['ההחזר הוא על יום עבודה ולא על משמרת. נסיעה בין אתרים באמצע משמרת נחשבת זמן עבודה, והעלות על המעסיק.'],
+    kw: 'נסיעות דמי נסיעה החזר נסיעה הסעה אוטובוס תחבורה ציבורית',
+    src: [['כל זכות: הסעות והחזר הוצאות נסיעה לעובדי שמירה ואבטחה', KZ + 'הסעות_והחזר_הוצאות_נסיעה_לעובדי_שמירה_ואבטחה', '22.12.2025']]},
+
+  {id: 'pension', cat: 'extra', title: 'פנסיה', chk: true,
+    short: 'המעסיק והעובד מפרישים לפנסיה, גם על שעות נוספות ושבת.',
+    facts: [['עובד', '7%'], ['מעסיק, תגמולים', '7.5%'], ['מעסיק, פיצויים', '8.33% (6% על שעות נוספות ושבת)'], ['על נסיעות', '5% עובד ו-5% מעסיק'], ['תחילת הזכאות', 'מהיום הראשון']],
+    body: ['ההפרשה בפועל מתחילה בסוף חודש עבודה או בסוף שנת המס, ומחושבת אחורה. במעבר בין מעסיקים באותו אתר אין תקופת המתנה.'],
+    kw: 'פנסיה הפרשות קופת גמל פיצויים 7 7.5 8.33 ביטוח פנסיוני',
+    src: [['כל זכות: ביטוח פנסיוני לעובדי שמירה ואבטחה', KZ + 'ביטוח_פנסיוני_לעובדי_שמירה_ואבטחה', '21.12.2025']]},
+
+  {id: 'keren', cat: 'extra', title: 'קרן השתלמות', chk: true,
+    short: 'מגיעה בענף, אבל מחושבת על בסיס קבוע ולא על השכר בפועל.',
+    facts: [['מעסיק', '7.5%'], ['עובד', '2.5%'], ['הבסיס', 'שכר המינימום הכללי ועוד דמי הבראה, עד 182 שעות בחודש'], ['ותק המתנה', 'חודשיים, ואז רטרואקטיבי מהיום הראשון']],
+    body: ['לא מחשבים אותה על השכר בפועל. אחרי חילופי מעסיק במכרז באותו אתר, ההפקדה מהיום הראשון.'],
+    kw: 'קרן השתלמות השתלמות קרן 7.5 2.5',
+    src: [['כל זכות: קרן השתלמות לעובדי שמירה ואבטחה', KZ + 'קרן_השתלמות_לעובדי_שמירה_ואבטחה', '21.12.2025'], ['לשכת המסחר: צו הרחבה 2022', 'https://www.chamber.org.il/serviceslobby/legal/1856/131520/', '2022']]},
+
+  {id: 'vacation', cat: 'leave', title: 'חופשה שנתית',
+    short: 'מספר ימי החופשה תלוי בוותק. הטבלה מתייחסת לשבוע של 5 ימים.',
+    facts: [['ותק 1 עד 2 שנים', '12 ימים (מ-1.1.2017)'], ['ותק 3 עד 4 שנים', '12 ימים'], ['שנה חמישית', '13 ימים'], ['שנה שישית', '18 ימים'], ['שנים 7 עד 8', '19 ימים'], ['מהשנה התשיעית', '23 ימים']],
+    body: ['ימי מנוחה שבועית וחגים לא נכללים בימי החופשה. ככלל חובה לנצל את החופשה באותה שנה. אפשר לצבור רק בהסכמת המעסיק, לפחות 7 ימים בשנה, ואת היתרה מצרפים לשנתיים הבאות. בסיום העבודה אפשר לפדות ימים שלא נוצלו, מהשנה האחרונה ומשלוש השנים שלפניה. אי אפשר לוותר מראש על החופשה, ותביעה אפשרית ל-3 השנים המלאות האחרונות.', 'בשבוע של 6 ימים המקור לא מציג מספרים, וייתכן שמגיע לך יותר לפי חוק חופשה שנתית. הטבלה גם לא כוללת עובד בשנה הראשונה, ולכן בדוק את זה בתלוש בתחילת כל שנת ותק.'],
+    kw: 'חופשה חופשה שנתית ימי חופשה פדיון חופש יום חופש צבירת חופשה',
+    src: [['כל זכות: חופשה שנתית לעובדי שמירה ואבטחה', KZ + 'חופשה_שנתית_לעובדי_שמירה_ואבטחה', '21.12.2025']]},
+
+  {id: 'sick', cat: 'leave', title: 'ימי מחלה',
+    short: 'בענף השמירה צוברים יותר ימי מחלה מהחוק הכללי.',
+    facts: [['צבירה בענף', '2 ימים בחודש, 24 בשנה'], ['צבירה מקסימלית בענף', '130 ימים'], ['לפי החוק הכללי', '1.5 ימים בחודש, עד 90 ימים'], ['תשלום לפי החוק הכללי', 'יום ראשון: בלי. יום 2 ו-3: 50%. מיום 4: 100%']],
+    body: ['כדי לקבל דמי מחלה צריך להמציא למעסיק תעודת מחלה חתומה על ידי רופא. המעסיק לא רשאי לנכות ימי חופשה במקום ימי מחלה, ואסור לפטר עובד שנמצא בימי מחלה. עובד במשרה חלקית או בשכר שעתי צובר באופן יחסי.', 'דף הענף לא מציין אם אחוזי התשלום בענף שונים מהחוק הכללי. ייתכן שחוזה או הסכם משלמים יותר, ולכן בדוק גם אותם.'],
+    kw: 'מחלה ימי מחלה דמי מחלה תעודת מחלה אישור רופא חולה',
+    src: [['כל זכות: ימי מחלה לעובדי שמירה ואבטחה', KZ + 'ימי_מחלה_לעובדי_שמירה_ואבטחה', '13.1.2026'], ['כל זכות: ימי מחלה (החוק הכללי)', KZ + 'ימי_מחלה', '18.8.2026']]},
+
+  {id: 'severance', cat: 'leave', title: 'פיצויי פיטורים',
+    short: 'שכר חודש אחד לכל שנת עבודה, לפי השכר האחרון.',
+    facts: [['הסכום', 'שכר חודש אחד לכל שנת עבודה'], ['ותק מינימלי', 'שנת עבודה אחת'], ['תשלום', 'ביום האחרון, ולכל המאוחר תוך 15 יום'], ['איחור של 16 עד 30 יום', 'הצמדה למדד'], ['איחור מעל 30 יום', 'הצמדה ופיצוי על הלנה']],
+    body: ['מעסיק שמפקיד לפנסיה 8.33% בכל חודש (הסדר סעיף 14, בהסכמת העובד) לא חייב לשלם פיצויים נוספים בסיום. אם הופקד רק חלק, למשל 6%, מגיעה השלמה של השאר, כלומר 2.33% מהשכר האחרון כפול חודשי העבודה. בעובד שעתי שהיקף שעותיו משתנה מחשבים לפי היקף המשרה הממוצע ושכר השעה האחרון. את הכסף שהצטבר בקופה מקבלים עם הטופס שהמעסיק מוסר לך (טופס 161).'],
+    kw: 'פיצויים פיטורים פוטרתי פיטורין סעיף 14 8.33 פיצוי',
+    src: [['כל זכות: פיצויי פיטורים', KZ + 'פיצויי_פיטורים', '18.9.2025'], ['כל זכות: פיצויי פיטורים לעובד שהתפטר', KZ + 'פיצויי_פיטורים_לעובד_שהתפטר', '3.8.2026']]},
+
+  {id: 'resign', cat: 'leave', title: 'התפטרות שמזכה בפיצויים',
+    short: 'ככלל מי שמתפטר לא מקבל פיצויים, אבל יש מקרים שבהם כן.',
+    facts: [['הרעה מוחשית בתנאי העבודה', 'יש להתריע ולאפשר למעסיק לתקן'], ['בריאות לקויה', 'שלך או של בן משפחה'], ['טיפול בילד', 'בתוך 9 חודשים מהלידה, האימוץ או קבלת הילד'], ['גיל פרישה', 'כן'], ['גיוס לצה״ל, למשטרה או לשב״ס', 'כן']],
+    body: ['ברשימה גם העברת מקום העבודה, מעבר מגורים בנסיבות שנקבעו, התנדבות לשירות לאומי, ועוד. הרשימה המלאה בדף המקור. אם המעסיק תיקן את הליקוי אחרי שהתרית, ההתפטרות כבר לא תזכה בפיצויים.'],
+    kw: 'התפטרות התפטרתי פיצויים התפטרות בדין מפוטר הרעה בתנאים',
+    src: [['כל זכות: פיצויי פיטורים לעובד שהתפטר', KZ + 'פיצויי_פיטורים_לעובד_שהתפטר', '3.8.2026']]},
+
+  {id: 'notice', cat: 'leave', title: 'הודעה מוקדמת לפיטורים',
+    short: 'המעסיק חייב להודיע מראש, ומשך ההודעה תלוי בוותק.',
+    facts: [['חודשי, פחות משנה', 'יום לכל אחד מ-6 החודשים הראשונים, ועוד 2.5 ימים לכל חודש נוסף'], ['חודשי, שנה ומעלה', 'חודש'], ['שעתי או יומי, עד שנה', 'יום לכל חודש'], ['שעתי או יומי, שנה שנייה', '14 ימים ועוד יום לכל 2 חודשים'], ['שעתי או יומי, שנה שלישית', '21 ימים ועוד יום לכל 2 חודשים'], ['שעתי או יומי, 3 שנים ומעלה', 'חודש']],
+    body: [],
+    kw: 'הודעה מוקדמת פיטורים פוטרתי התראה שימוע',
+    src: [['כל זכות: הודעה מוקדמת לפיטורים', KZ + 'הודעה_מוקדמת_לפיטורים', '20.1.2026']]},
+
+  {id: 'terms', cat: 'leave', title: 'הודעה על תנאי העבודה',
+    short: 'המעסיק חייב למסור לך בכתב את תנאי העבודה.',
+    facts: [['מועד', 'תוך 30 יום מתחילת העבודה (7 ימים לנוער)'], ['שינוי בתנאים', 'הודעה תוך 30 יום'], ['אם לא נמסרה', 'נטל ההוכחה על המעסיק']],
+    body: [],
+    kw: 'הודעה על תנאי עבודה חוזה חוזה עבודה הסכם העסקה כתב',
+    src: [['gov.il: הודעה לעובד על תנאי עבודה', 'https://www.gov.il/he/departments/general/work-rights-working-conditions-notification', '2021']]},
+
+  {id: 'late', cat: 'claim', title: 'הלנת שכר',
+    short: 'שכר שלא שולם בזמן מזכה בפיצוי נוסף.',
+    facts: [['נחשב מולן', 'אם לא שולם עד ה-9 בחודש שאחרי'], ['פיצוי', 'שבוע ראשון 5%, כל שבוע נוסף 10% מהשכר המולן'], ['או', 'הצמדה למדד ועוד 20% לכל חודש. מקבלים את הגבוה'], ['מועד לתביעה', '60 יום מקבלת השכר המולן (עד 90 בבקשה), או שנה אם לא שולם כלל']],
+    body: ['בית הדין יכול להפחית את הפיצוי, למשל בטעות כנה או במחלוקת אמיתית. פיצוי הלנה על פיצויי פיטורים מפורט בכרטיס פיצויי פיטורים.'],
+    kw: 'הלנת שכר הלנה שכר מולן לא קיבלתי משכורת איחור בתשלום משכורת באיחור',
+    src: [['כל זכות: פיצויי הלנת שכר', KZ + 'פיצויי_הלנת_שכר', '2.3.2025']]},
+
+  {id: 'claim', cat: 'claim', title: 'חסר כסף בתלוש? מה עושים', chk: true,
+    short: 'דרישה בכתב, תלונה במשרד העבודה, ואז תביעה. אפשר בלי עורך דין.',
+    facts: [['שלב 1', 'דרישה בכתב מהמעסיק, עם התלוש והחישוב'], ['שלב 2', 'מכתב התראה (לא חובה, אבל עוזר)'], ['שלב 3, חינם', 'תלונה במשרד העבודה: *2570, או במייל report.achifa@labor.gov.il (אפשר אנונימית)'], ['שלב 4', 'תביעה בבית הדין האזורי לעבודה. לא חובה עורך דין'], ['דיון מהיר', 'עד 40,700 ₪ (2026)'], ['אגרה', 'תביעות שכר, שעות נוספות, חגים וחופשה פטורות']],
+    body: ['התלונה במשרד העבודה לא מחליפה תביעה ולא עוצרת התיישנות. מסמכים לצרף: חוזה, תלושים, ורשימה של ימי ושעות העבודה. הבודק מכין לך הודעה למעסיק מתוך הפערים שנמצאו.'],
+    kw: 'תביעה בית דין לעבודה חסר כסף פער מכתב דרישה משרד העבודה תלונה אכיפה מעסיק לא משלם',
+    src: [['כל זכות: הגשת תביעה לבית הדין האזורי לעבודה', KZ + 'הגשת_תביעה_לתשלום_שכר_עבודה,_פיצויי_פיטורים_או_זכויות_סוציאליות_אחרות_בבית_הדין_האזורי_לעבודה', '4.5.2026'], ['כל זכות: פנייה ליחידת האכיפה של חוקי העבודה', KZ + 'פנייה_ליחידת_האכיפה_של_חוקי_העבודה', '21.11.2025']]},
+
+  {id: 'limit', cat: 'claim', title: 'התיישנות: עד מתי אפשר לתבוע',
+    short: 'יש מועדים לתביעה, ולכן אל תחכה.',
+    facts: [['חופשה שנתית', '3 השנים המלאות האחרונות'], ['נסיעות והבראה', 'עד 7 שנים אחורה'], ['שכר ופיצויים, ככלל', 'כ-7 שנים'], ['פיצוי הלנה', 'ראה את כרטיס הלנת שכר, זה המועד הקצר']],
+    body: ['ההתיישנות הכללית של 7 שנים מתבססת על אתרי מידע ולא נבדקה מול נוסח החוק. בכל מקרה, ככל שמחכים, קשה יותר להוכיח.'],
+    kw: 'התיישנות כמה זמן אפשר לתבוע מועד תביעה שנים אחורה',
+    src: [['כל זכות: חופשה שנתית לעובדי שמירה ואבטחה', KZ + 'חופשה_שנתית_לעובדי_שמירה_ואבטחה', '21.12.2025'], ['כל זכות: הסעות והחזר הוצאות נסיעה', KZ + 'הסעות_והחזר_הוצאות_נסיעה_לעובדי_שמירה_ואבטחה', '22.12.2025'], ['פורטל זכויות העובדים: התיישנות (מקור משני)', 'https://www.workrights.co.il/amp/התיישנות', 'לא עדכני']]},
+
+  {id: 'help', cat: 'claim', title: 'עזרה בחינם',
+    short: 'אפשר לקבל סיוע משפטי בלי לשלם.',
+    facts: [['סיוע משפטי (משרד המשפטים)', 'הלנת שכר, פיצויים, שעות נוספות. לפי הכנסה וסיכוי משפטי'], ['שכר מצווה (לשכת עורכי הדין)', 'טלפון 1-700-505-500, pro-bono@israelbar.org.il'], ['תלונה במשרד העבודה', '*2570'], ['עמדות סיוע בבתי הדין', 'סטודנטים למשפטים עוזרים בכתב התביעה']],
+    body: ['תקרות ההכנסה לסיוע משתנות וכוללות גודל משפחה, ולכן לא הוצגו כאן. בדוק מול הגוף עצמו.'],
+    kw: 'סיוע משפטי עורך דין חינם שכר מצווה עזרה משפטית ייעוץ',
+    src: [['כל זכות: סיוע משפטי בנושאי תעסוקה', KZ + 'סיוע_משפטי_בנושאי_תעסוקה_מטעם_משרד_המשפטים', '13.1.2026'], ['כל זכות: שכר מצווה', KZ + 'שכר_מצווה_–_סיוע_משפטי_בהתנדבות_למעוטי_אמצעים', '23.9.2026']]},
+
+  {id: 'reserve', cat: 'taxes', title: 'מילואים',
+    short: 'בשירות מילואים העבודה מוגנת, והשכר משולם דרך המעסיק.',
+    facts: [['תגמול יומי 2026', 'מינימום 328.76 ₪, מקסימום 1,730.33 ₪'], ['מי משלם', 'המעסיק משלם, והביטוח הלאומי מחזיר לו'], ['שעתי או יומי', 'המעסיק משלם אם עבדת 75 ימים ב-3 החודשים שלפני. אחרת, תביעה אישית'], ['פיטורים', 'אסור לפטר בגלל מילואים. אחרי שירות של יותר מיומיים, הגנה של 30 יום']],
+    body: ['המעסיק משלם מקדמה בגובה השכר הרגיל. אתה מוסר לו טופס 3010, הוא מגיש תביעה לביטוח הלאומי, ואם התגמול גבוה מהמקדמה, ההפרש משולם במשכורת הבאה. מעסיק שמעכב חשוף לפיצויי הלנת שכר. הפנסיה וקרן ההשתלמות ממשיכות על השכר הרגיל.'],
+    kw: 'מילואים שירות מילואים תגמול מילואים צו 8 טופס 3010 לוחם',
+    src: [['כל זכות: תשלום עבור שירות מילואים לשכירים', KZ + 'תשלום_עבור_שירות_מילואים_לשכירים', '13.10.2026'], ['ביטוח לאומי: תגמול מילואים', 'https://www.btl.gov.il/benefits/Reserve_Service/Pages/TagmulZacay.aspx', '2026']]},
+
+  {id: 'tax', cat: 'taxes', title: 'מס הכנסה ונקודות זיכוי',
+    short: 'נקודות זיכוי מקטינות את המס, ושני מעסיקים בלי תיאום מס עולים ביוקר.',
+    facts: [['שווי נקודת זיכוי', '242 ₪ לחודש'], ['תושב', '2.25 נקודות'], ['חייל משוחרר', '2 נקודות ל-36 חודשים. דורש טופס 101 ותעודת שחרור'], ['שני מעסיקים בלי תיאום', 'המעסיק השני מנכה 47%'], ['מדרגות 2026 (חודשי)', '10% עד 7,010 ₪ · 14% עד 10,060 ₪ · 20% עד 19,000 ₪ · 31% עד 25,100 ₪ · 35% עד 46,690 ₪ · 47% עד 60,130 ₪']],
+    body: ['הנקודות מקטינות מס עד אפס בלבד, והעודף לא מוחזר. אם עבדת אצל שני מעסיקים, כדאי לבקש תיאום מס, ובנפרד תיאום ביטוח לאומי. ללוחם מילואים יש נקודות נוספות לפי מספר ימי השירות בשנה הקודמת, וצריך אישור מצה״ל.'],
+    kw: 'מס הכנסה נקודות זיכוי טופס 101 תיאום מס שני מעסיקים החזר מס מדרגות מס משוחרר',
+    src: [['כל זכות: מדרגות מס הכנסה', KZ + 'מדרגות_מס_הכנסה', '2026'], ['כל זכות: מס הכנסה', KZ + 'מס_הכנסה', '8.5.2026']]},
+
+  {id: 'btl', cat: 'taxes', title: 'ביטוח לאומי ומס בריאות',
+    short: 'שיעור מופחת עד סכום מסוים, ושיעור מלא מעליו.',
+    facts: [['עד 7,703 ₪ בחודש', 'סך הכול מהשכיר 4.27%'], ['מ-7,703 עד 51,910 ₪', 'סך הכול מהשכיר 12.17%'], ['שתי עבודות', 'הסף המופחת ניתן פעם אחת בלבד']],
+    body: ['בלי תיאום ביטוח לאומי, שני המעסיקים מנכים את השיעור המופחת, ובסוף יש חיוב נוסף. השיעורים מתוך דף ביטוח לאומי, המתוארך ל-2025, והסף והתקרה בתוקף מ-1.1.2026.'],
+    kw: 'ביטוח לאומי ביטוח בריאות מס בריאות ניכויים תיאום ביטוח לאומי',
+    src: [['ביטוח לאומי: שיעורי דמי ביטוח לעובדים שכירים', 'https://www.btl.gov.il/Insurance/Rates/Pages/לעובדים שכירים.aspx', '2025-2026']]}
+];
+const CATS = [['all', 'הכל'], ['wage', 'שכר ושעות'], ['extra', 'תנאים נלווים'], ['leave', 'חופשה, מחלה ופיטורים'], ['claim', 'כשחסר כסף'], ['taxes', 'מילואים ומס']];
+const SUGG = ['שבת', 'הבראה', 'פיטורים', 'חופשה', 'מילואים', 'נסיעות'];
+
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]; }); };
+  var catName = {}; CATS.forEach(function (c) { catName[c[0]] = c[1]; });
+  // חיפוש: בלי ניקוד, מירכאות ומקפים. מילים נרדפות, וקידומות כמו ב, ל, ה.
+  var norm = function (s) { return String(s).toLowerCase().replace(/[֑-ׇ]/g, '').replace(/["'`״׳”“’‘]/g, '').replace(/[-–־_/.,:;()]/g, ' ').replace(/\s+/g, ' ').trim(); };
+  var SYN = {
+    'שבת': ['שישי', 'מנוחה', 'מוצש', 'מוצאי'], 'שישי': ['שבת', 'מנוחה'], 'מוצש': ['שבת', 'מנוחה'],
+    'חג': ['חגים', 'ערב חג'], 'חגים': ['חג'], 'פיטורים': ['פיצויים', 'הודעה מוקדמת', 'פוטרתי'], 'פוטרתי': ['פיטורים', 'פיצויים', 'הודעה מוקדמת'], 'פיטרו': ['פיטורים', 'פיצויים'],
+    'התפטרות': ['פיצויים', 'התפטרתי'], 'התפטרתי': ['פיצויים', 'התפטרות'], 'חופש': ['חופשה'], 'חופשות': ['חופשה'],
+    'משכורת': ['שכר', 'הלנת שכר'], 'מגיע': ['זכויות', 'שכר'], 'כסף': ['חסר', 'תביעה', 'שכר'], 'לילה': ['משמרת לילה', 'שעות נוספות'],
+    'תביעה': ['בית דין', 'מכתב דרישה'], 'עורך': ['סיוע משפטי', 'שכר מצווה'], 'מס': ['נקודות זיכוי', 'טופס 101'], 'מילואים': ['צו 8', 'תגמול'],
+    'שעתי': ['שעות'], 'נוספות': ['125', '150'], 'חולה': ['מחלה'], 'רופא': ['מחלה', 'תעודת מחלה'], 'גלובלי': ['9', 'תוספת כוללת']
+  };
+  var PREF = 'הבלמשוכ';
+  var items = RIGHTS.map(function (r, i) {
+    var parts = {t: norm(r.title), s: norm(r.short + ' ' + r.kw), f: norm(r.facts.map(function (f) { return f[0] + ' ' + f[1]; }).join(' ')), b: norm(r.body.join(' '))};
+    return {r: r, i: i, p: parts, all: parts.t + ' ' + parts.s + ' ' + parts.f + ' ' + parts.b};
+  });
+  function variants(tok) {
+    var v = [tok];
+    if (tok.length > 3 && PREF.indexOf(tok.charAt(0)) >= 0) v.push(tok.slice(1));
+    (SYN[tok] || (v[1] && SYN[v[1]]) || []).forEach(function (s) { v.push(norm(s)); });
+    return v;
+  }
+  function score(it, toks) {
+    var total = 0;
+    for (var i = 0; i < toks.length; i++) {
+      var vs = variants(toks[i]), best = 0;
+      for (var j = 0; j < vs.length; j++) {
+        var w = vs[j], base = j === 0 ? 1 : 0.8;
+        if (it.p.t.indexOf(w) >= 0) best = Math.max(best, 5 * base);
+        else if (it.p.s.indexOf(w) >= 0) best = Math.max(best, 3 * base);
+        else if (it.p.f.indexOf(w) >= 0) best = Math.max(best, 2 * base);
+        else if (it.p.b.indexOf(w) >= 0) best = Math.max(best, 1 * base);
+      }
+      if (!best) return 0;
+      total += best;
+    }
+    return total;
+  }
+  function card(r) {
+    var facts = r.facts.map(function (f) { return '<div><dt>' + esc(f[0]) + '</dt><dd>' + esc(f[1]) + '</dd></div>'; }).join('');
+    var body = r.body.map(function (p) { return '<p>' + esc(p) + '</p>'; }).join('');
+    var src = r.src.map(function (s) { return '<li><a href="' + esc(s[1]) + '" target="_blank" rel="noopener noreferrer">' + esc(s[0]) + '</a><time>' + esc(s[2]) + '</time></li>'; }).join('');
+    return '<article class="rc" id="' + esc(r.id) + '" data-cat="' + esc(r.cat) + '">' +
+      '<span class="ct">' + esc(catName[r.cat]) + '</span><h2>' + esc(r.title) + '</h2><p class="sh">' + esc(r.short) + '</p>' +
+      '<dl class="facts">' + facts + '</dl>' +
+      '<details class="more"><summary>פירוט ומקורות</summary>' + body + '<ul class="srcs">' + src + '</ul></details>' +
+      (r.chk ? '<a class="chk" href="check.html">בדוק את זה בתלוש שלך</a>' : '') + '</article>';
+  }
+  $('rgrid').innerHTML = items.map(function (it) { return card(it.r); }).join('');
+  var nodes = {}; items.forEach(function (it) { nodes[it.r.id] = $(it.r.id); });
+  var cur = 'all';
+  $('cats').innerHTML = CATS.map(function (c) { return '<button type="button" class="cat" data-c="' + c[0] + '" aria-pressed="' + (c[0] === 'all') + '">' + esc(c[1]) + '</button>'; }).join('');
+  $('sugg').innerHTML = SUGG.map(function (s) { return '<button type="button" class="cat" data-s="' + esc(s) + '">' + esc(s) + '</button>'; }).join('');
+  function apply() {
+    var q = norm($('q').value), toks = q ? q.split(' ') : [], shown = [], hits = {};
+    items.forEach(function (it) {
+      var ok = (cur === 'all' || it.r.cat === cur), sc = toks.length ? score(it, toks) : 1;
+      if (ok && sc > 0) { shown.push(it); hits[it.r.id] = sc; }
+    });
+    if (toks.length) shown.sort(function (a, b) { return (hits[b.r.id] - hits[a.r.id]) || (a.i - b.i); });
+    var grid = $('rgrid');
+    items.forEach(function (it) { nodes[it.r.id].hidden = !(it.r.id in hits); });
+    shown.forEach(function (it) { grid.appendChild(nodes[it.r.id]); });
+    $('empty').hidden = shown.length > 0;
+    $('qx').hidden = !$('q').value;
+    $('count').textContent = shown.length === 0 ? '' : (toks.length || cur !== 'all') ? 'נמצאו ' + shown.length + (shown.length === 1 ? ' נושא' : ' נושאים') : items.length + ' נושאים';
+  }
+  $('q').addEventListener('input', apply);
+  $('q').addEventListener('keydown', function (e) { if (e.key === 'Escape' && $('q').value) { $('q').value = ''; apply(); } });
+  $('qx').addEventListener('click', function () { $('q').value = ''; apply(); $('q').focus(); });
+  $('cats').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-c]'); if (!b) return;
+    cur = b.getAttribute('data-c');
+    document.querySelectorAll('#cats .cat').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+    apply();
+  });
+  $('sugg').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-s]'); if (!b) return;
+    $('q').value = b.getAttribute('data-s'); apply(); $('q').focus();
+  });
+  // קישור ישיר לכרטיס: rights.html#havraa
+  function openHash() {
+    var id = decodeURIComponent(location.hash.slice(1)), el = id && nodes[id]; if (!el) return;
+    $('q').value = ''; cur = 'all'; document.querySelectorAll('#cats .cat').forEach(function (x) { x.setAttribute('aria-pressed', String(x.getAttribute('data-c') === 'all')); });
+    apply(); el.querySelector('details').open = true; el.scrollIntoView({block: 'start'});
+    el.classList.add('flash'); setTimeout(function () { el.classList.remove('flash'); }, 1800);
+  }
+  addEventListener('hashchange', openHash);
+  // חיפוש שהגיע מדף הכניסה: rights.html?q=שבת
+  try { var qp = new URLSearchParams(location.search).get('q'); if (qp) $('q').value = qp.slice(0, 80); } catch (e) {}
+  apply(); openHash();
+  window.__rights = {apply: apply, items: items};
+})();
+</script>
+<script>(function(){
+var KEY="bodekFlood",EASE="cubic-bezier(.7,0,.2,1)",busy=false;
+var IC={rights:'<path d="M12 4v16M8 20h8M5 7h14"/><path d="M5 7 2 14a3.2 3.2 0 0 0 6 0zM19 7l-3 7a3.2 3.2 0 0 0 6 0z"/>',home:'<path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4v-5H9v5H5a1 1 0 0 1-1-1z"/>',how:'<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/>',privacy:'<path d="M12 3 5 6v5c0 4.4 2.9 8.3 7 10 4.1-1.7 7-5.6 7-10V6z"/><path d="m9 12 2.2 2.2L15.5 10"/>',check:'<path d="M6 3h9l4 4v14H6z"/><path d="m9.5 14 2 2 3.5-4"/>',logo:'<path d="M16 15h32v35H16z" fill="#fff"/><rect x="12" y="9" width="40" height="8" rx="4" fill="#e4eef0"/><rect x="12" y="9" width="40" height="3.2" rx="1.6" fill="#fff" opacity=".8"/><rect x="12" y="48" width="40" height="8" rx="4" fill="#e4eef0"/><rect x="12" y="53" width="40" height="3" rx="1.5" fill="#c9d8dc"/><text x="32" y="41.5" text-anchor="middle" font-family="Rubik,Arial Black,Arial,sans-serif" font-weight="900" font-size="23" fill="#0d7480">$</text>'};
+function reduce(){return !!(window.__qaReduce||(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches))}
+function build(kind){
+  var w=document.createElement("div");w.className="fnav";w.setAttribute("aria-hidden","true");
+  var logo=kind==="logo",inner=IC[kind];
+  var tile=logo?'<svg xmlns="http://www.w3.org/2000/svg" viewBox="-22 -22 108 108"><g opacity=".16">'+inner+'</g></svg>'
+    :'<svg xmlns="http://www.w3.org/2000/svg" viewBox="-12 -12 48 48" fill="none" stroke="#8fd3dc" stroke-opacity=".16" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">'+inner+'</svg>';
+  w.style.backgroundImage='url("data:image/svg+xml,'+encodeURIComponent(tile)+'")';
+  var ic=document.createElement("div");ic.className="fnav-ic"+(logo?" logo":"");
+  ic.innerHTML='<svg viewBox="'+(logo?"0 0 64 64":"0 0 24 24")+'">'+inner+'</svg>';
+  w.appendChild(ic);return {w:w,ic:ic};
+}
+function reveal(o,to,from,done){
+  o.ic.animate([{transform:"translate(-50%,-50%) scale(1)",opacity:1},{transform:"translate(-50%,-50%) scale(2.2)",opacity:0}],{duration:560,easing:EASE,fill:"forwards"});
+  var b=o.w.animate([{clipPath:to},{clipPath:from}],{duration:560,easing:EASE,fill:"forwards"});
+  b.onfinish=function(){o.w.remove();if(done)done()};
+}
+function run(kind,x,y,opt){
+  if(busy)return;busy=true;
+  var o=build(kind);document.body.appendChild(o.w);
+  var from="circle(0px at "+x+"px "+y+"px)",to="circle(150vmax at "+x+"px "+y+"px)";
+  o.w.style.clipPath=from;
+  var dx=x-innerWidth/2,dy=y-innerHeight/2;
+  o.ic.animate([{transform:"translate(calc(-50% + "+dx+"px),calc(-50% + "+dy+"px)) scale(.06)",opacity:.2},{transform:"translate(-50%,-50%) scale(1)",opacity:1}],{duration:520,easing:EASE,fill:"forwards"});
+  var a=o.w.animate([{clipPath:from},{clipPath:to}],{duration:520,easing:EASE,fill:"forwards"});
+  a.onfinish=function(){
+    if(opt.href){try{sessionStorage.setItem(KEY,kind)}catch(e){}location.href=opt.href;setTimeout(function(){try{sessionStorage.removeItem(KEY)}catch(e){}o.w.remove();busy=false},3000);return}
+    if(opt.mid)opt.mid();
+    reveal(o,to,"circle(0px at 50% 50%)",function(){busy=false});
+  };
+}
+// arriving from another page: start covered, then open up
+var k=null;try{k=sessionStorage.getItem(KEY);sessionStorage.removeItem(KEY)}catch(e){}
+if(k&&IC[k]&&!reduce()){
+  var o=build(k),to="circle(150vmax at 50% 50%)",from="circle(0px at 50% 50%)";
+  o.w.style.clipPath=to;document.body.appendChild(o.w);document.documentElement.classList.remove("fl-in");
+  busy=true;reveal(o,to,from,function(){busy=false});
+}else document.documentElement.classList.remove("fl-in");
+window.addEventListener("pageshow",function(e){if(e.persisted){document.querySelectorAll(".fnav").forEach(function(n){n.remove()});busy=false}});
+function plain(e){return e.ctrlKey||e.metaKey||e.shiftKey||e.altKey||e.button}
+function centre(el){var r=el.getBoundingClientRect();return [r.left+r.width/2,r.top+r.height/2]}
+var kinds={"index.html":"home","check.html":"check","privacy.html":"privacy","rights.html":"rights"};
+document.querySelectorAll("a.rb[href]").forEach(function(a){
+  var href=a.getAttribute("href"),kind=kinds[href];
+  if(!kind||a.getAttribute("aria-current")==="page")return;
+  a.addEventListener("click",function(e){
+    if(plain(e)||reduce())return;
+    e.preventDefault();var c=centre(a);run(kind,c[0],c[1],{href:href});
+  });
+});
+// the logo: the scroll waves like a flag, then floods the screen
+var lg=document.querySelector(".logo"),t;
+if(lg){
+  function wave(){lg.classList.remove("wave");void lg.offsetWidth;lg.classList.add("wave");clearTimeout(t);t=setTimeout(function(){lg.classList.remove("wave")},1400)}
+  var onHome=/(^\/$|index\.html$)/.test(location.pathname);
+  lg.addEventListener("click",function(e){
+    if(plain(e))return;
+    e.preventDefault();wave();
+    if(reduce()){if(!onHome)location.href="index.html";else if(window.__showView)window.__showView("home");return}
+    var c=centre(lg);
+    setTimeout(function(){
+      if(onHome)run("logo",c[0],c[1],{mid:function(){if(window.__showView)window.__showView("home",false)}});
+      else run("logo",c[0],c[1],{href:"index.html"});
+    },320);
+  });
+  setTimeout(wave,900);
+}
+})();</script>
+</body>
+</html>

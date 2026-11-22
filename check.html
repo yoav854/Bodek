@@ -404,6 +404,7 @@ body:has(#sbOpen){padding-bottom:0}
     <nav aria-label="ניווט ראשי">
       <a class="rb" href="index.html" data-label="בית" aria-label="בית"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4v-5H9v5H5a1 1 0 0 1-1-1z"/></svg></a>
       <a class="rb is-on" href="check.html" data-label="בדיקת תלוש" aria-label="בדיקת תלוש" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="m9.5 14 2 2 3.5-4"/></svg></a>
+      <a class="rb" href="rights.html" data-label="הזכויות שלך" aria-label="הזכויות שלך"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M8 20h8M5 7h14"/><path d="M5 7 2 14a3.2 3.2 0 0 0 6 0zM19 7l-3 7a3.2 3.2 0 0 0 6 0z"/></svg></a>
       <a class="rb" href="privacy.html" data-label="פרטיות" aria-label="פרטיות"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.4 2.9 8.3 7 10 4.1-1.7 7-5.6 7-10V6z"/><path d="m9 12 2.2 2.2L15.5 10"/></svg></a>
     </nav>
     <span class="foot">2026</span>
@@ -1967,7 +1968,7 @@ const FAQ = (() => {
 </script>
 <script>(function(){
 var KEY="bodekFlood",EASE="cubic-bezier(.7,0,.2,1)",busy=false;
-var IC={home:'<path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4v-5H9v5H5a1 1 0 0 1-1-1z"/>',how:'<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/>',privacy:'<path d="M12 3 5 6v5c0 4.4 2.9 8.3 7 10 4.1-1.7 7-5.6 7-10V6z"/><path d="m9 12 2.2 2.2L15.5 10"/>',check:'<path d="M6 3h9l4 4v14H6z"/><path d="m9.5 14 2 2 3.5-4"/>',logo:'<path d="M16 15h32v35H16z" fill="#fff"/><rect x="12" y="9" width="40" height="8" rx="4" fill="#e4eef0"/><rect x="12" y="9" width="40" height="3.2" rx="1.6" fill="#fff" opacity=".8"/><rect x="12" y="48" width="40" height="8" rx="4" fill="#e4eef0"/><rect x="12" y="53" width="40" height="3" rx="1.5" fill="#c9d8dc"/><text x="32" y="41.5" text-anchor="middle" font-family="Rubik,Arial Black,Arial,sans-serif" font-weight="900" font-size="23" fill="#0d7480">$</text>'};
+var IC={rights:'<path d="M12 4v16M8 20h8M5 7h14"/><path d="M5 7 2 14a3.2 3.2 0 0 0 6 0zM19 7l-3 7a3.2 3.2 0 0 0 6 0z"/>',home:'<path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4v-5H9v5H5a1 1 0 0 1-1-1z"/>',how:'<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/>',privacy:'<path d="M12 3 5 6v5c0 4.4 2.9 8.3 7 10 4.1-1.7 7-5.6 7-10V6z"/><path d="m9 12 2.2 2.2L15.5 10"/>',check:'<path d="M6 3h9l4 4v14H6z"/><path d="m9.5 14 2 2 3.5-4"/>',logo:'<path d="M16 15h32v35H16z" fill="#fff"/><rect x="12" y="9" width="40" height="8" rx="4" fill="#e4eef0"/><rect x="12" y="9" width="40" height="3.2" rx="1.6" fill="#fff" opacity=".8"/><rect x="12" y="48" width="40" height="8" rx="4" fill="#e4eef0"/><rect x="12" y="53" width="40" height="3" rx="1.5" fill="#c9d8dc"/><text x="32" y="41.5" text-anchor="middle" font-family="Rubik,Arial Black,Arial,sans-serif" font-weight="900" font-size="23" fill="#0d7480">$</text>'};
 function reduce(){return !!(window.__qaReduce||(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches))}
 function build(kind){
   var w=document.createElement("div");w.className="fnav";w.setAttribute("aria-hidden","true");
@@ -2008,7 +2009,7 @@ if(k&&IC[k]&&!reduce()){
 window.addEventListener("pageshow",function(e){if(e.persisted){document.querySelectorAll(".fnav").forEach(function(n){n.remove()});busy=false}});
 function plain(e){return e.ctrlKey||e.metaKey||e.shiftKey||e.altKey||e.button}
 function centre(el){var r=el.getBoundingClientRect();return [r.left+r.width/2,r.top+r.height/2]}
-var kinds={"index.html":"home","check.html":"check","privacy.html":"privacy"};
+var kinds={"index.html":"home","check.html":"check","privacy.html":"privacy","rights.html":"rights"};
 document.querySelectorAll("a.rb[href]").forEach(function(a){
   var href=a.getAttribute("href"),kind=kinds[href];
   if(!kind||a.getAttribute("aria-current")==="page")return;

@@ -17,7 +17,9 @@
     (ctas.length >= 2 && ctas.every(a => a.getAttribute('href') === 'check.html')) ? ok('מסך', 'כפתורי "בדוק את התלוש" מובילים לכלי') : bad('מסך', 'כפתורי הבדיקה', 'קריטי', `נמצאו ${ctas.length}, כתובות: ${ctas.map(a => a.getAttribute('href')).join(', ')}`, 'לכוון כל כפתור ל-check.html');
     const priv = [...document.querySelectorAll('a[href*="privacy"]')];
     (priv.length >= 2 && priv.every(a => a.getAttribute('href') === 'privacy.html')) ? ok('מסך', 'קישורי הפרטיות') : bad('מסך', 'קישורי הפרטיות', 'גבוה', `נמצאו ${priv.length}`, 'לכוון ל-privacy.html');
-    const known = ['check.html', 'privacy.html', 'index.html'];
+    const rf = document.querySelector('form.rsearch[action="rights.html"][method=get] input[name=q]');
+    (rf && document.querySelector('label[for=rq]') && rf.maxLength > 0) ? ok('מסך', 'שורת חיפוש הזכויות בדף הכניסה') : bad('מסך', 'שורת חיפוש הזכויות', 'גבוה', 'חסר טופס חיפוש שמוביל ל-rights.html עם שדה q, תווית ומגבלת אורך', 'להחזיר את הכרטיס rtile');
+    const known = ['check.html', 'privacy.html', 'index.html', 'rights.html'];
     const dead = [...document.querySelectorAll('a[href]')].filter(a => { const h = a.getAttribute('href'); return !known.includes(h) && !(h.startsWith('#') && document.getElementById(h.slice(1))); }).map(a => a.getAttribute('href'));
     dead.length ? bad('מסך', 'קישורים בדף הכניסה', 'גבוה', 'קישור לא מוכר: ' + dead.join(', '), 'להשאיר רק check.html, privacy.html, index.html וקישורי דילוג לאלמנט שקיים') : ok('מסך', 'אין קישור לא מוכר');
 
