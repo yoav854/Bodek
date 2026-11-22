@@ -148,8 +148,11 @@
     .app::before { animation: drift 26s ease-in-out infinite alternate; }
     @keyframes drift { from { transform: translate3d(0, 0, 0) scale(1); } to { transform: translate3d(2.5%, -2%, 0) scale(1.08); } }
     @keyframes rise2 { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
-    .top, .finder, .rc, .disc { animation: rise2 .6s var(--ease) both; }
-    .rc:hover { transform: translateY(-2px); }
+    .top, .finder, .disc { animation: rise2 .6s var(--ease) both; }
+    .rc { animation: rise2 .6s var(--ease) backwards; position: relative; transform: perspective(1100px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) rotate(var(--rz, 0deg)) scale(var(--sc, 1)); transition: transform .4s cubic-bezier(.2, .85, .25, 1.15), box-shadow var(--t-med) var(--ease); }
+    .rc.hot, .rc.pop { --sc: 1.045; z-index: 3; will-change: transform; box-shadow: inset 0 1px 0 var(--edge), 0 30px 60px -22px rgb(20 45 55 / .5); }
+    .rc.pop { --rz: -1.2deg; --sc: 1.06; z-index: 4; }
+    .rc.pop.hot { --rz: -1.2deg; }
   }
   @media (max-width: 1000px) { .rgrid { grid-template-columns: 1fr; } }
   @media (max-width: 700px) { .rc, .finder { padding: 18px; border-radius: 24px; } .facts div { grid-template-columns: 1fr; gap: 2px; } .cat { min-height: 44px; } .chk { min-height: 44px; } }
@@ -443,6 +446,19 @@ const VER = {p: 'אומת מול נוסח החוק, הצו או אתר רשמי'
       '<p class="srcline"><b class="vb v-' + esc(r.v) + '">' + esc(VER[r.v]) + '</b><br><span>מקור:</span> ' + src + '</p>' +
       (r.chk ? '<a class="chk" href="check.html">בדוק את זה בתלוש שלך</a>' : '') + '</article>';
   }
+  // כרטיס שמגדיל ומסובב את עצמו: בריחוף הוא גדל ונוטה לפי מיקום העכבר, ובלחיצה (גם במגע) הוא נשאר גדול ומוטה עד ללחיצה נוספת
+  function initCards() {
+    var skip = 'a, summary, button, input, details, .tx3d';
+    document.querySelectorAll('.rc').forEach(function (c) {
+      c.addEventListener('pointermove', function (e) {
+        if (e.pointerType === 'touch' || e.target.closest && e.target.closest('.tx3d')) return;
+        var b = c.getBoundingClientRect(), nx = (e.clientX - b.left) / b.width - .5, ny = (e.clientY - b.top) / b.height - .5;
+        c.classList.add('hot'); c.style.setProperty('--ry', (nx * 14).toFixed(1) + 'deg'); c.style.setProperty('--rx', (-ny * 10).toFixed(1) + 'deg');
+      });
+      c.addEventListener('pointerleave', function () { c.classList.remove('hot'); c.style.removeProperty('--ry'); c.style.removeProperty('--rx'); });
+      c.addEventListener('click', function (e) { if (e.target.closest && e.target.closest(skip)) return; c.classList.toggle('pop'); });
+    });
+  }
   function init3d() {
     document.querySelectorAll('.tx3d').forEach(function (el) {
       var show = function () { el.classList.add('in'); setTimeout(function () { el.classList.add('grown'); }, 1600); };
@@ -458,7 +474,8 @@ const VER = {p: 'אומת מול נוסח החוק, הצו או אתר רשמי'
   }
   $('rgrid').innerHTML = items.map(function (it) { return card(it.r); }).join('');
   init3d();
-  var nodes = {}; items.forEach(function (it) { nodes[it.r.id] = $(it.r.id); });
+  var nodes = {};
+  initCards(); items.forEach(function (it) { nodes[it.r.id] = $(it.r.id); });
   var cur = 'all';
   $('cats').innerHTML = CATS.map(function (c) { return '<button type="button" class="cat" data-c="' + c[0] + '" aria-pressed="' + (c[0] === 'all') + '">' + esc(c[1]) + '</button>'; }).join('');
   $('sugg').innerHTML = SUGG.map(function (s) { return '<button type="button" class="cat" data-s="' + esc(s) + '">' + esc(s) + '</button>'; }).join('');

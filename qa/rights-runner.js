@@ -91,6 +91,18 @@
     }
     floatOk ? ok('מסך', 'עמודות המס מצפות בריחוף ובלחיצה, וחוזרות למקום') : bad('מסך', 'ציפת עמודות המס', 'בינוני', 'ריחוף או לחיצה לא מרימים עמודה, או שלחיצה חוזרת לא מורידה', 'לבדוק את init3d() ואת .tx-slot.up/.pin ב-CSS');
 
+    // 5ד. כל כרטיס גדל ומסתובב: ריחוף מוסיף hot ומטה לפי העכבר, לחיצה על הכרטיס מקבעת (pop), ולחיצה על קישור או "פירוט" לא מקבעת
+    const cardEl = document.getElementById('havraa'), rb = cardEl.getBoundingClientRect();
+    cardEl.dispatchEvent(new PointerEvent('pointermove', {bubbles: true, pointerType: 'mouse', clientX: rb.left + rb.width * .9, clientY: rb.top + rb.height * .2})); await sleep(30);
+    const hotOk = cardEl.classList.contains('hot') && parseFloat(cardEl.style.getPropertyValue('--ry')) > 0 && parseFloat(cardEl.style.getPropertyValue('--rx')) > 0 && getComputedStyle(cardEl).getPropertyValue('--sc').trim() === '1.045';
+    cardEl.dispatchEvent(new PointerEvent('pointerleave', {pointerType: 'mouse'})); await sleep(30);
+    const leftOk = !cardEl.classList.contains('hot') && !cardEl.style.getPropertyValue('--ry');
+    cardEl.querySelector('h2').click(); await sleep(30); const popped = cardEl.classList.contains('pop') && getComputedStyle(cardEl).getPropertyValue('--sc').trim() === '1.06';
+    cardEl.querySelector('summary').click(); await sleep(30); const keptByDetails = cardEl.classList.contains('pop');
+    cardEl.querySelector('details').open = false;
+    cardEl.querySelector('h2').click(); await sleep(30); const dropped = !cardEl.classList.contains('pop');
+    (hotOk && leftOk && popped && keptByDetails && dropped) ? ok('מסך', 'כל כרטיס גדל ומסתובב בריחוף, ומקבע בלחיצה') : bad('מסך', 'הגדלה וסיבוב של כרטיס', 'בינוני', `ריחוף:${hotOk} יציאה:${leftOk} קיבוע:${popped} פירוט לא משנה:${keptByDetails} ביטול:${dropped}`, 'לבדוק את initCards() ואת .rc.hot/.pop ב-CSS');
+
     // 6. XSS: טקסט עם תגיות בחיפוש לא נכנס ל-DOM כ-HTML
     window.__xss = 0; await type('<img src=x onerror="window.__xss=1">'); await sleep(50);
     (window.__xss === 0 && !document.querySelector('#count img, #empty img, .rc img')) ? ok('אבטחה', 'חיפוש עם תגיות לא מריץ קוד') : bad('אבטחה', 'XSS בחיפוש', 'קריטי', 'קוד רץ מתוך שורת החיפוש', 'לא להכניס את הטקסט ל-innerHTML'); await type('');
