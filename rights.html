@@ -107,6 +107,34 @@
   .srcline time::before { content: "("; } .srcline time::after { content: ")"; }
   .chk { justify-self: start; display: inline-flex; align-items: center; gap: 8px; border-radius: 99px; background: linear-gradient(180deg, #118391 0%, #0d7480 58%, #0b6a75 100%); color: #fff; font-weight: 600; font-size: 14px; padding: 9px 18px; text-decoration: none; box-shadow: inset 0 1px 0 rgb(255 255 255 / .24), 0 10px 20px -12px rgb(13 116 128 / .7); }
   .chk:hover { filter: brightness(1.06); }
+  /* tax brackets as a 3D column chart */
+  .tx3d { position: relative; border-radius: 22px; background: radial-gradient(70% 90% at 50% 0%, #e4f0f2 0%, #f2f8f9 60%, #eaf2f4 100%); box-shadow: inset 0 0 0 1px rgb(13 116 128 / .1); overflow: hidden; touch-action: pan-y; }
+  .tx-scene { height: 270px; display: grid; place-items: end center; perspective: 1000px; padding-bottom: 46px; }
+  .tx-tilt { transform-style: preserve-3d; transform: rotateX(var(--tx, 0deg)) rotateY(var(--ty, 0deg)); transition: transform .45s cubic-bezier(.2, .7, .2, 1); }
+  .tx-world { position: relative; width: 340px; height: 188px; transform-style: preserve-3d; transform: rotateX(-24deg) rotateY(-30deg); }
+  .tx-floor { position: absolute; left: -26px; right: -26px; top: 100%; height: 68px; transform-origin: top; transform: translateZ(-34px) rotateX(90deg); border-radius: 10px; background: linear-gradient(#ffffff, #dcebee); box-shadow: 0 0 0 1px rgb(13 116 128 / .14); }
+  .tx-col { position: absolute; left: var(--x); bottom: 0; width: 40px; height: var(--h); transform-style: preserve-3d; transform-origin: 50% 100%; transform: scaleY(var(--s, 0)); }
+  .tx3d.in .tx-col { --s: 1; }
+  .tx-col i { position: absolute; display: block; background: var(--c); }
+  .tx-col .f { inset: 0; transform: translateZ(20px); }
+  .tx-col .k { inset: 0; transform: rotateY(180deg) translateZ(20px); background: linear-gradient(rgb(0 0 0 / .3), rgb(0 0 0 / .3)), var(--c); }
+  .tx-col .r { top: 0; bottom: 0; left: 0; width: 40px; transform: rotateY(90deg) translateZ(20px); background: linear-gradient(rgb(0 0 0 / .2), rgb(0 0 0 / .2)), var(--c); }
+  .tx-col .l { top: 0; bottom: 0; left: 0; width: 40px; transform: rotateY(-90deg) translateZ(20px); background: linear-gradient(rgb(0 0 0 / .12), rgb(0 0 0 / .12)), var(--c); }
+  .tx-col .t { left: 0; top: -20px; width: 40px; height: 40px; transform: rotateX(90deg); background: linear-gradient(rgb(255 255 255 / .3), rgb(255 255 255 / .3)), var(--c); }
+  .tx-col .f b { position: absolute; top: 6px; inset-inline: 0; text-align: center; font: 700 13px/1 "Rubik", system-ui, sans-serif; color: var(--tc); font-variant-numeric: tabular-nums; }
+  .tx-leg { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 14px; font-size: 14px; }
+  .tx-leg li { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .tx-leg li i { flex: none; width: 12px; height: 12px; border-radius: 4px; box-shadow: inset 0 0 0 1px rgb(31 48 56 / .15); }
+  .tx-leg li b { font-variant-numeric: tabular-nums; }
+  .tx-leg li span { color: var(--muted); font-variant-numeric: tabular-nums; unicode-bidi: plaintext; }
+  .tx-note { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
+  @media (prefers-reduced-motion: no-preference) {
+    .tx-col { transition: transform .95s cubic-bezier(.2, .85, .25, 1) calc(var(--i) * 120ms); }
+    .tx-world { animation: txsway 9s ease-in-out infinite alternate; }
+    @keyframes txsway { from { transform: rotateX(-24deg) rotateY(-38deg); } to { transform: rotateX(-24deg) rotateY(-22deg); } }
+  }
+  @media (prefers-reduced-motion: reduce) { .tx-col { --s: 1; } .tx-tilt { transition: none; } }
+  @media (max-width: 520px) { .tx-world { zoom: .78; } .tx-scene { height: 235px; padding-bottom: 38px; } }
   .disc { background: #fff; border-radius: 28px; padding: 22px 26px; display: grid; gap: 6px; box-shadow: inset 0 1px 0 var(--edge), var(--shadow-1); color: var(--muted); font-size: 15px; line-height: 1.65; }
   .disc b { color: var(--ink); }
   .disc p { margin: 0; }
@@ -323,8 +351,9 @@ const RIGHTS = [
     src: [['ביטוח לאומי: שיעורי תגמול מילואים', 'https://www.btl.gov.il/benefits/Reserve_Service/Pages/שיעורי%20הקצבה.aspx', '1.1.2026'], ['ביטוח לאומי: תגמול מילואים', 'https://www.btl.gov.il/benefits/Reserve_Service/Pages/TagmulZacay.aspx', '2026'], ['כל זכות: תשלום עבור שירות מילואים לשכירים', KZ + 'תשלום_עבור_שירות_מילואים_לשכירים', '13.10.2026'], ['כל זכות: איסור פיטורי עובד בשירות מילואים', KZ + 'איסור_פיטורי_עובד_במהלך_או_בתום_שירות_מילואים', '30.8.2026']]},
 
   {id: 'tax', cat: 'taxes', v: 'm', title: 'מס הכנסה ונקודות זיכוי',
+    viz: 'brackets', bars: [[10, 0, 7010], [14, 7010, 10060], [20, 10060, 19000], [31, 19000, 25100], [35, 25100, 46690], [47, 46690, 0]],
     short: 'נקודות זיכוי מקטינות את המס, ושני מעסיקים בלי תיאום מס עולים ביוקר.',
-    facts: [['שווי נקודת זיכוי', '242 ₪ לחודש'], ['תושב (לפי "כל זכות")', '2.25 נקודות'], ['חייל משוחרר (לפי "כל זכות")', '2 נקודות ל-36 חודשים. דורש טופס 101 ותעודת שחרור'], ['שני מעסיקים בלי תיאום (לפי "כל זכות")', 'המעסיק השני מנכה לפי המדרגה הגבוהה, עד 47%'], ['מדרגות 2026 (חודשי)', '10% עד 7,010 ₪ · 14% עד 10,060 ₪ · 20% עד 19,000 ₪ · 31% עד 25,100 ₪ · 35% עד 46,690 ₪ · 47% מעל זה']],
+    facts: [['שווי נקודת זיכוי', '242 ₪ לחודש'], ['תושב (לפי "כל זכות")', '2.25 נקודות'], ['חייל משוחרר (לפי "כל זכות")', '2 נקודות ל-36 חודשים. דורש טופס 101 ותעודת שחרור'], ['שני מעסיקים בלי תיאום (לפי "כל זכות")', 'המעסיק השני מנכה לפי המדרגה הגבוהה, עד 47%']],
     body: ['המדרגות ושווי הנקודה אומתו בחוברת הניכויים של רשות המסים לשנת 2026. מעל 46,690 ₪ בחודש החוברת מציינת 47% מכל שקל נוסף, ועל הכנסה גבוהה מאוד מתווסף גם מס יסף של 3%. הנקודות מקטינות מס עד אפס בלבד, והעודף לא מוחזר.', 'אם עבדת אצל שני מעסיקים, כדאי לבקש תיאום מס, ובנפרד תיאום ביטוח לאומי. ללוחם מילואים יש נקודות נוספות לפי מספר ימי השירות בשנה הקודמת, וצריך אישור מצה״ל. הנקודות לתושב, לחייל משוחרר ושיעור הניכוי למעסיק שני לא אומתו בדף של רשות המסים.'],
     kw: 'מס הכנסה נקודות זיכוי טופס 101 תיאום מס שני מעסיקים החזר מס מדרגות מס משוחרר',
     src: [['רשות המסים: חוברת ניכויים חודשיים 2026', 'https://www.gov.il/BlobFolder/generalpage/income-tax-monthly-deductions-booklet/he/generalInformation_income-tax-monthly-deductions-booklet_monthly-deductions-booklet-2026.pdf', '2026'], ['כל זכות: מדרגות מס הכנסה', KZ + 'מדרגות_מס_הכנסה', '2026'], ['כל זכות: מס הכנסה', KZ + 'מס_הכנסה', '8.5.2026']]},
@@ -381,18 +410,44 @@ const VER = {p: 'אומת מול נוסח החוק, הצו או אתר רשמי'
     }
     return total;
   }
+  // מדרגות המס כעמודות תלת-ממדיות: גובה העמודה הוא אחוז המס, והטווח מתחת
+  var fmtN = function (n) { return n.toLocaleString('he-IL'); };
+  function rangeOf(b) { return b[2] ? (b[1] ? fmtN(b[1]) + ' עד ' + fmtN(b[2]) : 'עד ' + fmtN(b[2])) : 'מעל ' + fmtN(b[1]); }
+  function viz3d(r) {
+    var cols = r.bars, W = 40, G = 20, K = 4, light = [1, 1, 0, 0, 0, 0];
+    var pal = ['#bfe3e8', '#8fd3dc', '#4fb3c0', '#0d7480', '#0b5a64', '#1f3038'];
+    var label = 'תרשים מדרגות מס הכנסה לשנת 2026, הכנסה חודשית: ' + cols.map(function (b) { return b[0] + '% ' + rangeOf(b) + ' שקלים'; }).join(', ');
+    var cs = cols.map(function (b, i) {
+      return '<div class="tx-col" style="--x:' + ((cols.length - 1 - i) * (W + G)) + 'px;--h:' + (b[0] * K) + 'px;--c:' + pal[i] + ';--tc:' + (light[i] ? '#1f3038' : '#fff') + ';--i:' + i + '"><i class="f"><b>' + b[0] + '%</b></i><i class="k"></i><i class="r"></i><i class="l"></i><i class="t"></i></div>';
+    }).join('');
+    var leg = cols.map(function (b, i) { return '<li><i style="background:' + pal[i] + '"></i><b>' + b[0] + '%</b><span>' + rangeOf(b) + ' ₪</span></li>'; }).join('');
+    return '<div class="tx3d" role="img" aria-label="' + esc(label) + '"><div class="tx-scene"><div class="tx-tilt"><div class="tx-world"><div class="tx-floor"></div>' + cs + '</div></div></div></div>' +
+      '<ul class="tx-leg" aria-hidden="true">' + leg + '</ul>' +
+      '<p class="tx-note">כל שקל ממוסה לפי המדרגה שבה הוא נמצא, ולא כל ההכנסה לפי המדרגה הגבוהה. הסכומים הם הכנסה חודשית.</p>';
+  }
   function card(r) {
     var facts = r.facts.map(function (f) { return '<div><dt>' + esc(f[0]) + '</dt><dd>' + esc(f[1]) + '</dd></div>'; }).join('');
     var body = r.body.map(function (p) { return '<p>' + esc(p) + '</p>'; }).join('');
     var src = r.src.map(function (s) { return '<a href="' + esc(s[1]) + '" target="_blank" rel="noopener noreferrer">' + esc(s[0]) + '</a> <time>' + esc(s[2]) + '</time>'; }).join(' · ');
     return '<article class="rc" id="' + esc(r.id) + '" data-cat="' + esc(r.cat) + '">' +
       '<span class="ct">' + esc(catName[r.cat]) + '</span><h2>' + esc(r.title) + '</h2><p class="sh">' + esc(r.short) + '</p>' +
+      (r.viz === 'brackets' ? viz3d(r) : '') +
       '<dl class="facts">' + facts + '</dl>' +
       (body ? '<details class="more"><summary>פירוט</summary>' + body + '</details>' : '') +
       '<p class="srcline"><b class="vb v-' + esc(r.v) + '">' + esc(VER[r.v]) + '</b><br><span>מקור:</span> ' + src + '</p>' +
       (r.chk ? '<a class="chk" href="check.html">בדוק את זה בתלוש שלך</a>' : '') + '</article>';
   }
+  function init3d() {
+    document.querySelectorAll('.tx3d').forEach(function (el) {
+      var show = function () { el.classList.add('in'); };
+      if ('IntersectionObserver' in window) { var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { show(); io.disconnect(); } }); }, {threshold: .35}); io.observe(el); } else show();
+      var tilt = el.querySelector('.tx-tilt');
+      el.addEventListener('pointermove', function (e) { var b = el.getBoundingClientRect(), nx = (e.clientX - b.left) / b.width - .5, ny = (e.clientY - b.top) / b.height - .5; tilt.style.setProperty('--ty', (nx * 22).toFixed(1) + 'deg'); tilt.style.setProperty('--tx', (-ny * 12).toFixed(1) + 'deg'); });
+      el.addEventListener('pointerleave', function () { tilt.style.setProperty('--ty', '0deg'); tilt.style.setProperty('--tx', '0deg'); });
+    });
+  }
   $('rgrid').innerHTML = items.map(function (it) { return card(it.r); }).join('');
+  init3d();
   var nodes = {}; items.forEach(function (it) { nodes[it.r.id] = $(it.r.id); });
   var cur = 'all';
   $('cats').innerHTML = CATS.map(function (c) { return '<button type="button" class="cat" data-c="' + c[0] + '" aria-pressed="' + (c[0] === 'all') + '">' + esc(c[1]) + '</button>'; }).join('');

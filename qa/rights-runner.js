@@ -6,7 +6,7 @@
   const ok = (area, name) => res.push({area, name, pass: true});
   const bad = (area, name, sev, problem, fix) => res.push({area, name, pass: false, sev, problem, fix});
   const sleep = ms => new Promise(r => setTimeout(r, ms));
-  const DATA_HASH = 'f2726f70';
+  const DATA_HASH = '21df2eee';
   const frameOf = (w, h) => new Promise(res => {
     const html = '<!doctype html>' + document.documentElement.outerHTML.replace(/<script>(?:(?!<\/script>)[^])*?(?:qa-out|__qaErr)(?:(?!<\/script>)[^])*<\/script>/g, '');
     const f = document.createElement('iframe'); f.style.cssText = `position:fixed;left:-9999px;top:0;width:${w}px;height:${h}px;border:0`;
@@ -64,6 +64,17 @@
     const hv = document.getElementById('havraa');
     (hv && !hv.hidden && hv.querySelector('details').open) ? ok('מסך', 'קישור ישיר לכרטיס פותח אותו') : bad('מסך', 'קישור ישיר', 'בינוני', 'הכרטיס לא נפתח אחרי #havraa', 'לבדוק את openHash()');
     history.replaceState(null, '', location.pathname);
+
+    // 5ב. תרשים מדרגות המס התלת-ממדי: 6 עמודות בגובה עולה, אחוזים לפי הנתונים, מקרא, תיאור לקורא מסך, והעמודות "צמחו" אחרי הכניסה למסך
+    const tx = document.querySelector('#tax .tx3d');
+    if (tx) tx.classList.add('in'); await sleep(60);
+    const cols = tx ? [...tx.querySelectorAll('.tx-col')] : [];
+    const wantRates = RIGHTS.find(r => r.id === 'tax').bars.map(b => b[0] + '%').join(',');
+    const heights = cols.map(c => parseFloat(getComputedStyle(c).height));
+    const txOk = tx && cols.length === 6 && cols.map(c => c.querySelector('.f b').textContent).join(',') === wantRates && heights.every((h, i) => i === 0 || h > heights[i - 1])
+      && cols.every(c => getComputedStyle(c).getPropertyValue('--s').trim() === '1') && document.querySelectorAll('#tax .tx-leg li').length === 6
+      && tx.getAttribute('role') === 'img' && /47%/.test(tx.getAttribute('aria-label')) && !/מדרגות 2026/.test(document.querySelector('#tax .facts').textContent) && getComputedStyle(tx).overflow === 'hidden';
+    txOk ? ok('מסך', 'תרשים המדרגות התלת-ממדי: 6 עמודות בגובה עולה, מקרא ותיאור') : bad('מסך', 'תרשים מדרגות המס', 'גבוה', `עמודות:${cols.length} אחוזים:${cols.map(c => c.querySelector('.f b') && c.querySelector('.f b').textContent).join(',')} גבהים:${heights.join('/')}`, 'לבדוק את viz3d() ואת ה-CSS של .tx-col');
 
     // 6. XSS: טקסט עם תגיות בחיפוש לא נכנס ל-DOM כ-HTML
     window.__xss = 0; await type('<img src=x onerror="window.__xss=1">'); await sleep(50);
