@@ -102,6 +102,16 @@
     const hc = classifyEvents([hv2('21', '15:00', '21', '23:00'), hv2('21', '23:00', '22', '07:00'), hv2('22', '07:00', '22', '15:00'), hv2('22', '23:00', '23', '07:00')], '2026-09', new Set(['2026-09-22'])).map(x => x.type).join(',');
     hc === 'friNoon,holiday,holiday,motzash' ? ok('מסך', 'חג כמו שבת ביומן') : bad('מסך', 'חג כמו שבת ביומן', 'גבוה', `התקבל ${hc}, צפוי friNoon,holiday,holiday,motzash`, 'לבדוק את classifyEvents()');
 
+    // 5ב. כניסה לגוגל: הודעה שונה לכל סוג כישלון, כדי שהמשתמש ידע אם הדפדפן חסם את החלון, שהוא נסגר, או שגוגל דחתה
+    {
+      const msgEl = document.getElementById('calMsg'), say = (c, d) => { googleFailed(c, d); return msgEl.textContent; };
+      const mPopup = say('popup'), mClosed = say('closed'), mOauth = say('oauth', 'invalid_request'), mDenied = say('denied');
+      (/חלונות קופצים/.test(mPopup) && /נסגר/.test(mClosed) && /invalid_request/.test(mOauth) && /לא התקבל אישור/.test(mDenied) && new Set([mPopup, mClosed, mOauth, mDenied]).size === 4)
+        ? ok('מסך', 'כניסה לגוגל: הודעה שונה לחלון חסום, חלון שנסגר, שגיאה ודחייה')
+        : bad('מסך', 'הודעות הכניסה לגוגל', 'בינוני', 'ההודעות לא מבדילות בין חלון חסום, נסגר, שגיאה ודחייה', 'לבדוק את googleFailed() ואת error_callback');
+      msgEl.hidden = true; msgEl.textContent = '';
+    }
+
     // 6. אבטחה: טקסט זדוני בשורת תלוש לא רץ
     window.__xss = 0;
     const evil = JSON.parse(JSON.stringify(s0)); evil.lines[0].name = '<img src=x onerror="window.__xss=1">שכר יסוד'; evil.employer = '<script>window.__xss=1<\/script>';

@@ -1356,8 +1356,9 @@ function loadScript(src){ return new Promise((ok, bad) => { const s = document.c
 let gToken = null, gTokenAt = 0, tokenClient = null, gReady = null;
 if (ON_SITE) gReady = loadScript('https://accounts.google.com/gsi/client').then(() => {
   tokenClient = google.accounts.oauth2.initTokenClient({client_id: GOOGLE_CLIENT_ID, scope: 'https://www.googleapis.com/auth/calendar.events.readonly',
-    callback: r => { if (r.access_token){ gToken = r.access_token; gTokenAt = Date.now(); readGoogle(); } else googleFailed('denied'); },
-    error_callback: () => googleFailed('denied')});
+    callback: r => { if (r.access_token){ gToken = r.access_token; gTokenAt = Date.now(); readGoogle(); } else googleFailed(r && r.error === 'access_denied' ? 'denied' : 'oauth', r && r.error); },
+    // סוגי השגיאה של גוגל: popup_failed_to_open (הדפדפן חסם את החלון), popup_closed (נסגר לפני האישור), ואחר
+    error_callback: e => googleFailed(e && e.type === 'popup_failed_to_open' ? 'popup' : e && e.type === 'popup_closed' ? 'closed' : 'denied', e && e.type)});
 }).catch(() => { gReady = null; });
 const tokenFresh = () => gToken && Date.now() - gTokenAt < 50 * 6e4; // אסימון של גוגל תקף כשעה
 async function googleList(calId, ym, token){
@@ -1369,9 +1370,12 @@ async function googleList(calId, ym, token){
   if (!r.ok) throw new Error('fetch ' + r.status);
   return (await r.json()).items || [];
 }
-function googleFailed(code){
+function googleFailed(code, detail){
   const msg = document.getElementById('calMsg'); msg.hidden = false;
-  msg.textContent = code === 'denied' ? 'לא התקבל אישור לקרוא את היומן. אפשר לנסות שוב, או לספור משמרות למטה.'
+  msg.textContent = code === 'popup' ? 'הדפדפן חסם את חלון הכניסה של גוגל. אפשר חלונות קופצים לאתר הזה (בשורת הכתובת) ולחץ שוב. אם אתה בתוך אפליקציה כמו וואטסאפ או אינסטגרם, פתח את הקישור בכרום או בספארי. אפשר גם לספור משמרות למטה.'
+    : code === 'closed' ? 'חלון הכניסה של גוגל נסגר לפני שאישרת. לחץ שוב ואשר את הגישה ליומן, או ספור משמרות למטה.'
+    : code === 'oauth' ? 'גוגל החזירה שגיאה בכניסה' + (detail ? ' (' + detail + ')' : '') + '. נסה שוב, או ספור משמרות למטה.'
+    : code === 'denied' ? 'לא התקבל אישור לקרוא את היומן. אפשר לנסות שוב, או לספור משמרות למטה.'
     : code === 'expired' ? 'החיבור ליומן פג. לחץ שוב על "מלא מהיומן של גוגל".'
     : code === 'noscript' ? 'הכניסה של גוגל לא נטענה (אולי חוסם פרסומות או רשת חלשה). רענן את הדף ונסה שוב, או ספור משמרות למטה.'
     : 'לא הצלחתי לקרוא את היומן. נסה שוב, או ספור משמרות למטה.';
