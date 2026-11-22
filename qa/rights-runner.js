@@ -6,7 +6,7 @@
   const ok = (area, name) => res.push({area, name, pass: true});
   const bad = (area, name, sev, problem, fix) => res.push({area, name, pass: false, sev, problem, fix});
   const sleep = ms => new Promise(r => setTimeout(r, ms));
-  const DATA_HASH = 'b9e03b6c';
+  const DATA_HASH = 'c795dd40';
   const frameOf = (w, h) => new Promise(res => {
     const html = '<!doctype html>' + document.documentElement.outerHTML.replace(/<script>(?:(?!<\/script>)[^])*?(?:qa-out|__qaErr)(?:(?!<\/script>)[^])*<\/script>/g, '');
     const f = document.createElement('iframe'); f.style.cssText = `position:fixed;left:-9999px;top:0;width:${w}px;height:${h}px;border:0`;

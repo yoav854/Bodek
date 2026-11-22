@@ -96,9 +96,12 @@
   .more summary::before { content: "+"; content: "+" / ""; font-size: 1.3rem; line-height: 1; color: var(--acc); }
   .more[open] > summary::before { content: "\2212"; content: "\2212" / ""; }
   .more p { margin: 0 0 10px; font-size: 15px; line-height: 1.65; }
-  .srcs { margin: 6px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; font-size: 14px; }
-  .srcs li { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; }
-  .srcs time { color: var(--muted); font-size: 13px; }
+  .srcline { margin: 2px 0 0; font-size: 12.5px; line-height: 1.6; color: var(--muted); }
+  .srcline span { font-weight: 600; }
+  .srcline a { color: var(--muted); text-decoration-color: rgb(88 106 114 / .45); text-underline-offset: 3px; }
+  .srcline a:hover { color: var(--acc); }
+  .srcline time { white-space: nowrap; }
+  .srcline time::before { content: "("; } .srcline time::after { content: ")"; }
   .chk { justify-self: start; display: inline-flex; align-items: center; gap: 8px; border-radius: 99px; background: linear-gradient(180deg, #118391 0%, #0d7480 58%, #0b6a75 100%); color: #fff; font-weight: 600; font-size: 14px; padding: 9px 18px; text-decoration: none; box-shadow: inset 0 1px 0 rgb(255 255 255 / .24), 0 10px 20px -12px rgb(13 116 128 / .7); }
   .chk:hover { filter: brightness(1.06); }
   .disc { background: #fff; border-radius: 28px; padding: 22px 26px; display: grid; gap: 6px; box-shadow: inset 0 1px 0 var(--edge), var(--shadow-1); color: var(--muted); font-size: 15px; line-height: 1.65; }
@@ -173,7 +176,7 @@ const RIGHTS = [
 
   {id: 'shabbat', cat: 'wage', title: 'שבת ומנוחה שבועית', chk: true,
     short: 'בענף השמירה המנוחה היא חלון קבוע, ועבודה בו משולמת בתוספת.',
-    facts: [['החלון (מ-1.9.2022)', 'שישי 16:00 עד ראשון 04:00 (36 שעות)'], ['כל שעה בחלון', '150%'], ['שעה נוספת בחלון', '175% לשעתיים הראשונות, ואז 200%'], ['בנוסף', 'יום מנוחה חלופי']],
+    facts: [['החלון (מ-1.9.2022)', 'שישי 16:00 עד ראשון 04:00'], ['אורך המנוחה', '36 שעות'], ['כל שעה בחלון', '150%'], ['שעה נוספת בחלון', '175% לשעתיים הראשונות, ואז 200%'], ['בנוסף', 'יום מנוחה חלופי']],
     body: ['החלון קבוע כל השנה, ולא תלוי בשעת כניסת השבת. לעובד שעתי היום החלופי הוא בלי תשלום נוסף, אלא אם הצו קובע אחרת.'],
     kw: 'שבת שישי מוצאי שבת מוצש מנוחה 150 תוספת שבת צהריים ערב שבת',
     src: [['כל זכות: מנוחה שבועית לעובדי שמירה ואבטחה', KZ + 'מנוחה_שבועית_לעובדי_שמירה_ואבטחה', '25.12.2025'], ['כל זכות: גמול עבור העסקה במנוחה השבועית', KZ + 'גמול_עבור_העסקה_במנוחה_השבועית', '26.4.2026']]},
@@ -372,11 +375,12 @@ const SUGG = ['שבת', 'הבראה', 'פיטורים', 'חופשה', 'מילו�
   function card(r) {
     var facts = r.facts.map(function (f) { return '<div><dt>' + esc(f[0]) + '</dt><dd>' + esc(f[1]) + '</dd></div>'; }).join('');
     var body = r.body.map(function (p) { return '<p>' + esc(p) + '</p>'; }).join('');
-    var src = r.src.map(function (s) { return '<li><a href="' + esc(s[1]) + '" target="_blank" rel="noopener noreferrer">' + esc(s[0]) + '</a><time>' + esc(s[2]) + '</time></li>'; }).join('');
+    var src = r.src.map(function (s) { return '<a href="' + esc(s[1]) + '" target="_blank" rel="noopener noreferrer">' + esc(s[0]) + '</a> <time>' + esc(s[2]) + '</time>'; }).join(' · ');
     return '<article class="rc" id="' + esc(r.id) + '" data-cat="' + esc(r.cat) + '">' +
       '<span class="ct">' + esc(catName[r.cat]) + '</span><h2>' + esc(r.title) + '</h2><p class="sh">' + esc(r.short) + '</p>' +
       '<dl class="facts">' + facts + '</dl>' +
-      '<details class="more"><summary>פירוט ומקורות</summary>' + body + '<ul class="srcs">' + src + '</ul></details>' +
+      (body ? '<details class="more"><summary>פירוט</summary>' + body + '</details>' : '') +
+      '<p class="srcline"><span>מקור:</span> ' + src + '</p>' +
       (r.chk ? '<a class="chk" href="check.html">בדוק את זה בתלוש שלך</a>' : '') + '</article>';
   }
   $('rgrid').innerHTML = items.map(function (it) { return card(it.r); }).join('');
@@ -415,7 +419,7 @@ const SUGG = ['שבת', 'הבראה', 'פיטורים', 'חופשה', 'מילו�
   function openHash() {
     var id = decodeURIComponent(location.hash.slice(1)), el = id && nodes[id]; if (!el) return;
     $('q').value = ''; cur = 'all'; document.querySelectorAll('#cats .cat').forEach(function (x) { x.setAttribute('aria-pressed', String(x.getAttribute('data-c') === 'all')); });
-    apply(); el.querySelector('details').open = true; el.scrollIntoView({block: 'start'});
+    apply(); var dt = el.querySelector('details'); if (dt) dt.open = true; el.scrollIntoView({block: 'start'});
     el.classList.add('flash'); setTimeout(function () { el.classList.remove('flash'); }, 1800);
   }
   addEventListener('hashchange', openHash);
