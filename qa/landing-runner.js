@@ -9,6 +9,7 @@
     // 1. הכותרת: השם שנבחר (יואב, 22.11: "תלושי"), ומתחתיה משפט הפרטיות "המידע נשמר אצלך בלבד"
     const h1 = document.getElementById('h1');
     (h1 && h1.textContent.trim() === 'תלושי') ? ok('מסך', 'הכותרת "תלושי"') : bad('מסך', 'הכותרת', 'גבוה', `הכותרת היא "${h1 && h1.textContent.trim()}"`, 'להחזיר את השם שיואב בחר בכותרת: תלושי');
+    (/^תלושי/.test(document.title) && /תלושי/.test((document.querySelector('meta[property="og:title"]') || {}).content || '') && !/בודק התלוש/.test(document.documentElement.outerHTML.replace(/<script[^]*?<\/script>/g, ''))) ? ok('מסך', 'שם האתר בלשונית ובתצוגה בשיתוף: תלושי') : bad('מסך', 'שם האתר', 'גבוה', `הכותרת בלשונית: ${document.title}`, 'להחליף את "בודק התלוש" ב"תלושי" בכותרת, ב-og:title ובטקסט');
     const sub = h1 && h1.nextElementSibling;
     (sub && /המידע נשמר אצלך בלבד/.test(sub.textContent)) ? ok('מסך', 'מתחת לכותרת: "המידע נשמר אצלך בלבד"') : bad('מסך', 'משפט הפרטיות מתחת לכותרת', 'גבוה', `מתחת לכותרת כתוב "${sub && sub.textContent.trim()}"`, 'להחזיר את "המידע נשמר אצלך בלבד" מתחת לכותרת');
 

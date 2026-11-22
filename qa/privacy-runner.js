@@ -1,11 +1,11 @@
-/* בדיקות לדף הפרטיות (privacy.html): הוא מסמך משפטי, ולכן הטקסט שלו נעול בטביעת אצבע. שינוי מכוון בטקסט = לעדכן את הקבוע TEXT_HASH כאן.
+﻿/* בדיקות לדף הפרטיות (privacy.html): הוא מסמך משפטי, ולכן הטקסט שלו נעול בטביעת אצבע. שינוי מכוון בטקסט = לעדכן את הקבוע TEXT_HASH כאן.
    בנוסף: בלי גלישה אופקית בטלפון, סמל אתר, קישור דילוג וקישור חזרה לכלי. התוצאה נכתבת כ-JSON לאלמנט pre בשם qa-out. */
 (async function(){
   const res = [];
   const ok = (area, name) => res.push({area, name, pass: true});
   const bad = (area, name, sev, problem, fix) => res.push({area, name, pass: false, sev, problem, fix});
   const sleep = ms => new Promise(r => setTimeout(r, ms));
-  const TEXT_HASH = '78b2f5bf';
+  const TEXT_HASH = '4a0fe145';
   const frameOf = (w, h) => new Promise(res => {
     const html = '<!doctype html>' + document.documentElement.outerHTML.replace(/<script>(?:(?!<\/script>)[^])*?(?:qa-out|__qaErr)(?:(?!<\/script>)[^])*<\/script>/g, '');
     const f = document.createElement('iframe'); f.style.cssText = `position:fixed;left:-9999px;top:0;width:${w}px;height:${h}px;border:0`;

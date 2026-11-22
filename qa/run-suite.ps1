@@ -1,5 +1,5 @@
 ﻿<#
-  בודק התלוש - חבילת בדיקות עם תלושים פיקטיביים (הסקיל fake-payslips, הסוכן site-qa).
+  תלושי - חבילת בדיקות עם תלושים פיקטיביים (הסקיל fake-payslips, הסוכן site-qa).
   מריצה את qa/cases.js ו-qa/runner.js מול check.html (הכלי) בכרום שקוף, ומדפיסה שורה לכל ממצא.
   עובדת ב-Windows (PowerShell 5.1) וב-Linux (pwsh, בבדיקה האוטומטית של GitHub).
     run-suite.ps1                      הקוד המקומי (התיקייה שמעל qa)
@@ -20,7 +20,7 @@ param(
   [string]$ExtraCases = ''
 )
 $ErrorActionPreference = 'Stop'
-if (-not $LiveUrl) { $LiveUrl = 'https://bodek-eight.vercel.app/' + $(if ($PageFile -eq 'index.html') { '' } else { $PageFile }) }
+if (-not $LiveUrl) { $LiveUrl = 'https://tlushi.vercel.app/' + $(if ($PageFile -eq 'index.html') { '' } else { $PageFile }) }
 $qa = Split-Path -Parent $MyInvocation.MyCommand.Path
 if (-not $Repo) { $Repo = Split-Path -Parent $qa }
 $work = Join-Path ([IO.Path]::GetTempPath()) ('bodek-qa-' + [guid]::NewGuid().ToString('N').Substring(0, 8))

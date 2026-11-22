@@ -41,7 +41,7 @@ jobs:
         run: |
           want=$(sha256sum check.html | cut -d' ' -f1)
           for i in $(seq 1 30); do
-            got=$(curl -s "https://bodek-eight.vercel.app/check.html?v=$i" | sha256sum | cut -d' ' -f1)
+            got=$(curl -s "https://tlushi.vercel.app/check.html?v=$i" | sha256sum | cut -d' ' -f1)
             [ "$got" = "$want" ] && { echo "האתר החי מעודכן (ניסיון $i)"; exit 0; }
             sleep 10
           done
