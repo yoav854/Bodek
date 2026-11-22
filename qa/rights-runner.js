@@ -91,17 +91,29 @@
     }
     floatOk ? ok('מסך', 'עמודות המס מצפות בריחוף ובלחיצה, וחוזרות למקום') : bad('מסך', 'ציפת עמודות המס', 'בינוני', 'ריחוף או לחיצה לא מרימים עמודה, או שלחיצה חוזרת לא מורידה', 'לבדוק את init3d() ואת .tx-slot.up/.pin ב-CSS');
 
-    // 5ד. כל כרטיס גדל ומסתובב: ריחוף מוסיף hot ומטה לפי העכבר, לחיצה על הכרטיס מקבעת (pop), ולחיצה על קישור או "פירוט" לא מקבעת
-    const cardEl = document.getElementById('havraa'), rb = cardEl.getBoundingClientRect();
-    cardEl.dispatchEvent(new PointerEvent('pointermove', {bubbles: true, pointerType: 'mouse', clientX: rb.left + rb.width * .9, clientY: rb.top + rb.height * .2})); await sleep(30);
-    const hotOk = cardEl.classList.contains('hot') && parseFloat(cardEl.style.getPropertyValue('--ry')) > 0 && parseFloat(cardEl.style.getPropertyValue('--rx')) > 0 && getComputedStyle(cardEl).getPropertyValue('--sc').trim() === '1.045';
-    cardEl.dispatchEvent(new PointerEvent('pointerleave', {pointerType: 'mouse'})); await sleep(30);
-    const leftOk = !cardEl.classList.contains('hot') && !cardEl.style.getPropertyValue('--ry');
-    cardEl.querySelector('h2').click(); await sleep(30); const popped = cardEl.classList.contains('pop') && getComputedStyle(cardEl).getPropertyValue('--sc').trim() === '1.06';
-    cardEl.querySelector('summary').click(); await sleep(30); const keptByDetails = cardEl.classList.contains('pop');
-    cardEl.querySelector('details').open = false;
-    cardEl.querySelector('h2').click(); await sleep(30); const dropped = !cardEl.classList.contains('pop');
-    (hotOk && leftOk && popped && keptByDetails && dropped) ? ok('מסך', 'כל כרטיס גדל ומסתובב בריחוף, ומקבע בלחיצה') : bad('מסך', 'הגדלה וסיבוב של כרטיס', 'בינוני', `ריחוף:${hotOk} יציאה:${leftOk} קיבוע:${popped} פירוט לא משנה:${keptByDetails} ביטול:${dropped}`, 'לבדוק את initCards() ואת .rc.hot/.pop ב-CSS');
+    // 5ד. כרטיס תלוי כמו בסרטון: ריחוף נותן דחיפה והגדלה (hang), לחיצה מטילה, לחיצה על קישור או "פירוט" לא מטילה, גרירה מסובבת סביב נקודת התלייה, ושחרור משאיר מהירות
+    const cardEl = document.getElementById('havraa'), rb = cardEl.getBoundingClientRect(), SW = window.__rights && window.__rights.sw;
+    let hangOk = !!SW;
+    if (SW) {
+      const pe = (type, x, y) => cardEl.dispatchEvent(new PointerEvent(type, {bubbles: type !== 'pointerenter' && type !== 'pointerleave', pointerType: 'mouse', pointerId: 7, button: 0, clientX: x, clientY: y}));
+      const cx = rb.left + rb.width / 2;
+      pe('pointerenter', rb.left + rb.width * .9, rb.top + 40);
+      const s = SW.get(cardEl);
+      const enterOk = !!s && cardEl.classList.contains('hang') && s.target === 1 && s.w > 0;
+      const w0 = s.w; cardEl.querySelector('h2').click(); const tossOk = Math.abs(s.w - w0) > 1;
+      const w1 = s.w; cardEl.querySelector('summary').click(); const keepOk = s.w === w1; cardEl.querySelector('details').open = false;
+      s.w = 0; s.th = 0;
+      pe('pointerdown', cx, rb.top + 90); pe('pointermove', cx + 140, rb.top + 90);
+      const dragOk = s.drag === true && Math.abs(s.th) > .05 && /deg/.test(cardEl.style.getPropertyValue('--th')) && s.moved === true;
+      pe('pointerup', cx + 140, rb.top + 90);
+      const releaseOk = s.drag === false && !cardEl.classList.contains('drag');
+      cardEl.click(); const noTossAfterDrag = s.moved === false;
+      pe('pointerleave', 0, 0); const leaveOk = s.target === 0;
+      hangOk = enterOk && tossOk && keepOk && dragOk && releaseOk && noTossAfterDrag && leaveOk;
+      if (!hangOk) hangOk = `כניסה:${enterOk} הטלה:${tossOk} קישור לא מטיל:${keepOk} גרירה:${dragOk} שחרור:${releaseOk} אחרי גרירה:${noTossAfterDrag} יציאה:${leaveOk}`;
+      s.th = 0; s.w = 0; s.drag = false; cardEl.classList.remove('hang');
+    }
+    hangOk === true ? ok('מסך', 'כרטיס תלוי: דחיפה בריחוף, הטלה בלחיצה, גרירה וסיבוב סביב נקודת התלייה') : bad('מסך', 'כרטיס תלוי', 'בינוני', typeof hangOk === 'string' ? hangOk : 'initCards לא רץ', 'לבדוק את initCards() ואת .rc.hang ב-CSS');
 
     // 6. XSS: טקסט עם תגיות בחיפוש לא נכנס ל-DOM כ-HTML
     window.__xss = 0; await type('<img src=x onerror="window.__xss=1">'); await sleep(50);
