@@ -91,29 +91,27 @@
     }
     floatOk ? ok('מסך', 'עמודות המס מצפות בריחוף ובלחיצה, וחוזרות למקום') : bad('מסך', 'ציפת עמודות המס', 'בינוני', 'ריחוף או לחיצה לא מרימים עמודה, או שלחיצה חוזרת לא מורידה', 'לבדוק את init3d() ואת .tx-slot.up/.pin ב-CSS');
 
-    // 5ד. כרטיס תלוי כמו בסרטון: ריחוף נותן דחיפה והגדלה (hang), לחיצה מטילה, לחיצה על קישור או "פירוט" לא מטילה, גרירה מסובבת סביב נקודת התלייה, ושחרור משאיר מהירות
-    const cardEl = document.getElementById('havraa'), rb = cardEl.getBoundingClientRect(), SW = window.__rights && window.__rights.sw;
-    let hangOk = !!SW;
-    if (SW) {
-      const pe = (type, x, y) => cardEl.dispatchEvent(new PointerEvent(type, {bubbles: type !== 'pointerenter' && type !== 'pointerleave', pointerType: 'mouse', pointerId: 7, button: 0, clientX: x, clientY: y}));
-      const cx = rb.left + rb.width / 2;
-      pe('pointerenter', rb.left + rb.width * .9, rb.top + 40);
-      const s = SW.get(cardEl);
-      const enterOk = !!s && cardEl.classList.contains('hang') && s.target === 1 && s.w > 0;
-      const w0 = s.w; cardEl.querySelector('h2').click(); const tossOk = Math.abs(s.w - w0) > 1;
-      const w1 = s.w; cardEl.querySelector('summary').click(); const keepOk = s.w === w1; cardEl.querySelector('details').open = false;
-      s.w = 0; s.th = 0;
-      pe('pointerdown', cx, rb.top + 90); pe('pointermove', cx + 140, rb.top + 90);
-      const dragOk = s.drag === true && Math.abs(s.th) > .05 && /deg/.test(cardEl.style.getPropertyValue('--th')) && s.moved === true;
-      pe('pointerup', cx + 140, rb.top + 90);
-      const releaseOk = s.drag === false && !cardEl.classList.contains('drag');
-      cardEl.click(); const noTossAfterDrag = s.moved === false;
-      pe('pointerleave', 0, 0); const leaveOk = s.target === 0;
-      hangOk = enterOk && tossOk && keepOk && dragOk && releaseOk && noTossAfterDrag && leaveOk;
-      if (!hangOk) hangOk = `כניסה:${enterOk} הטלה:${tossOk} קישור לא מטיל:${keepOk} גרירה:${dragOk} שחרור:${releaseOk} אחרי גרירה:${noTossAfterDrag} יציאה:${leaveOk}`;
-      s.th = 0; s.w = 0; s.drag = false; cardEl.classList.remove('hang');
+    // 5ד. ספוטלייט: לחיצה על כרטיס מעלה אותו למרכז המסך עם רקע כהה, אלומה וזוהר. קישור ו"פירוט" לא פותחים. סגירה ב-Esc, ב-X ובלחיצה על הרקע
+    const cardEl = document.getElementById('havraa'), appEl = document.querySelector('.app'), rb = cardEl.getBoundingClientRect(), SPOT = window.__rights && window.__rights.spot;
+    let spotOk = !!SPOT;
+    if (SPOT) {
+      const pxv = n => parseFloat(cardEl.style.getPropertyValue(n));
+      cardEl.querySelector('summary').click(); await sleep(30); const noLink = !SPOT.current(); cardEl.querySelector('details').open = false;
+      cardEl.querySelector('h2').click(); await sleep(60);
+      const opened = SPOT.current() === cardEl && cardEl.classList.contains('spot') && appEl.classList.contains('sp-open') && document.documentElement.classList.contains('sp-lock') && cardEl.getAttribute('role') === 'dialog';
+      const parts = !!document.querySelector('.sp-back') && !!document.querySelector('.sp-beam') && !!document.querySelector('.sp-glow') && !!cardEl.querySelector('.sp-x');
+      const keep = ['--dx', '--dy', '--s'].map(n => cardEl.style.getPropertyValue(n)); cardEl.style.transition = 'none'; ['--dx', '--dy'].forEach(n => cardEl.style.setProperty(n, '0px')); cardEl.style.setProperty('--s', '1'); const nr = cardEl.getBoundingClientRect(); ['--dx', '--dy', '--s'].forEach((n, i) => cardEl.style.setProperty(n, keep[i])); void cardEl.offsetWidth; cardEl.style.transition = ''; const bk = document.querySelector('.sp-back').getBoundingClientRect(), sc = pxv('--s');
+      const centred = Math.abs(nr.left + nr.width / 2 + pxv('--dx') - (bk.left + bk.width / 2)) < 2 && Math.abs(nr.top + nr.height / 2 + pxv('--dy') - (bk.top + bk.height / 2)) < 2 && sc >= .6 && sc <= 1.3;
+      const lifted = getComputedStyle(cardEl).zIndex === '70' && getComputedStyle(document.querySelector('.sp-back')).backgroundImage.includes('rgba(8, 20, 26');
+      document.querySelector('.rc:not(.spot) h2').click(); await sleep(30); const onlyOne = document.querySelectorAll('.rc.spot').length === 1;
+      document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape'})); await sleep(750);
+      const closedEsc = !SPOT.current() && !cardEl.classList.contains('spot') && !document.querySelector('.sp-back') && !appEl.classList.contains('sp-open') && !document.documentElement.classList.contains('sp-lock') && !cardEl.style.getPropertyValue('--dx');
+      cardEl.querySelector('h2').click(); await sleep(60); document.querySelector('.sp-back').click(); await sleep(750); const closedBack = !SPOT.current() && !document.querySelector('.sp-back');
+      cardEl.querySelector('h2').click(); await sleep(60); cardEl.querySelector('.sp-x').click(); await sleep(750); const closedX = !SPOT.current() && !document.querySelector('.sp-glow');
+      spotOk = noLink && opened && parts && centred && lifted && onlyOne && closedEsc && closedBack && closedX;
+      if (!spotOk) spotOk = `קישור לא פותח:${noLink} נפתח:${opened} חלקים:${parts} במרכז:${centred} מוגבה:${lifted} רק אחד:${onlyOne} Esc:${closedEsc} רקע:${closedBack} X:${closedX}`;
     }
-    hangOk === true ? ok('מסך', 'כרטיס תלוי: דחיפה בריחוף, הטלה בלחיצה, גרירה וסיבוב סביב נקודת התלייה') : bad('מסך', 'כרטיס תלוי', 'בינוני', typeof hangOk === 'string' ? hangOk : 'initCards לא רץ', 'לבדוק את initCards() ואת .rc.hang ב-CSS');
+    spotOk === true ? ok('מסך', 'ספוטלייט: כרטיס עולה למרכז עם רקע כהה ואלומה, ונסגר ב-Esc, ב-X ובלחיצה על הרקע') : bad('מסך', 'ספוטלייט לכרטיס', 'בינוני', typeof spotOk === 'string' ? spotOk : 'initSpot לא רץ', 'לבדוק את initSpot() ואת .rc.spot ו-.sp-back ב-CSS');
 
     // 6. XSS: טקסט עם תגיות בחיפוש לא נכנס ל-DOM כ-HTML
     window.__xss = 0; await type('<img src=x onerror="window.__xss=1">'); await sleep(50);

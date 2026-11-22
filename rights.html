@@ -141,6 +141,23 @@
   }
   @media (prefers-reduced-motion: reduce) { .tx-col { --s: 1; } .tx-tilt, .tx-slot .sh { transition: none; } }
   @media (max-width: 520px) { .tx-world { zoom: .78; } .tx-scene { height: 235px; padding-bottom: 38px; } }
+  /* spotlight: a clicked card rises to the centre of the screen, lit from above, over a dark translucent site */
+  html { scrollbar-gutter: stable; }
+  html.sp-lock { overflow: hidden; }
+  .rc { position: relative; cursor: zoom-in; transform: translate(var(--dx, 0px), var(--dy, 0px)) scale(var(--s, 1)); transition: transform .55s cubic-bezier(.2, .9, .25, 1), box-shadow .35s, translate .25s var(--ease); }
+  .rc:hover:not(.spot) { translate: 0 -3px; box-shadow: inset 0 1px 0 var(--edge), var(--shadow-3); }
+  .rc:focus-visible { outline: 3px solid var(--acc); outline-offset: 3px; }
+  .rc a, .rc summary, .rc button { cursor: pointer; }
+  .app.sp-open .main { z-index: auto; }
+  .rc.spot { z-index: 70; cursor: default; box-shadow: 0 50px 100px -24px rgb(0 0 0 / .65), 0 0 0 1px rgb(255 255 255 / .4), 0 0 90px rgb(143 211 220 / .4); }
+  .sp-back { position: fixed; inset: 0; z-index: 60; cursor: zoom-out; opacity: 0; transition: opacity .45s; background: radial-gradient(ellipse 62% 72% at 50% 50%, rgb(8 20 26 / .38) 0%, rgb(8 20 26 / .74) 58%, rgb(8 20 26 / .88) 100%); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+  .sp-beam { position: fixed; left: 50%; top: 0; z-index: 64; width: min(76vw, 700px); height: 64vh; transform: translateX(-50%); pointer-events: none; opacity: 0; transition: opacity .7s .1s; background: linear-gradient(to bottom, rgb(255 255 255 / .26), rgb(255 255 255 / 0) 88%); clip-path: polygon(43% 0, 57% 0, 100% 100%, 0 100%); }
+  .sp-glow { position: fixed; left: 50%; top: 50%; z-index: 65; width: min(94vw, 800px); aspect-ratio: 1; border-radius: 50%; pointer-events: none; opacity: 0; transform: translate(-50%, -50%) scale(.55); transition: opacity .55s, transform .7s cubic-bezier(.2, .9, .25, 1); background: radial-gradient(closest-side, rgb(200 240 244 / .44), rgb(143 211 220 / .16) 58%, transparent 78%); filter: blur(6px); }
+  .sp-back.in, .sp-beam.in, .sp-glow.in { opacity: 1; }
+  .sp-glow.in { transform: translate(-50%, -50%) scale(1); }
+  .sp-x { position: absolute; top: 14px; inset-inline-end: 14px; z-index: 2; width: 40px; height: 40px; padding: 0; border-radius: 50%; border: 1px solid var(--line); background: #fff; color: var(--ink); font: 600 16px/1 "Rubik", system-ui, sans-serif; cursor: pointer; box-shadow: var(--shadow-1); }
+  .sp-x:hover { background: var(--mint); }
+  @media (prefers-reduced-motion: reduce) { .rc, .sp-back, .sp-beam, .sp-glow { transition: none; } }
   .disc { background: #fff; border-radius: 28px; padding: 22px 26px; display: grid; gap: 6px; box-shadow: inset 0 1px 0 var(--edge), var(--shadow-1); color: var(--muted); font-size: 15px; line-height: 1.65; }
   .disc b { color: var(--ink); }
   .disc p { margin: 0; }
@@ -149,14 +166,7 @@
     @keyframes drift { from { transform: translate3d(0, 0, 0) scale(1); } to { transform: translate3d(2.5%, -2%, 0) scale(1.08); } }
     @keyframes rise2 { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
     .top, .finder, .disc { animation: rise2 .6s var(--ease) both; }
-    .rc { animation: rise2 .6s var(--ease) backwards; position: relative; cursor: grab; touch-action: pan-y; transform: rotate(var(--th, 0deg)) scale(var(--sc, 1)); transform-origin: 50% -62px; }
-    .rc.hang { z-index: 5; will-change: transform; box-shadow: inset 0 1px 0 var(--edge), 0 34px 60px -22px rgb(20 45 55 / .5); }
-    .rc.drag { cursor: grabbing; user-select: none; }
-    .rc a, .rc summary, .rc button { cursor: pointer; }
-    .rc::before { content: ""; position: absolute; left: 50%; top: -62px; width: 18px; height: 66px; margin-left: -9px; border-radius: 5px 5px 3px 3px; background: repeating-linear-gradient(135deg, #2b4450 0 7px, #1f3038 7px 14px); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .14), 0 6px 10px -4px rgb(20 45 55 / .4); opacity: 0; transform: scaleY(.3); transform-origin: 50% 100%; transition: opacity .25s, transform .4s cubic-bezier(.2, .9, .3, 1.2); pointer-events: none; }
-    .rc::after { content: ""; position: absolute; left: 50%; top: 8px; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; background: #eef3f4; box-shadow: inset 0 0 0 3px #b9ccd1, 0 0 0 1px rgb(31 48 56 / .25); opacity: 0; transition: opacity .25s; pointer-events: none; }
-    .rc.hang::before { opacity: 1; transform: none; }
-    .rc.hang::after { opacity: 1; }
+    .rc { animation: rise2 .6s var(--ease) backwards; }
   }
   @media (max-width: 1000px) { .rgrid { grid-template-columns: 1fr; } }
   @media (max-width: 700px) { .rc, .finder { padding: 18px; border-radius: 24px; } .facts div { grid-template-columns: 1fr; gap: 2px; } .cat { min-height: 44px; } .chk { min-height: 44px; } }
@@ -450,60 +460,55 @@ const VER = {p: 'אומת מול נוסח החוק, הצו או אתר רשמי'
       '<p class="srcline"><b class="vb v-' + esc(r.v) + '">' + esc(VER[r.v]) + '</b><br><span>מקור:</span> ' + src + '</p>' +
       (r.chk ? '<a class="chk" href="check.html">בדוק את זה בתלוש שלך</a>' : '') + '</article>';
   }
-  // כרטיס תלוי (כמו בסרטון "Hanging Card"): כל כרטיס תלוי על רצועה מנקודת עיגון מעליו ומתנדנד כמו מטוטלת עם שיכוך.
-  // ריחוף נותן דחיפה קלה והכרטיס גדל, לחיצה מטילה אותו, וגרירה מסובבת אותו סביב נקודת התלייה, ובעזיבה הוא ממשיך להתנדנד.
-  var sw = new WeakMap();
-  function initCards() {
-    window.__rights = window.__rights || {};
-    window.__rights.sw = sw;
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    var skip = 'a, summary, button, input, details, .tx3d', L = 62, K = 15.4, DAMP = 1.1, LIM = .75, live = new Set(), last = 0, raf = 0;
-    var st = function (c) { var s = sw.get(c); if (!s) { s = {th: 0, w: 0, sc: 0, target: 0, drag: false, moved: false, hist: [], base: 0, start: null}; sw.set(c, s); } return s; };
-    var put = function (c, s) { c.style.setProperty('--th', (s.th * 57.2958).toFixed(2) + 'deg'); c.style.setProperty('--sc', (1 + .035 * s.sc).toFixed(4)); };
-    var anchorOf = function (c) { var m = c.offsetParent || document.body, r = m.getBoundingClientRect(); return {x: r.left + c.offsetLeft + c.offsetWidth / 2, y: r.top + c.offsetTop - L}; };
-    function frame(t) {
-      var dt = Math.min((t - last) / 1000, .033); last = t;
-      live.forEach(function (c) {
-        var s = sw.get(c);
-        if (!s.drag) { s.w += (-K * Math.sin(s.th) - DAMP * s.w) * dt; s.th += s.w * dt; if (Math.abs(s.th) > LIM) { s.th = Math.sign(s.th) * LIM; s.w *= -.35; } }
-        s.sc += ((s.target ? 1 : 0) - s.sc) * Math.min(1, dt * 9);
-        put(c, s);
-        if (!s.drag && !s.target && Math.abs(s.th) < .004 && Math.abs(s.w) < .03 && s.sc < .01) { live.delete(c); c.classList.remove('hang'); c.style.removeProperty('--th'); c.style.removeProperty('--sc'); }
-      });
-      raf = live.size ? requestAnimationFrame(frame) : 0;
+  // ספוטלייט: לחיצה על כרטיס מעלה אותו למרכז המסך, עם אלומת אור וזוהר מאחוריו, והאתר מוחשך בשקיפות. סגירה: לחיצה על הרקע, על X או Esc.
+  function initSpot() {
+    var app = document.querySelector('.app'), html = document.documentElement, cur = null, parts = [], closing = false;
+    var skip = 'a, summary, button, input, details, select, textarea, .tx3d';
+    var mk = function (cls) { var d = document.createElement('div'); d.className = cls; return d; };
+    var setV = function (c, dx, dy, s) { c.style.setProperty('--dx', dx); c.style.setProperty('--dy', dy); c.style.setProperty('--s', s); };
+    // מחשב לאן להעביר את הכרטיס כדי שיהיה במרכז המסך, וגדול ככל שנכנס
+    function retarget(c) {
+      var pdx = c.style.getPropertyValue('--dx') || '0px', pdy = c.style.getPropertyValue('--dy') || '0px', ps = c.style.getPropertyValue('--s') || '1';
+      var tr = c.style.transition; c.style.transition = 'none'; setV(c, '0px', '0px', '1');
+      var bk = parts[0].getBoundingClientRect(), r = c.getBoundingClientRect(), vw = bk.width, vh = bk.height, ox = bk.left, oy = bk.top;
+      var s = Math.max(.6, Math.min(1.28, vw * .94 / r.width, vh * .9 / r.height));
+      var dx = ox + vw / 2 - (r.left + r.width / 2), dy = oy + vh / 2 - (r.top + r.height / 2);
+      setV(c, pdx, pdy, ps); void c.offsetWidth; c.style.transition = tr;
+      setV(c, dx.toFixed(1) + 'px', dy.toFixed(1) + 'px', s.toFixed(3));
     }
-    function wake(c) { live.add(c); c.classList.add('hang'); if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); } }
+    function open(c) {
+      if (cur || closing) return;
+      cur = c; c.classList.add('spot'); app.classList.add('sp-open'); html.classList.add('sp-lock');
+      var back = mk('sp-back'), beam = mk('sp-beam'), glow = mk('sp-glow'), x = document.createElement('button');
+      x.type = 'button'; x.className = 'sp-x'; x.setAttribute('aria-label', 'סגור'); x.textContent = '✕';
+      back.addEventListener('click', close); x.addEventListener('click', close);
+      app.appendChild(back); app.appendChild(beam); app.appendChild(glow); c.appendChild(x);
+      parts = [back, beam, glow, x]; c.setAttribute('role', 'dialog'); c.setAttribute('aria-modal', 'true');
+      retarget(c);
+      requestAnimationFrame(function () { parts.slice(0, 3).forEach(function (p) { p.classList.add('in'); }); });
+      x.focus({preventScroll: true});
+    }
+    function close() {
+      if (!cur || closing) return;
+      var c = cur; closing = true; setV(c, '0px', '0px', '1'); parts.slice(0, 3).forEach(function (p) { p.classList.remove('in'); });
+      var calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      setTimeout(function () {
+        parts.forEach(function (p) { p.remove(); }); parts = [];
+        c.classList.remove('spot'); c.removeAttribute('role'); c.removeAttribute('aria-modal');
+        ['--dx', '--dy', '--s'].forEach(function (v) { c.style.removeProperty(v); });
+        app.classList.remove('sp-open'); html.classList.remove('sp-lock');
+        cur = null; closing = false; c.focus({preventScroll: true});
+      }, calm ? 0 : 560);
+    }
     document.querySelectorAll('.rc').forEach(function (c) {
-      c.addEventListener('pointerenter', function (e) {
-        if (e.pointerType === 'touch') return;
-        var s = st(c), b = c.getBoundingClientRect(); s.target = 1; if (Math.abs(s.w) < 1.2) s.w += (e.clientX > b.left + b.width / 2 ? 1 : -1) * 1.3; wake(c);
-      });
-      c.addEventListener('pointerleave', function () { var s = st(c); if (!s.drag) { s.target = 0; wake(c); } });
-      c.addEventListener('pointerdown', function (e) {
-        if (e.button > 0 || (e.target.closest && e.target.closest(skip))) return;
-        var s = st(c), a = anchorOf(c); s.drag = true; s.moved = false; s.start = {x: e.clientX, y: e.clientY}; s.target = 1;
-        s.base = s.th + Math.atan2(e.clientX - a.x, e.clientY - a.y); s.hist = []; s.w = 0; c.classList.add('drag'); wake(c);
-        try { c.setPointerCapture(e.pointerId); } catch (_) {}
-      });
-      c.addEventListener('pointermove', function (e) {
-        var s = sw.get(c); if (!s || !s.drag) return;
-        var a = anchorOf(c), th = s.base - Math.atan2(e.clientX - a.x, e.clientY - a.y);
-        s.th = Math.max(-LIM, Math.min(LIM, th)); s.hist.push([performance.now(), s.th]); if (s.hist.length > 6) s.hist.shift();
-        if (Math.hypot(e.clientX - s.start.x, e.clientY - s.start.y) > 4) s.moved = true;
-        put(c, s);
-      });
-      var release = function () {
-        var s = sw.get(c); if (!s || !s.drag) return; s.drag = false; c.classList.remove('drag');
-        var h = s.hist; if (h.length > 1) { var dt = (h[h.length - 1][0] - h[0][0]) / 1000; if (dt > 0) s.w = Math.max(-9, Math.min(9, (h[h.length - 1][1] - h[0][1]) / dt)); }
-        if (!c.matches(':hover')) s.target = 0; wake(c);
-      };
-      c.addEventListener('pointerup', release); c.addEventListener('pointercancel', release);
-      c.addEventListener('click', function (e) {
-        if (e.target.closest && e.target.closest(skip)) return;
-        var s = st(c); if (s.moved) { s.moved = false; return; }
-        var b = c.getBoundingClientRect(); s.w += (e.clientX > b.left + b.width / 2 ? 1 : -1) * 3.4; s.target = 1; wake(c);
-      });
+      c.tabIndex = 0;
+      c.addEventListener('click', function (e) { if (e.target.closest && e.target.closest(skip)) return; if (!cur) open(c); });
+      c.addEventListener('keydown', function (e) { if (e.target === c && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); if (!cur) open(c); } });
+      c.addEventListener('toggle', function () { if (cur === c) retarget(c); }, true);
     });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    addEventListener('resize', function () { if (cur) { cur.style.transition = 'none'; close(); } });
+    window.__rights = window.__rights || {}; window.__rights.spot = {open: open, close: close, current: function () { return cur; }};
   }
   function init3d() {
     document.querySelectorAll('.tx3d').forEach(function (el) {
@@ -521,7 +526,7 @@ const VER = {p: 'אומת מול נוסח החוק, הצו או אתר רשמי'
   $('rgrid').innerHTML = items.map(function (it) { return card(it.r); }).join('');
   init3d();
   var nodes = {};
-  initCards(); items.forEach(function (it) { nodes[it.r.id] = $(it.r.id); });
+  initSpot(); items.forEach(function (it) { nodes[it.r.id] = $(it.r.id); });
   var cur = 'all';
   $('cats').innerHTML = CATS.map(function (c) { return '<button type="button" class="cat" data-c="' + c[0] + '" aria-pressed="' + (c[0] === 'all') + '">' + esc(c[1]) + '</button>'; }).join('');
   $('sugg').innerHTML = SUGG.map(function (s) { return '<button type="button" class="cat" data-s="' + esc(s) + '">' + esc(s) + '</button>'; }).join('');
