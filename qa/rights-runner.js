@@ -76,6 +76,21 @@
       && tx.getAttribute('role') === 'img' && /47%/.test(tx.getAttribute('aria-label')) && !/מדרגות 2026/.test(document.querySelector('#tax .facts').textContent) && getComputedStyle(tx).overflow === 'hidden';
     txOk ? ok('מסך', 'תרשים המדרגות התלת-ממדי: 6 עמודות בגובה עולה, מקרא ותיאור') : bad('מסך', 'תרשים מדרגות המס', 'גבוה', `עמודות:${cols.length} אחוזים:${cols.map(c => c.querySelector('.f b') && c.querySelector('.f b').textContent).join(',')} גבהים:${heights.join('/')}`, 'לבדוק את viz3d() ואת ה-CSS של .tx-col');
 
+    // 5ג. העמודות מצפות: ריחוף או לחיצה מוסיפים מחלקה, ולחיצה חוזרת מורידה. העמודה מורמת ב-CSS (--up) והצל נשאר על הרצפה
+    const sl = tx ? [...tx.querySelectorAll('.tx-slot')] : [];
+    let floatOk = sl.length === 6 && sl.every(x => x.querySelector('.sh') && x.querySelector('.tx-col'));
+    if (floatOk) {
+      sl[2].dispatchEvent(new PointerEvent('pointerover', {bubbles: true, pointerType: 'mouse'})); await sleep(30);
+      const up1 = sl[2].classList.contains('up') && getComputedStyle(sl[2].querySelector('.tx-col')).getPropertyValue('--up').trim() === '-38px';
+      sl[4].dispatchEvent(new PointerEvent('pointerover', {bubbles: true, pointerType: 'mouse'})); await sleep(30);
+      const only = !sl[2].classList.contains('up') && sl[4].classList.contains('up');
+      sl[1].click(); await sleep(30); const pinned = sl[1].classList.contains('pin') && getComputedStyle(sl[1].querySelector('.tx-col')).getPropertyValue('--up').trim() === '-38px';
+      sl[1].click(); await sleep(30); const unpinned = !sl[1].classList.contains('pin');
+      tx.dispatchEvent(new PointerEvent('pointerleave', {pointerType: 'mouse'})); await sleep(30);
+      floatOk = up1 && only && pinned && unpinned && !tx.querySelector('.tx-slot.up');
+    }
+    floatOk ? ok('מסך', 'עמודות המס מצפות בריחוף ובלחיצה, וחוזרות למקום') : bad('מסך', 'ציפת עמודות המס', 'בינוני', 'ריחוף או לחיצה לא מרימים עמודה, או שלחיצה חוזרת לא מורידה', 'לבדוק את init3d() ואת .tx-slot.up/.pin ב-CSS');
+
     // 6. XSS: טקסט עם תגיות בחיפוש לא נכנס ל-DOM כ-HTML
     window.__xss = 0; await type('<img src=x onerror="window.__xss=1">'); await sleep(50);
     (window.__xss === 0 && !document.querySelector('#count img, #empty img, .rc img')) ? ok('אבטחה', 'חיפוש עם תגיות לא מריץ קוד') : bad('אבטחה', 'XSS בחיפוש', 'קריטי', 'קוד רץ מתוך שורת החיפוש', 'לא להכניס את הטקסט ל-innerHTML'); await type('');

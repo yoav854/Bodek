@@ -113,8 +113,13 @@
   .tx-tilt { transform-style: preserve-3d; transform: rotateX(var(--tx, 0deg)) rotateY(var(--ty, 0deg)); transition: transform .45s cubic-bezier(.2, .7, .2, 1); }
   .tx-world { position: relative; width: 340px; height: 188px; transform-style: preserve-3d; transform: rotateX(-24deg) rotateY(-30deg); }
   .tx-floor { position: absolute; left: -26px; right: -26px; top: 100%; height: 68px; transform-origin: top; transform: translateZ(-34px) rotateX(90deg); border-radius: 10px; background: linear-gradient(#ffffff, #dcebee); box-shadow: 0 0 0 1px rgb(13 116 128 / .14); }
-  .tx-col { position: absolute; left: var(--x); bottom: 0; width: 40px; height: var(--h); transform-style: preserve-3d; transform-origin: 50% 100%; transform: scaleY(var(--s, 0)); }
+  .tx-slot { position: absolute; left: var(--x); bottom: 0; width: 40px; height: var(--h); transform-style: preserve-3d; cursor: pointer; }
+  .tx-col { position: absolute; inset: 0; transform-style: preserve-3d; transform-origin: 50% 100%; transform: translateY(var(--up, 0px)) scaleY(var(--s, 0)); }
   .tx3d.in .tx-col { --s: 1; }
+  .tx-slot.up .tx-col, .tx-slot.pin .tx-col { --up: -38px; }
+  .tx-slot .sh { position: absolute; left: -4px; bottom: -24px; width: 48px; height: 48px; transform: rotateX(90deg); background: radial-gradient(closest-side, rgb(31 48 56 / .34), transparent); opacity: 0; transition: opacity .3s, transform .4s cubic-bezier(.2, .8, .2, 1); pointer-events: none; }
+  .tx3d.in .tx-slot .sh { opacity: .35; }
+  .tx-slot.up .sh, .tx-slot.pin .sh { opacity: .7; transform: rotateX(90deg) scale(1.2); }
   .tx-col i { position: absolute; display: block; background: var(--c); }
   .tx-col .f { inset: 0; transform: translateZ(20px); }
   .tx-col .k { inset: 0; transform: rotateY(180deg) translateZ(20px); background: linear-gradient(rgb(0 0 0 / .3), rgb(0 0 0 / .3)), var(--c); }
@@ -130,10 +135,11 @@
   .tx-note { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
   @media (prefers-reduced-motion: no-preference) {
     .tx-col { transition: transform .95s cubic-bezier(.2, .85, .25, 1) calc(var(--i) * 120ms); }
+    .tx3d.grown .tx-col { transition: transform .5s cubic-bezier(.2, .9, .3, 1.25); }
     .tx-world { animation: txsway 9s ease-in-out infinite alternate; }
     @keyframes txsway { from { transform: rotateX(-24deg) rotateY(-38deg); } to { transform: rotateX(-24deg) rotateY(-22deg); } }
   }
-  @media (prefers-reduced-motion: reduce) { .tx-col { --s: 1; } .tx-tilt { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .tx-col { --s: 1; } .tx-tilt, .tx-slot .sh { transition: none; } }
   @media (max-width: 520px) { .tx-world { zoom: .78; } .tx-scene { height: 235px; padding-bottom: 38px; } }
   .disc { background: #fff; border-radius: 28px; padding: 22px 26px; display: grid; gap: 6px; box-shadow: inset 0 1px 0 var(--edge), var(--shadow-1); color: var(--muted); font-size: 15px; line-height: 1.65; }
   .disc b { color: var(--ink); }
@@ -418,12 +424,12 @@ const VER = {p: 'אומת מול נוסח החוק, הצו או אתר רשמי'
     var pal = ['#bfe3e8', '#8fd3dc', '#4fb3c0', '#0d7480', '#0b5a64', '#1f3038'];
     var label = 'תרשים מדרגות מס הכנסה לשנת 2026, הכנסה חודשית: ' + cols.map(function (b) { return b[0] + '% ' + rangeOf(b) + ' שקלים'; }).join(', ');
     var cs = cols.map(function (b, i) {
-      return '<div class="tx-col" style="--x:' + ((cols.length - 1 - i) * (W + G)) + 'px;--h:' + (b[0] * K) + 'px;--c:' + pal[i] + ';--tc:' + (light[i] ? '#1f3038' : '#fff') + ';--i:' + i + '"><i class="f"><b>' + b[0] + '%</b></i><i class="k"></i><i class="r"></i><i class="l"></i><i class="t"></i></div>';
+      return '<div class="tx-slot" data-i="' + i + '" style="--x:' + ((cols.length - 1 - i) * (W + G)) + 'px;--h:' + (b[0] * K) + 'px;--c:' + pal[i] + ';--tc:' + (light[i] ? '#1f3038' : '#fff') + ';--i:' + i + '"><i class="sh"></i><div class="tx-col"><i class="f"><b>' + b[0] + '%</b></i><i class="k"></i><i class="r"></i><i class="l"></i><i class="t"></i></div></div>';
     }).join('');
     var leg = cols.map(function (b, i) { return '<li><i style="background:' + pal[i] + '"></i><b>' + b[0] + '%</b><span>' + rangeOf(b) + ' ₪</span></li>'; }).join('');
     return '<div class="tx3d" role="img" aria-label="' + esc(label) + '"><div class="tx-scene"><div class="tx-tilt"><div class="tx-world"><div class="tx-floor"></div>' + cs + '</div></div></div></div>' +
       '<ul class="tx-leg" aria-hidden="true">' + leg + '</ul>' +
-      '<p class="tx-note">כל שקל ממוסה לפי המדרגה שבה הוא נמצא, ולא כל ההכנסה לפי המדרגה הגבוהה. הסכומים הם הכנסה חודשית.</p>';
+      '<p class="tx-note">כל שקל ממוסה לפי המדרגה שבה הוא נמצא, ולא כל ההכנסה לפי המדרגה הגבוהה. הסכומים הם הכנסה חודשית. אפשר להרים עמודה: העבר עליה עכבר או לחץ עליה.</p>';
   }
   function card(r) {
     var facts = r.facts.map(function (f) { return '<div><dt>' + esc(f[0]) + '</dt><dd>' + esc(f[1]) + '</dd></div>'; }).join('');
@@ -439,11 +445,15 @@ const VER = {p: 'אומת מול נוסח החוק, הצו או אתר רשמי'
   }
   function init3d() {
     document.querySelectorAll('.tx3d').forEach(function (el) {
-      var show = function () { el.classList.add('in'); };
+      var show = function () { el.classList.add('in'); setTimeout(function () { el.classList.add('grown'); }, 1600); };
       if ('IntersectionObserver' in window) { var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { show(); io.disconnect(); } }); }, {threshold: .35}); io.observe(el); } else show();
       var tilt = el.querySelector('.tx-tilt');
       el.addEventListener('pointermove', function (e) { var b = el.getBoundingClientRect(), nx = (e.clientX - b.left) / b.width - .5, ny = (e.clientY - b.top) / b.height - .5; tilt.style.setProperty('--ty', (nx * 22).toFixed(1) + 'deg'); tilt.style.setProperty('--tx', (-ny * 12).toFixed(1) + 'deg'); });
-      el.addEventListener('pointerleave', function () { tilt.style.setProperty('--ty', '0deg'); tilt.style.setProperty('--tx', '0deg'); });
+      var hot = null, slotOf = function (e) { return e.target.closest ? e.target.closest('.tx-slot') : null; };
+      var setHot = function (s) { if (hot === s) return; if (hot) hot.classList.remove('up'); hot = s; if (hot) hot.classList.add('up'); };
+      el.addEventListener('pointerover', function (e) { if (e.pointerType === 'touch') return; var s = slotOf(e); if (s) setHot(s); });
+      el.addEventListener('click', function (e) { var s = slotOf(e); if (s) s.classList.toggle('pin'); });
+      el.addEventListener('pointerleave', function () { setHot(null); tilt.style.setProperty('--ty', '0deg'); tilt.style.setProperty('--tx', '0deg'); });
     });
   }
   $('rgrid').innerHTML = items.map(function (it) { return card(it.r); }).join('');
