@@ -185,10 +185,20 @@
       // תוצאה עם פירוט שעות נוספות: רשת הבדיקות לא נעשית כרטיס לבן
       const otc = window.QA_CASES.find(c => c.name.indexOf('לילה עם שעה נוספת תקינה') >= 0);
       showResult(otc.slip, otc.shifts, false, otc.profile); await sl(150);
-      const chk = document.querySelector('#result .checks'), cs = getComputedStyle(chk);
+      const chk = [...document.querySelectorAll('#result .checks')].find(x => x.querySelector('.tbl-wrap')) || document.querySelector('#result .checks'), cs = getComputedStyle(chk);
       !chk.querySelector('.tbl-wrap') ? bad('מסך', 'רשת הבדיקות עם פירוט', 'בינוני', 'בתרחיש אין פירוט שעות נוספות, אי אפשר לבדוק', 'לבחור תרחיש עם שעות נוספות')
         : (cs.backgroundColor === 'rgba(0, 0, 0, 0)' && parseFloat(cs.paddingTop) === 0) ? ok('מסך', 'רשת הבדיקות לא הופכת לכרטיס לבן כשיש פירוט')
         : bad('מסך', 'רשת הבדיקות עם פירוט', 'גבוה', `רקע ${cs.backgroundColor}, ריפוד ${cs.paddingTop}`, 'לצמצם את כלל הכרטיסים הלבנים ב-#result');
+
+      // סדר התוצאה: קודם החסר, התקינים מקופלים לשורה אחת, וכפתור היומן נקרא מימין לשמאל
+      const gx = window.QA_CASES.find(c => { const ch = check(c.slip, c.shifts, {profile: c.profile}).checks; return ch.some(x => x.status === 'gap') && ch.some(x => x.status === 'ok'); });
+      showResult(gx.slip, gx.shifts, false, gx.profile); await sl(150);
+      const firstCk = document.querySelector('#result .check'), og = document.querySelector('#result details.okgroup');
+      (firstCk && firstCk.classList.contains('gap') && og && !og.open && og.querySelectorAll('.check.ok').length > 0 && !document.querySelector('#result > .checks .check.ok')) ? ok('מסך', 'בתוצאה קודם מה שחסר, והבדיקות התקינות מקופלות לשורה אחת')
+        : bad('מסך', 'סדר התוצאה', 'בינוני', `ראשון: ${firstCk && firstCk.className}, קבוצת תקינים: ${!!og}${og && og.open ? ' (פתוחה)' : ''}`, 'לבדוק את open/oks ב-renderResult()');
+      const calSp = document.querySelector('#calBtn > span');
+      (calSp && calSp.getAttribute('dir') === 'rtl' && calSp.querySelector('bdi')) ? ok('מסך', 'הכפתור "מלא מ-Google Calendar" כתוב מימין לשמאל')
+        : bad('מסך', 'כיוון הטקסט בכפתור היומן', 'נמוך', 'הטקסט בתוך כפתור LTR', 'dir="rtl" על ה-span ו-bdi סביב Google Calendar');
 
       // פער אחד בלשון יחיד, ושם התפקיד בכותרת התוצאה
       const g1 = window.QA_CASES.find(c => check(c.slip, c.shifts, {profile: c.profile}).checks.filter(x => x.status === 'gap').length === 1 && c.profile && c.profile.role === 'guard');

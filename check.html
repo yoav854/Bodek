@@ -374,13 +374,24 @@ body:has(#sbOpen){padding-bottom:0}
 .check.gap .dot{--ic:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'><path d='M8 3v6.5M8 12.7v.1'/></svg>")}
 .check.info .dot,.check.skip .dot{--ic:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'><path d='M8 7.2v5.3M8 3.3v.1'/></svg>")}
 .check.gap{background:linear-gradient(180deg,#fff 0%,#fff6f7 100%);border-color:rgb(179 38 63 / .14)}
+.okgroup{display:flex;flex-direction:column;gap:12px}
+.okgroup>summary{list-style:none;display:flex;align-items:center;gap:12px;cursor:pointer;background:#fff;border-radius:22px;padding:14px 18px;border:1px solid rgb(31 48 56 / .05);box-shadow:inset 0 1px 0 var(--edge),var(--shadow-1)}
+.okgroup>summary::-webkit-details-marker{display:none}
+.okgroup .ok-ic{flex:none;width:30px;height:30px;border-radius:50%;background:var(--ok-soft);position:relative}
+.okgroup .ok-ic::after{content:"";position:absolute;inset:7px;background:var(--ok);-webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='m3 8.5 3.2 3.2L13 5'/></svg>") center/contain no-repeat;mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='m3 8.5 3.2 3.2L13 5'/></svg>") center/contain no-repeat}
+.okgroup .ok-txt{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.okgroup .ok-txt b{color:var(--ok);font-weight:700}
+.okgroup .ok-list{font-size:.86rem;color:var(--muted)}
+.okgroup .ok-more{flex:none;font-weight:600;color:var(--accent);font-size:.9rem}
+.okgroup[open] .ok-more{font-size:0}.okgroup[open] .ok-more::after{content:"הסתר";font-size:.9rem}
+.okgroup>summary:focus-visible{outline:0;box-shadow:var(--ring)}
 /* the help button's icon replaces the emoji */
 .ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;vertical-align:-3px;margin-inline-end:6px}
 @media (prefers-reduced-motion:no-preference){
   .app::before{animation:drift 26s ease-in-out infinite alternate}
   @keyframes drift{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(2.5%,-2%,0) scale(1.08)}}
-  .card,.check{transition:box-shadow var(--t-med) var(--ease),transform var(--t-med) var(--ease)}
-  .check:hover{transform:translateY(-2px);box-shadow:inset 0 1px 0 var(--edge),var(--shadow-2)}
+  .card,.check,.okgroup>summary{transition:box-shadow var(--t-med) var(--ease),transform var(--t-med) var(--ease)}
+  .check:hover,.okgroup>summary:hover{transform:translateY(-2px);box-shadow:inset 0 1px 0 var(--edge),var(--shadow-2)}
   .primary{transition:transform var(--t-fast) var(--ease),box-shadow var(--t-med) var(--ease),filter var(--t-fast)}
   .primary:hover:not(:disabled){transform:translateY(-2px);box-shadow:inset 0 1px 0 rgb(255 255 255 / .24),0 18px 30px -12px rgb(13 116 128 / .75)}
   .drop{transition:background .2s,border-color .2s,transform var(--t-med) var(--ease)}
@@ -465,7 +476,7 @@ body:has(#sbOpen){padding-bottom:0}
         <p class="err" id="monthWarn" hidden></p>
         <div class="cal">
           <div class="row">
-            <button type="button" id="calBtn" class="gcal" aria-label="מלא משמרות מ-Google Calendar"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="3" fill="#fff"/><path d="M5.5 2.5h13a3 3 0 0 1 3 3V7h-19V5.5a3 3 0 0 1 3-3z" fill="#4285F4"/><path d="M21.5 7v11.5a3 3 0 0 1-3 3H17V7z" fill="#FBBC04"/><path d="M2.5 18.5V17H17v4.5H5.5a3 3 0 0 1-3-3z" fill="#34A853"/><path d="M2.5 7H7v10H2.5z" fill="#EA4335"/><text x="12" y="15.6" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="7.5" fill="#4285F4">31</text></svg><span>מלא מ-Google Calendar</span></button>
+            <button type="button" id="calBtn" class="gcal" aria-label="מלא משמרות מ-Google Calendar"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="3" fill="#fff"/><path d="M5.5 2.5h13a3 3 0 0 1 3 3V7h-19V5.5a3 3 0 0 1 3-3z" fill="#4285F4"/><path d="M21.5 7v11.5a3 3 0 0 1-3 3H17V7z" fill="#FBBC04"/><path d="M2.5 18.5V17H17v4.5H5.5a3 3 0 0 1-3-3z" fill="#34A853"/><path d="M2.5 7H7v10H2.5z" fill="#EA4335"/><text x="12" y="15.6" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="7.5" fill="#4285F4">31</text></svg><span dir="rtl">מלא מ-<bdi>Google Calendar</bdi></span></button>
           </div>
           <label for="freeText" class="sub">או: כתוב את המשמרות בעצמך, איך שנוח לך (אפשר גם יחד עם היומן)</label>
           <div id="freeBox" class="freebox">
@@ -1202,6 +1213,11 @@ function renderResult(slip, res, isExample){
   const el = document.getElementById('result');
   const gaps = res.checks.filter(c => c.status === 'gap');
   const label = {ok: 'תקין', gap: 'חסר', info: 'לשים לב', skip: 'לא נבדק'};
+  // קודם מה שחסר, אחר כך "לשים לב" ו"לא נבדק". התקינים מקופלים לשורה אחת
+  const rank = {gap: 0, info: 1, skip: 2, ok: 3};
+  const open = res.checks.filter(c => c.status !== 'ok').sort((a, b) => rank[a.status] - rank[b.status]);
+  const oks = res.checks.filter(c => c.status === 'ok');
+  const card = c => `<div class="check ${c.status}"><span class="dot">${label[c.status]}</span><div class="body"><h3>${esc(c.title)}</h3><span class="why">${esc(c.why)}</span>${c.status === 'gap' && c.amount ? `<span class="amt">חסר: <span class="num">${fmt(c.amount)}</span> ₪</span>` : ''}${c.extra || ''}${c.detail ? `<details class="more"><summary>פירוט</summary>${c.detail}</details>` : ''}</div></div>`;
   const roleName = (lastCtx && !isExample && lastCtx.profile) ? {guard: 'מאבטח', ramash: 'רמ"ש', lead: 'ראש צוות'}[lastCtx.profile.role] : '';
   const roleNote = roleName ? ' · נבדק כ' + roleName : '';
   el.innerHTML = `
@@ -1211,7 +1227,8 @@ function renderResult(slip, res, isExample){
       <span class="big">${gaps.length ? `נראה שחסרים לך ${fmt(res.gapTotal)} ₪` : 'נראה ששולם לך כל מה שמגיע'}</span>
       <span>${gaps.length ? `${gaps.length === 1 ? 'נמצא פער אחד' : 'נמצאו ' + gaps.length + ' פערים'}. הפירוט וההודעה למעסיק למטה.` : 'כל הבדיקות שנעשו יצאו תקינות.'}</span>
     </div>
-    <div class="checks">${res.checks.map(c => `<div class="check ${c.status}"><span class="dot">${label[c.status]}</span><div class="body"><h3>${esc(c.title)}</h3><span class="why">${esc(c.why)}</span>${c.status === 'gap' && c.amount ? `<span class="amt">חסר: <span class="num">${fmt(c.amount)}</span> ₪</span>` : ''}${c.extra || ''}${c.detail ? `<details class="more"><summary>פירוט</summary>${c.detail}</details>` : ''}</div></div>`).join('')}</div>
+    ${open.length ? `<div class="checks">${open.map(card).join('')}</div>` : ''}
+    ${oks.length ? `<details class="okgroup"${open.length ? '' : ' open'}><summary><span class="ok-ic" aria-hidden="true"></span><span class="ok-txt"><b>${oks.length === 1 ? 'בדיקה אחת יצאה תקינה' : oks.length + ' בדיקות יצאו תקינות'}</b><span class="ok-list">${oks.map(c => esc(c.title)).join(' · ')}</span></span><span class="ok-more">הצג</span></summary><div class="checks">${oks.map(card).join('')}</div></details>` : ''}
     ${moneyBreakdown(slip)}
     ${linesTable(slip)}
     ${letter(slip, res)}`;
