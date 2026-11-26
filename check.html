@@ -6,6 +6,7 @@
 <meta name="description" content="תלושי: עובדי שמירה ואבטחה בודקים אם התלוש תואם את המשמרות שעבדו. התלוש והיומן נקראים רק במכשיר.">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font-size:14px}img{max-width:100%}[hidden]{display:none!important}  .logo .s{transform-box:view-box}.logo img{display:block;width:48px;height:48px;transform-origin:50% 88%}@keyframes mascotHop{0%,100%{transform:none}30%{transform:translateY(-5px) scale(1.06,.95)}62%{transform:translateY(0) scale(.97,1.03)}}.logo.wave img{animation:mascotHop .55s ease-in-out 2}@media (prefers-reduced-motion:reduce){.logo.wave img{animation:none}}.fnav-ic.logo{height:min(58vmin,440px)}@keyframes flagWave{0%,100%{transform:translateY(0)}25%{transform:translateY(calc(var(--a)*-1px))}75%{transform:translateY(calc(var(--a)*1px))}}.logo.wave .s{animation:flagWave .55s ease-in-out 2}.logo.wave .s2{animation-delay:.04s}.logo.wave .s3{animation-delay:.08s}.logo.wave .s4{animation-delay:.12s}.logo.wave .s5{animation-delay:.16s}.logo.wave .s6{animation-delay:.2s}.logo.wave .s7{animation-delay:.24s}.logo.wave .s8{animation-delay:.28s}@media (prefers-reduced-motion:reduce){.logo.wave .s{animation:none}}
   html.fl-in{background:#1f3038}html.fl-in body{opacity:0}.fnav{position:fixed;inset:0;z-index:70;background:#1f3038 repeat;background-size:104px 104px;pointer-events:none}.fnav-ic{position:absolute;left:50%;top:50%;width:min(58vmin,440px);aspect-ratio:1;will-change:transform,opacity}.fnav-ic svg{width:100%;height:100%;fill:none;stroke:#8fd3dc;stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round}.fnav-ic.logo svg{stroke:none}
+.howvid-box{display:flex;justify-content:center;padding:4px 0 8px}.howvid{display:block;height:min(600px,72vh);width:auto;max-width:100%;aspect-ratio:9/16;object-fit:cover;border-radius:26px;background:#eef3f5;box-shadow:0 18px 34px -22px rgb(20 45 55 / .45)}
 </style>
 <title>בדיקת תלוש: תלושי</title>
 <meta name="theme-color" content="#f1f5f7">
@@ -1813,23 +1814,19 @@ document.getElementById('go').addEventListener('click', () => {
 });
 window.__runCheck = runCheck;
 
-/* דוגמה שמוצגת בפתיחה: עובד מומצא, 10 משמרות, שולמו 78 שעות מתוך 80 */
-(function example(){
-  const base = 78 * 47, hv = r2(78 * 1.64), tr = 160, gross = r2(base + hv + tr);
-  const pb = r2(base + hv);
-  const funds = [
-    {type: 'קצבה שכיר-תגמולים', base: pb, employer: r2(pb * .075), employee: r2(pb * .07)},
-    {type: 'קצבה שכיר-פיצויים', base: pb, employer: r2(pb * .0833), employee: 0},
-    {type: 'קצבה שכיר-תגמולים', base: tr, employer: 8, employee: 8},
-    {type: 'קרן השתלמות', base: r2(78 * 35.40 + hv), employer: r2((78 * 35.40 + hv) * .075), employee: r2((78 * 35.40 + hv) * .025)},
-  ];
-  const fundTotal = r2(funds.reduce((a, f) => a + f.employee, 0));
-  const deductions = {'ביטוח לאומי': 41.12, 'ביטוח בריאות': 127.71, 'דמי טיפול': 15};
-  const taxTotal = 183.83;
-  const slip = {employer: 'רשף ביטחון (דוגמה)', month: {ym: '2026-09', label: 'ספטמבר 2026'},
-    lines: [{name: 'שכר יסוד', rate: 47, qty: 78, amount: base}, {name: 'נסיעות', amount: tr}, {name: 'הבראה', rate: 1.64, qty: 78, amount: hv}, {name: 'ימי עבודה', qty: 10}],
-    deductions, funds, gross, taxTotal, fundTotal, otherTotal: 0, net: r2(gross - taxTotal - fundTotal), seniorityMonths: 6, creditPoints: 2.25};
-  showResult(slip, {morning: 10}, true);
+/* בפתיחה, במקום תוצאה לדוגמה: סרטון קצר שמראה איך בודקים (בלי קול). בדיקה אמיתית מחליפה אותו */
+(function howVideo(){
+  const el = document.getElementById('result');
+  el.innerHTML = '<span class="tag">ככה זה עובד</span><div class="howvid-box"><video class="howvid" src="media/tlushi-howto.mp4" poster="media/tlushi-howto.jpg" width="720" height="1280" muted loop playsinline preload="metadata" aria-label="סרטון קצר: ככה בודקים תלוש בתלושי"></video></div>';
+  const v = el.querySelector('video');
+  v.muted = true;
+  const calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (calm || !('IntersectionObserver' in window)) { v.controls = true; v.loop = false; return; }
+  const io = new IntersectionObserver(es => es.forEach(e => {
+    if (!v.isConnected) { io.disconnect(); return; }
+    if (e.isIntersecting && e.intersectionRatio > .35) { const p = v.play(); if (p && p.catch) p.catch(() => { v.controls = true; }); } else v.pause();
+  }), {threshold: [0, .35, .7]});
+  io.observe(v);
 })();
 renderRules();
 

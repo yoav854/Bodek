@@ -229,14 +229,6 @@ a { color: inherit; }
   .logo .s{transform-box:view-box}.logo img{display:block;width:48px;height:48px;transform-origin:50% 88%}@keyframes mascotHop{0%,100%{transform:none}30%{transform:translateY(-5px) scale(1.06,.95)}62%{transform:translateY(0) scale(.97,1.03)}}.logo.wave img{animation:mascotHop .55s ease-in-out 2}@media (prefers-reduced-motion:reduce){.logo.wave img{animation:none}}.fnav-ic.logo{height:min(58vmin,440px)}@keyframes flagWave{0%,100%{transform:translateY(0)}25%{transform:translateY(calc(var(--a)*-1px))}75%{transform:translateY(calc(var(--a)*1px))}}.logo.wave .s{animation:flagWave .55s ease-in-out 2}.logo.wave .s2{animation-delay:.04s}.logo.wave .s3{animation-delay:.08s}.logo.wave .s4{animation-delay:.12s}.logo.wave .s5{animation-delay:.16s}.logo.wave .s6{animation-delay:.2s}.logo.wave .s7{animation-delay:.24s}.logo.wave .s8{animation-delay:.28s}@media (prefers-reduced-motion:reduce){.logo.wave .s{animation:none}}
   html.fl-in{background:#1f3038}html.fl-in body{opacity:0}.fnav{position:fixed;inset:0;z-index:70;background:#1f3038 repeat;background-size:104px 104px;pointer-events:none}.fnav-ic{position:absolute;left:50%;top:50%;width:min(58vmin,440px);aspect-ratio:1;will-change:transform,opacity}.fnav-ic svg{width:100%;height:100%;fill:none;stroke:#8fd3dc;stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round}.fnav-ic.logo svg{stroke:none}
 
-/* סרטון ההדרכה (דף הבית ו"איך זה עובד") */
-.vid { grid-column: span 4; grid-row: span 2; display: grid; gap: 12px; align-content: start; justify-items: center; }
-.vid .lbl { justify-self: stretch; }
-.checks { grid-column: span 8; }
-.howvid { display: block; height: min(560px, 72vh); width: auto; max-width: 100%; aspect-ratio: 9 / 16; object-fit: cover; border-radius: 26px; background: #eef3f5; box-shadow: 0 18px 34px -22px rgb(20 45 55 / .45); }
-.howvid-wrap { display: flex; justify-content: center; margin: 4px 0 18px; }
-.howvid-wrap .howvid { height: min(640px, 74vh); }
-@media (max-width: 1000px) { .vid { grid-column: span 12; grid-row: auto; } .checks { grid-column: span 12; } .howvid { height: min(560px, 70vh); } }
 </style>
 <script>try{if(sessionStorage.getItem("bodekFlood")){document.documentElement.className+=" fl-in";setTimeout(function(){document.documentElement.classList.remove("fl-in")},2500)}}catch(e){}</script>
 </head>
@@ -274,11 +266,6 @@ a { color: inherit; }
             <p class="sub" id="nSrc" style="margin:0"></p>
             <div class="meta"><span class="sub" id="nDate" style="margin:0"></span><button class="btn-dark" type="button" id="nOk">הבנתי</button></div>
           </div>
-        </article>
-
-        <article class="card vid" style="--i:2">
-          <div class="lbl"><span>ככה זה עובד</span><span class="chip">16 שניות</span></div>
-          <video class="howvid" src="media/tlushi-howto.mp4" poster="media/tlushi-howto.jpg" width="720" height="1280" muted loop playsinline preload="metadata" aria-label="סרטון קצר: ככה בודקים תלוש בתלושי"></video>
         </article>
 
         <article class="card res" style="--i:2">
@@ -336,7 +323,6 @@ a { color: inherit; }
     <!-- HOW -->
     <section class="view" id="v-how" aria-label="איך זה עובד" tabindex="-1">
       <h2 class="view-title" style="--i:0">בדיקה בשלושה <em>צעדים</em></h2>
-      <div class="howvid-wrap" style="--i:1"><video class="howvid" src="media/tlushi-howto.mp4" poster="media/tlushi-howto.jpg" width="720" height="1280" muted loop playsinline preload="metadata" aria-label="סרטון קצר: ככה בודקים תלוש בתלושי"></video></div>
       <div class="bento how3">
         <article class="card" style="--i:1"><span class="n">1</span><h3>מעלים את התלוש</h3><p>קובץ ה-PDF של התלוש, כמו שהוא מגיע ממערכת השכר. הוא נקרא על המכשיר שלך.</p>
           <div class="mini" aria-hidden="true"><div class="row"><b>תלוש.pdf</b><span class="chip">נקרא</span></div><div class="row"><span>נקרא על המכשיר שלך</span><span>✓</span></div></div></article>
@@ -539,16 +525,6 @@ if(lg){
   });
   setTimeout(wave,900);
 }
-})();
-// סרטון ההדרכה: מתנגן בלי קול רק כשהוא על המסך. מי שביקש פחות תנועה מקבל כפתור הפעלה במקום ניגון אוטומטי
-(function(){
-  var vids=[].slice.call(document.querySelectorAll('video.howvid'));
-  if(!vids.length)return;
-  var calm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  vids.forEach(function(v){v.muted=true;if(calm){v.controls=true;v.loop=false;}});
-  if(calm||!('IntersectionObserver' in window))return;
-  var io=new IntersectionObserver(function(es){es.forEach(function(e){var v=e.target;if(e.isIntersecting&&e.intersectionRatio>.35){var p=v.play();if(p&&p.catch)p.catch(function(){v.controls=true;});}else v.pause();});},{threshold:[0,.35,.7]});
-  vids.forEach(function(v){io.observe(v);});
 })();
 </script>
 </body>
