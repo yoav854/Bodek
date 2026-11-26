@@ -83,6 +83,10 @@ a { color: inherit; }
 .pill svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transform: scaleX(-1); }
 .ghost { background: none; border: 0; color: #d6e6ea; font-weight: 500; text-decoration: underline; text-underline-offset: 4px; text-decoration-color: rgb(214 230 234 / .4); padding: 8px 4px; }
 .hero .tags { display: flex; gap: 8px; flex-wrap: wrap; position: relative; z-index: 1; }
+.hero-mascot { position: absolute; inset-inline-end: clamp(18px, 6%, 90px); bottom: -14px; height: 112%; max-height: 340px; aspect-ratio: 1; pointer-events: none; z-index: 0; }
+.hero-mascot img { width: 100%; height: 100%; object-fit: contain; display: block; filter: drop-shadow(0 16px 22px rgb(0 0 0 / .35)); }
+@media (max-width: 1100px) { .hero-mascot { inset-inline-end: 6px; top: 10px; bottom: auto; height: 104px; max-height: none; } .hero-mascot img { filter: drop-shadow(0 8px 12px rgb(0 0 0 / .3)); } .hero .tags { padding-inline-end: 100px; } }
+@media (prefers-reduced-motion: no-preference) { .hero-mascot img { animation: mascotIn .7s cubic-bezier(.2, .9, .3, 1.2) .45s both; transform-origin: 50% 90%; } @keyframes mascotIn { from { opacity: 0; transform: translateY(26px) scale(.86); } to { opacity: 1; transform: none; } } }
 
 /* the notice card: only there when there is an active update */
 .updates { grid-column: span 4; }
@@ -247,6 +251,7 @@ a { color: inherit; }
     <section class="view is-on" id="v-home" aria-label="בית" tabindex="-1">
       <div class="bento">
         <article class="card hero" style="--i:0">
+          <picture class="hero-mascot" aria-hidden="true"><source media="(max-width: 1100px)" srcset="img/mascot-bust.webp"><img src="img/mascot.webp" width="512" height="512" alt="" decoding="async"></picture>
           <div class="tags"><span class="chip dark">לעובדי שמירה ואבטחה</span><span class="chip dark">בחינם</span></div>
           <h1 id="h1"><span class="w" style="--k:0">תלושי</span></h1>
           <p>המידע נשמר אצלך בלבד. התלוש נקרא בטלפון, מושווה למשמרות שעבדת, ורואים כמה חסר, אם חסר.</p>

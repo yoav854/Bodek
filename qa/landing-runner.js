@@ -106,6 +106,16 @@ const frameOf = (w, h) => new Promise(res => { // עותק של הדף בחלו�
     const fR = await frameOf(1440, 500); fR.contentWindow.scrollTo(0, 400); await sleep(250);
     const railTop = fR.contentDocument.querySelector('.rail').getBoundingClientRect().top; fR.remove();
     railTop >= 0 ? ok('מסך', 'הסרגל נדבק גם בחלון נמוך (500px)') : bad('מסך', 'סרגל בחלון נמוך', 'בינוני', `ראש הסרגל ${Math.round(railTop)} אחרי גלילה`, 'להקטין את min-height של הסרגל');
+    // הדמות (התלוש החי) בכרטיס הפתיחה: קיימת, ולא מכסה תגית, כותרת, טקסט או כפתור בשום רוחב
+    const hitsAt = async w => { const f = await frameOf(w, 800), d = f.contentDocument, m = d.querySelector('.hero-mascot');
+      if (!m) { f.remove(); return ['אין דמות']; }
+      const mb = m.getBoundingClientRect();
+      const hit = [...d.querySelectorAll('.hero .chip, .hero h1 .w, .hero p, .hero .row > *')].filter(e => { const r = d.createRange(); r.selectNodeContents(e); const b = (e.tagName === 'P' ? r : e).getBoundingClientRect(); return !(b.right <= mb.left + 6 || b.left >= mb.right - 6 || b.bottom <= mb.top + 6 || b.top >= mb.bottom - 6); }).map(e => (e.className || e.tagName) + '@' + w);
+      f.remove(); return hit; };
+    const mHits = []; for (const w of [320, 375, 390, 800, 1024, 1101, 1440]) mHits.push(...await hitsAt(w));
+    const mImg = document.querySelector('.hero-mascot img'), lgImg = document.querySelector('.logo img');
+    (mImg && lgImg && /mascot/.test(mImg.getAttribute('src')) && !mHits.length) ? ok('מסך', 'הדמות בכרטיס הפתיחה ובסרגל, ולא מכסה טקסט ב-7 רוחבי מסך')
+      : bad('מסך', 'הדמות בכרטיס הפתיחה', 'בינוני', mHits.length ? 'מכסה: ' + mHits.join(', ') : 'חסרה תמונת הדמות', 'לבדוק את .hero-mascot ואת נקודת המעבר ב-1100px');
     document.querySelector('link[rel=icon]') ? ok('מסך', 'סמל אתר') : bad('מסך', 'סמל אתר', 'בינוני', 'חסר link rel=icon', 'להוסיף favicon');
 
     // 6. שגיאות סקריפט (לא כולל משאבים חיצוניים כמו גופנים)
